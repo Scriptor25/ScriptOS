@@ -1,9 +1,0 @@
-{
-    "makefile.launchConfigurations": [
-        {
-            "cwd": "/home/felix/osdev/build",
-            "binaryPath": "/home/felix/osdev/build/kernel.bin",
-            "binaryArgs": []
-        }
-    ]
-}
