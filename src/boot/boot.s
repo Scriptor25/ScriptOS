@@ -1,5 +1,5 @@
 #define ASM_FILE 1
-#include <multiboot2.h>
+#include <scriptos/multiboot2.h>
 
 .extern _data_end
 .extern _bss_end
