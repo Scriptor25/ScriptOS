@@ -25,7 +25,7 @@ OBJS = $(BOOTOBJS) $(KERNELOBJS)
 build: $(ISO)
 
 launch: $(ISO)
-	$(QEMU) -cdrom $(ISO)
+	$(QEMU) -cdrom $(ISO) -m 256M
 
 clean:
 	-rm -rf $(BUILD)

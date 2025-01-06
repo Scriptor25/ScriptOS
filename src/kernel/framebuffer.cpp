@@ -1,49 +1,67 @@
 #include <scriptos/framebuffer.hpp>
 #include <scriptos/memory.hpp>
 
-void Framebuffer_Setup(fb_ref_t fb, u8 *base, u32 width, u32 height, u32 pitch, u8 bpp)
+void Framebuffer::Blit(Framebuffer &dst, const Framebuffer &src)
 {
-    fb->Base = base;
-    fb->Width = width;
-    fb->Height = height;
-    fb->Pitch = pitch;
-    fb->BPP = bpp / 8;
+    if (&dst == &src)
+        return;
+    if (dst.m_Base == src.m_Base)
+        return;
+    if (dst.m_Pitch * dst.m_Height != src.m_Pitch * src.m_Height)
+        return;
+    memcpy(dst.m_Base, src.m_Base, dst.m_Pitch * dst.m_Height);
 }
 
-void Framebuffer_Write(fb_ref_t fb, u32 x, u32 y, u32 value)
+void Framebuffer::Init(u8 *base, u32 width, u32 height, u32 pitch, u8 bpp)
 {
-    *((u32 *)(fb->Base + x * fb->BPP + y * fb->Pitch)) = value;
+    m_Base = base;
+    m_Width = width;
+    m_Height = height;
+    m_Pitch = pitch;
+    m_BytePerPixel = bpp / 8;
 }
 
-void Framebuffer_Write_Array(fb_ref_t fb, u32 x, u32 y, u32 width, u32 height, const u32 *value)
+void Framebuffer::Write(u32 x, u32 y, u32 value)
 {
+    *(u32 *)(m_Base + x * m_BytePerPixel + y * m_Pitch) = value;
+}
+
+void Framebuffer::WriteArray(u32 x, u32 y, u32 width, u32 height, const void *src)
+{
+    auto pitch = width * m_BytePerPixel;
     for (u32 j = 0; j < height; ++j)
-        memcpy(fb->Base + x * fb->BPP + (j + y) * fb->Pitch, value + y * width, width);
+        memcpy(m_Base + x * m_BytePerPixel + (j + y) * m_Pitch, (u8 *)src + y * pitch, pitch);
 }
 
-u32 Framebuffer_Read(fb_ref_t fb, u32 x, u32 y)
+u32 Framebuffer::Read(u32 x, u32 y)
 {
-    return *((u32 *)(fb->Base + x * fb->BPP + y * fb->Pitch));
+    return *(u32 *)(m_Base + x * m_BytePerPixel + y * m_Pitch);
 }
 
-void Framebuffer_Read_Array(fb_ref_t fb, u32 x, u32 y, u32 width, u32 height, u32 *dst)
+void *Framebuffer::ReadArray(u32 x, u32 y, u32 width, u32 height, void *dst)
 {
+    auto pitch = width * m_BytePerPixel;
     for (u32 j = 0; j < height; ++j)
-        memcpy(dst + y * width, fb->Base + x * fb->BPP + (j + y) * fb->Pitch, width);
+        memcpy((u8 *)dst + y * pitch, m_Base + x * m_BytePerPixel + (j + y) * m_Pitch, pitch);
+    return dst;
 }
 
-void Framebuffer_Clear(fb_ref_t fb, u32 value)
+void Framebuffer::Clear(u32 value)
 {
-    memset(fb->Base, ((u64)value) << 32 | ((u64)value), fb->Pitch * fb->Height);
+    memset(m_Base, ((u64)value) << 32 | ((u64)value), m_Pitch * m_Height);
 }
 
-void Framebuffer_Blit(fb_ref_t dst, fb_ref_t src)
+u32 Framebuffer::GetWidth() const
 {
-    if (dst == src)
-        return;
-    if (dst->Base == src->Base)
-        return;
-    if (dst->Pitch * dst->Height != src->Pitch * src->Height)
-        return;
-    memcpy(dst->Base, src->Base, dst->Pitch * dst->Height);
+    return m_Width;
+}
+
+u32 Framebuffer::GetHeight() const
+{
+    return m_Height;
+}
+
+u8 Framebuffer::GetBytePerPixel() const
+{
+    return m_BytePerPixel;
 }

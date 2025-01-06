@@ -7,7 +7,7 @@ void *memcpy(void *dst, const void *src, u64 count)
     u64 end = count - rem;
     for (u64 i = 0; i < end; i += 8)
         *(u64 *)((u8 *)dst + i) = *(const u64 *)((const u8 *)src + i);
-    for (u64 i = end; end < count; ++i)
+    for (u64 i = end; i < count; ++i)
         *((u8 *)dst + i) = *((const u8 *)src + i);
     return dst;
 }
@@ -18,20 +18,32 @@ void *memset(void *dst, u64 src, u64 count)
     u64 end = count - rem;
     for (u64 i = 0; i < end; i += 8)
         *(u64 *)((u8 *)dst + i) = src;
-    for (u64 i = end; end < count; ++i)
+    for (u64 i = end; i < count; ++i)
         *((u8 *)dst + i) = (u8)src;
     return dst;
 }
 
-u64 Memory_GetSize(mmap_t map)
+MemoryMap::MemoryMap(const mb_mmap_entry_t *beg, const mb_mmap_entry_t *end, const u32 entry_size)
+    : m_Beg(beg), m_End(end), m_EntrySize(entry_size)
 {
-    if (map.Beg == map.End)
-        return 0;
+}
 
+Iterator<const mb_mmap_entry_t> MemoryMap::begin() const
+{
+    return Iterator(m_Beg, m_EntrySize);
+}
+
+Iterator<const mb_mmap_entry_t> MemoryMap::end() const
+{
+    return Iterator(m_End, m_EntrySize);
+}
+
+u64 Memory_GetSize(const MemoryMap &mmap)
+{
     u64 size = 0;
 
-    for (mb_mmap_entry_t *entry = map.Beg; entry != map.End; entry = (mb_mmap_entry_t *)((u8 *)entry + map.EntrySize))
-        size += entry->length;
+    for (auto &entry : mmap)
+        size += entry.length;
 
     return size;
 }

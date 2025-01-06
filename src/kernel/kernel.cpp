@@ -1,58 +1,55 @@
+#include <scriptos/bitmap.hpp>
 #include <scriptos/font.hpp>
 #include <scriptos/framebuffer.hpp>
 #include <scriptos/info.hpp>
 #include <scriptos/io.hpp>
 #include <scriptos/memory.hpp>
 #include <scriptos/multiboot2.hpp>
+#include <scriptos/pfa.hpp>
 #include <scriptos/print.hpp>
 #include <scriptos/types.hpp>
 
 static u32 posx;
 static u32 posy;
-static framebuffer_t fb, bb;
+static Framebuffer fb;
 
 void reset()
 {
     posx = posy = 0;
-    Framebuffer_Clear(&bb, 0);
+    fb.Clear(0);
 }
 
 void draw_char(int c, u32 x, u32 y, u32 color)
 {
-    auto bmp = BitmapFont_GetChar(c);
+    auto bmp = Font_GetChar(c);
     if (!bmp)
         return;
     for (u8 j = 0; j < 8; ++j)
         for (u8 i = 0; i < 8; ++i)
-            if (BitmapFont_GetBit(bmp, i, j))
-                Framebuffer_Write(&bb, x + i, y + j, color);
+            if (Font_GetBit(bmp, i, j))
+                fb.Write(x + i, y + j, color);
 }
 
 void draw_test(int offset)
 {
-    for (u32 j = 0; j < bb.Height; ++j)
-        for (u32 i = 0; i < bb.Width; ++i)
+    for (u32 j = 0; j < fb.GetHeight(); ++j)
+        for (u32 i = 0; i < fb.GetWidth(); ++i)
         {
-            f32 fr = (f32)(((i + offset) * 8) % bb.Width) / (f32)(bb.Width - 1);
-            f32 fg = (f32)(((j + offset) * 8) % bb.Height) / (f32)(bb.Height - 1);
+            f32 fr = (f32)(((i + offset) * 8) % fb.GetWidth()) / (f32)(fb.GetWidth() - 1);
+            f32 fg = (f32)(((j + offset) * 8) % fb.GetHeight()) / (f32)(fb.GetHeight() - 1);
 
             u32 ur = (u32)(fr * 255.999f);
             u32 ug = (u32)(fg * 255.999f);
 
             u32 color = (ur & 0xff) << 16 | (ug & 0xff) << 8;
-            Framebuffer_Write(&bb, i, j, color);
+            fb.Write(i, j, color);
         }
-}
-
-void swap_buffers()
-{
-    Framebuffer_Blit(&fb, &bb);
 }
 
 void putchar(int c)
 {
-    u32 rows = (bb.BPP == 2) ? bb.Height : (bb.Height / 8);
-    u32 cols = (bb.BPP == 2) ? bb.Width : (bb.Width / 8);
+    u32 rows = (fb.GetBytePerPixel() == 2) ? fb.GetHeight() : (fb.GetHeight() / 8);
+    u32 cols = (fb.GetBytePerPixel() == 2) ? fb.GetWidth() : (fb.GetWidth() / 8);
 
     if (c < 0x20)
     {
@@ -70,9 +67,9 @@ void putchar(int c)
         return;
     }
 
-    if (bb.BPP == 2)
-        Framebuffer_Write(&bb, posx, posy, 7 << 8 | (c & 0xff));
-    else if (bb.BPP == 3 || bb.BPP == 4)
+    if (fb.GetBytePerPixel() == 2)
+        fb.Write(posx, posy, 7 << 8 | (c & 0xff));
+    else if (fb.GetBytePerPixel() == 3 || fb.GetBytePerPixel() == 4)
         draw_char(c, posx * 8, posy * 8, 0xffffff);
 
     if (++posx >= cols)
@@ -113,11 +110,15 @@ extern "C" void kernel_main(u32 magic, mb_tag_t *info)
         u32 fb_pitch = tag->framebuffer_pitch;
         u8 fb_bpp = tag->framebuffer_bpp;
 
-        Framebuffer_Setup(&fb, (u8 *)fb_addr, fb_width, fb_height, fb_pitch, fb_bpp);
-        Framebuffer_Setup(&bb, (u8 *)KERNEL_END, fb_width, fb_height, fb_pitch, fb_bpp);
+        fb.Init((u8 *)fb_addr, fb_width, fb_height, fb_pitch, fb_bpp);
         reset();
+    }
 
-        draw_test(0);
+    PageFrameAllocator alloc;
+    {
+        mb_tag_mmap_t *tag = (mb_tag_mmap_t *)get_tag(info, MULTIBOOT_TAG_TYPE_MMAP);
+        const MemoryMap mmap(tag->entries, (mb_mmap_entry_t *)((u8 *)tag + tag->size), tag->entry_size);
+        alloc.Init(mmap);
     }
 
     for (mb_tag_t *ptr = info + 1;
@@ -141,27 +142,27 @@ extern "C" void kernel_main(u32 magic, mb_tag_t *info)
         case MULTIBOOT_TAG_TYPE_BOOTDEV:
         {
             mb_tag_bootdev_t *tag = (mb_tag_bootdev_t *)ptr;
-            printf("boot device %#x,%u,%u\n", tag->biosdev, tag->part, tag->slice);
+            printf("boot device %p,%u,%u\n", (void *)tag->biosdev, tag->part, tag->slice);
             break;
         }
         case MULTIBOOT_TAG_TYPE_FRAMEBUFFER:
         {
             mb_tag_framebuffer_t *tag = (mb_tag_framebuffer_t *)ptr;
-            (void)tag;
+            printf("framebuffer %p, %ux%ux%u\n", (void *)tag->framebuffer_addr, tag->framebuffer_width, tag->framebuffer_height, tag->framebuffer_bpp);
             break;
         }
         case MULTIBOOT_TAG_TYPE_MMAP:
         {
             mb_tag_mmap_t *tag = (mb_tag_mmap_t *)ptr;
 
+            const MemoryMap mmap(tag->entries, (mb_mmap_entry_t *)((u8 *)tag + tag->size), tag->entry_size);
+
             printf("memory map:\n");
 
-            for (mb_mmap_entry_t *entry = tag->entries;
-                 (u8 *)entry < (u8 *)tag + tag->size;
-                 entry = (mb_mmap_entry_t *)((u8 *)entry + tag->entry_size))
+            for (auto &entry : mmap)
             {
                 const char *type_string = "none";
-                switch (entry->type)
+                switch (entry.type)
                 {
                 case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE:
                     type_string = "acpi";
@@ -179,14 +180,10 @@ extern "C" void kernel_main(u32 magic, mb_tag_t *info)
                     type_string = "reserved";
                     break;
                 }
-                printf(" base = %p, length = %8uKB, type = %s\n", entry->base_addr, (u32)(entry->length / 1024), type_string);
+                printf(" base = %p, length = %8uKB, type = %s\n", (void *)entry.base_addr, (u32)(entry.length / 1024), type_string);
             }
 
-            u64 size = Memory_GetSize((mmap_t){
-                tag->entries,
-                (mb_mmap_entry_t *)((u8 *)tag + tag->size),
-                tag->entry_size,
-            });
+            u64 size = Memory_GetSize(mmap);
             printf("memory size = %uKB\n", (u32)(size / 1024));
 
             break;
@@ -206,5 +203,7 @@ extern "C" void kernel_main(u32 magic, mb_tag_t *info)
         }
     }
 
-    swap_buffers();
+    printf("free:     %uKB\n", (u32)(alloc.GetFree() / 1024));
+    printf("used:     %uKB\n", (u32)(alloc.GetUsed() / 1024));
+    printf("reserved: %uKB\n", (u32)(alloc.GetReserved() / 1024));
 }

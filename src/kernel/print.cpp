@@ -294,21 +294,12 @@ int vprintf(const char *format, va_list ap)
             case 'p':
             case 'P':
             {
-                unsigned int lower = va_arg(ap, unsigned int);
-                char buf_lower[8];
-                int len_lower = itoa(buf_lower, lower, 16, 0);
-
-                unsigned int upper = va_arg(ap, unsigned int);
-                char buf_upper[8];
-                int len_upper = itoa(buf_upper, upper, 16, 0);
-
-                for (int x = len_upper; x < 8; ++x)
+                char buf[16];
+                void *ptr = va_arg(ap, void *);
+                int len = itoa(buf, (unsigned int)ptr, 16, 0);
+                for (unsigned x = len; x < sizeof(void *) * 2; ++x)
                     putchar('0');
-                printn(buf_upper, len_upper);
-
-                for (int x = len_lower; x < 8; ++x)
-                    putchar('0');
-                printn(buf_lower, len_lower);
+                printn(buf, len);
 
                 num += 16;
                 break;

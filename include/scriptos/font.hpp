@@ -2,5 +2,5 @@
 
 #include <scriptos/types.hpp>
 
-const int *BitmapFont_GetChar(int c);
-u8 BitmapFont_GetBit(const int *c, u8 x, u8 y);
+const u8 *Font_GetChar(int c);
+bool Font_GetBit(const u8 *c, u8 x, u8 y);

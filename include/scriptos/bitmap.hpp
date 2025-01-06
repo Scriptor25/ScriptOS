@@ -2,8 +2,19 @@
 
 #include <scriptos/types.hpp>
 
-typedef struct bitmap
+class Bitmap
 {
-    u32 Size;
-    u8 *Buffer;
-} bitmap_t;
+public:
+    void Init(u64 size, u8 *buffer);
+
+    u64 GetSize() const;
+    void *GetBuffer() const;
+
+    bool operator[](u64 index) const;
+    bool Get(u64 index) const;
+    void Put(u64 index, bool value);
+
+private:
+    u64 m_Size;
+    u8 *m_Buffer;
+};

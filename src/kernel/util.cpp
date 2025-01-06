@@ -10,12 +10,12 @@ int itoa(char *buf, unsigned int value, unsigned int base, unsigned int upper)
     int len = 0;
     char rev[256];
 
-    while (value)
+    do
     {
         unsigned int rem = value % base;
         rev[len++] = ((rem < 10) ? (rem + 0x30) : (rem + (upper ? 'A' : 'a') - 10));
         value /= base;
-    }
+    } while (value);
 
     if (buf)
         for (int i = 0, j = len - 1; j >= 0; ++i, --j)

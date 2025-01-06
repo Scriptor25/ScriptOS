@@ -2,7 +2,7 @@
 #include <scriptos/font/font8x8.hpp>
 #include <scriptos/memory.hpp>
 
-const int *BitmapFont_GetChar(int c)
+const u8 *Font_GetChar(int c)
 {
     if (0x0000 <= c && c <= 0x007f)
         return font8x8_basic[c];
@@ -23,7 +23,7 @@ const int *BitmapFont_GetChar(int c)
     return nullptr;
 }
 
-u8 BitmapFont_GetBit(const int *c, u8 x, u8 y)
+bool Font_GetBit(const u8 *c, u8 x, u8 y)
 {
     return (c[y] >> x) & 1;
 }

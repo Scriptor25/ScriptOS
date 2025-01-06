@@ -1,9 +1,6 @@
 #define ASM_FILE 1
 #include <scriptos/multiboot2.hpp>
 
-.extern _data_end
-.extern _bss_end
-
 .set MAGIC,         MULTIBOOT2_HEADER_MAGIC
 .set ARCHITECTURE,  MULTIBOOT_ARCHITECTURE_I386
 .set HEADER_LENGTH, multiboot_header_end - multiboot_header
