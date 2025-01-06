@@ -1,4 +1,5 @@
 #include <scriptos/framebuffer.h>
+#include <scriptos/info.h>
 #include <scriptos/io.h>
 #include <scriptos/multiboot2.h>
 #include <scriptos/print.h>
@@ -6,28 +7,33 @@
 
 static u32 posx;
 static u32 posy;
-static framebuffer_t fb;
+static framebuffer_t fb, bb;
 
 void reset()
 {
     posx = posy = 0;
-    Framebuffer_Clear(&fb, 0);
+    Framebuffer_Clear(&bb, 0);
 }
 
-void clear_color()
+void clear_color(int offset)
 {
-    for (u32 j = 0; j < fb.Height; ++j)
-        for (u32 i = 0; i < fb.Width; ++i)
+    for (u32 j = 0; j < bb.Height; ++j)
+        for (u32 i = 0; i < bb.Width; ++i)
         {
-            f32 fr = (f32)i / (f32)(fb.Width - 1);
-            f32 fg = (f32)j / (f32)(fb.Height - 1);
+            f32 fr = (f32)(((i + offset) * 8) % bb.Width) / (f32)(bb.Width - 1);
+            f32 fg = (f32)(((j + offset) * 8) % bb.Height) / (f32)(bb.Height - 1);
 
             u32 ur = (u32)(fr * 255.999f);
             u32 ug = (u32)(fg * 255.999f);
 
             u32 color = (ur & 0xff) << 16 | (ug & 0xff) << 8;
-            Framebuffer_Write(&fb, i, j, color);
+            Framebuffer_Write(&bb, i, j, color);
         }
+}
+
+void swap_buffers()
+{
+    Framebuffer_Blit(&fb, &bb);
 }
 
 void putchar(i32 c)
@@ -48,12 +54,12 @@ void putchar(i32 c)
         return;
     }
 
-    Framebuffer_Write(&fb, posx, posy, 7 << 8 | (c & 0xff));
+    Framebuffer_Write(&bb, posx, posy, 7 << 8 | (c & 0xff));
 
-    if (++posx >= fb.Width)
+    if (++posx >= bb.Width)
     {
         posx = 0;
-        if (++posy >= fb.Height)
+        if (++posy >= bb.Height)
             posy = 0;
     }
 }
@@ -64,7 +70,10 @@ void main(u32 magic, u32 addr)
         return;
 
     Framebuffer_Setup(&fb, (void *)0xB8000, 80, 25, 160, 16);
+    Framebuffer_Setup(&bb, (void *)KERNEL_END, 80, 25, 160, 16);
     reset();
+
+    int complete_framebuffer = 0;
 
     for (mb_tag_t *ptr = (mb_tag_t *)addr + 1;
          ptr->type != MULTIBOOT_TAG_TYPE_END;
@@ -95,8 +104,9 @@ void main(u32 magic, u32 addr)
             mb_tag_framebuffer_t *tag = (mb_tag_framebuffer_t *)ptr;
 
             Framebuffer_Setup(&fb, (void *)(u32)tag->framebuffer_addr, tag->framebuffer_width, tag->framebuffer_height, tag->framebuffer_pitch, tag->framebuffer_bpp);
-            // clear_color();
+            Framebuffer_Setup(&bb, (void *)(u32)KERNEL_END, tag->framebuffer_width, tag->framebuffer_height, tag->framebuffer_pitch, tag->framebuffer_bpp);
 
+            complete_framebuffer = (tag->framebuffer_type == MULTIBOOT_FRAMEBUFFER_TYPE_RGB && (tag->framebuffer_bpp == 24 || tag->framebuffer_bpp == 32));
             break;
         }
         case MULTIBOOT_TAG_TYPE_MMAP:
@@ -146,5 +156,14 @@ void main(u32 magic, u32 addr)
             break;
         }
         }
+
+        swap_buffers();
     }
+
+    if (complete_framebuffer)
+        for (unsigned int i = 0;; ++i)
+        {
+            clear_color(i);
+            swap_buffers();
+        }
 }
