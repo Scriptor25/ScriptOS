@@ -1,11 +1,12 @@
 #include <scriptos/framebuffer.h>
 #include <scriptos/io.h>
 #include <scriptos/multiboot2.h>
+#include <scriptos/print.h>
 #include <scriptos/types.h>
 
 static u32 posx;
 static u32 posy;
-static Framebuffer_t fb;
+static framebuffer_t fb;
 
 void reset()
 {
@@ -57,112 +58,6 @@ void putchar(i32 c)
     }
 }
 
-void print(const char *string)
-{
-    for (char *p = (char *)string; *p; ++p)
-        putchar(*p);
-}
-
-void itoa(char *buf, i32 base, i32 d)
-{
-    char *p = buf;
-    char *p1, *p2;
-    u32 ud = d;
-    i32 divisor = 10;
-
-    if (base == 'd' && d < 0)
-    {
-        *p++ = '-';
-        buf++;
-        ud = -d;
-    }
-    else if (base == 'x')
-        divisor = 16;
-
-    do
-    {
-        i32 remainder = ud % divisor;
-        *p++ = (remainder < 10)
-                   ? (remainder + '0')
-                   : (remainder + 'a' - 10);
-    } while (ud /= divisor);
-
-    *p = 0;
-
-    p1 = buf;
-    p2 = p - 1;
-    while (p1 < p2)
-    {
-        char tmp = *p1;
-        *p1 = *p2;
-        *p2 = tmp;
-        p1++;
-        p2--;
-    }
-}
-
-void printf(const char *format, ...)
-{
-    char **arg = (char **)&format;
-    i32 c;
-    char buf[20];
-
-    arg++;
-
-    while ((c = *format++) != 0)
-    {
-        if (c != '%')
-            putchar(c);
-        else
-        {
-            char *p, *p2;
-            i32 pad0 = 0, pad = 0;
-
-            c = *format++;
-            if (c == '0')
-            {
-                pad0 = 1;
-                c = *format++;
-            }
-
-            if (c >= '0' && c <= '9')
-            {
-                pad = c - '0';
-                c = *format++;
-            }
-
-            switch (c)
-            {
-            case 'd':
-            case 'u':
-            case 'x':
-                itoa(buf, c, *((i32 *)arg++));
-                p = buf;
-                goto string;
-                break;
-
-            case 's':
-                p = *arg++;
-                if (!p)
-                    p = "(null)";
-
-            string:
-                for (p2 = p; *p2; p2++)
-                    ;
-                for (; p2 < p + pad; p2++)
-                    putchar(pad0 ? '0' : ' ');
-                while (*p)
-                    putchar(*p++);
-                break;
-
-            default:
-                putchar(*((i32 *)arg++));
-                break;
-            }
-        }
-    }
-}
-
 void main(u32 magic, u32 addr)
 {
     if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || (addr & 7))
@@ -192,15 +87,15 @@ void main(u32 magic, u32 addr)
         case MULTIBOOT_TAG_TYPE_BOOTDEV:
         {
             mb_tag_bootdev_t *tag = (mb_tag_bootdev_t *)ptr;
-            printf("boot device 0x%x,%u,%u\n", tag->biosdev, tag->part, tag->slice);
+            printf("boot device %#x,%u,%u\n", tag->biosdev, tag->part, tag->slice);
             break;
         }
         case MULTIBOOT_TAG_TYPE_FRAMEBUFFER:
         {
             mb_tag_framebuffer_t *tag = (mb_tag_framebuffer_t *)ptr;
 
-            Framebuffer_Setup(&fb, (void *)tag->framebuffer_addr, tag->framebuffer_width, tag->framebuffer_height, tag->framebuffer_pitch, tag->framebuffer_bpp);
-            clear_color();
+            Framebuffer_Setup(&fb, (void *)(u32)tag->framebuffer_addr, tag->framebuffer_width, tag->framebuffer_height, tag->framebuffer_pitch, tag->framebuffer_bpp);
+            // clear_color();
 
             break;
         }
@@ -233,13 +128,7 @@ void main(u32 magic, u32 addr)
                     type_string = "reserved";
                     break;
                 }
-                printf(
-                    " base = 0x%x%x, length = 0x%x%x, type = %s\n",
-                    (u32)(entry->base_addr >> 32),
-                    (u32)(entry->base_addr & 0xffffffff),
-                    (u32)(entry->length >> 32),
-                    (u32)(entry->length & 0xffffffff),
-                    type_string);
+                printf(" base = %p, length = %p, type = %s\n", entry->base_addr, entry->length, type_string);
             }
 
             break;
@@ -247,15 +136,13 @@ void main(u32 magic, u32 addr)
         case MULTIBOOT_TAG_TYPE_MODULE:
         {
             mb_tag_module_t *tag = (mb_tag_module_t *)ptr;
-            (void)tag->mod_start;
-            (void)tag->mod_end;
-            (void)tag->string;
+            printf("module start = %#x, end = %#x, string = %s\n", tag->mod_start, tag->mod_end, tag->string);
             break;
         }
         case MULTIBOOT_TAG_TYPE_NETWORK:
         {
             mb_tag_network_t *tag = (mb_tag_network_t *)ptr;
-            printf("DHCP ACK = %s\n", tag->dhcpack);
+            printf("dhcp ack = %s\n", tag->dhcpack);
             break;
         }
         }

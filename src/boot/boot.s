@@ -35,15 +35,15 @@ entry_address_tag_start:
 .long 0 /* alignment padding */
 entry_address_tag_end:
 
-framebuffer_tag_start:
-.short MULTIBOOT_HEADER_TAG_FRAMEBUFFER
-.short MULTIBOOT_HEADER_TAG_OPTIONAL
-.long framebuffer_tag_end - framebuffer_tag_start
-.long 1024
-.long 768
-.long 32
-.long 0 /* alignment padding */
-framebuffer_tag_end:
+//framebuffer_tag_start:
+//.short MULTIBOOT_HEADER_TAG_FRAMEBUFFER
+//.short MULTIBOOT_HEADER_TAG_OPTIONAL
+//.long framebuffer_tag_end - framebuffer_tag_start
+//.long 1024
+//.long 768
+//.long 32
+//.long 0 /* alignment padding */
+//framebuffer_tag_end:
 
 .short MULTIBOOT_HEADER_TAG_END
 .short 0
