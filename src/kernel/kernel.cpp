@@ -1,9 +1,11 @@
-#include <scriptos/framebuffer.h>
-#include <scriptos/info.h>
-#include <scriptos/io.h>
-#include <scriptos/multiboot2.h>
-#include <scriptos/print.h>
-#include <scriptos/types.h>
+#include <scriptos/font.hpp>
+#include <scriptos/framebuffer.hpp>
+#include <scriptos/info.hpp>
+#include <scriptos/io.hpp>
+#include <scriptos/memory.hpp>
+#include <scriptos/multiboot2.hpp>
+#include <scriptos/print.hpp>
+#include <scriptos/types.hpp>
 
 static u32 posx;
 static u32 posy;
@@ -15,7 +17,18 @@ void reset()
     Framebuffer_Clear(&bb, 0);
 }
 
-void clear_color(int offset)
+void draw_char(int c, u32 x, u32 y, u32 color)
+{
+    auto bmp = BitmapFont_GetChar(c);
+    if (!bmp)
+        return;
+    for (u8 j = 0; j < 8; ++j)
+        for (u8 i = 0; i < 8; ++i)
+            if (BitmapFont_GetBit(bmp, i, j))
+                Framebuffer_Write(&bb, x + i, y + j, color);
+}
+
+void draw_test(int offset)
 {
     for (u32 j = 0; j < bb.Height; ++j)
         for (u32 i = 0; i < bb.Width; ++i)
@@ -36,15 +49,18 @@ void swap_buffers()
     Framebuffer_Blit(&fb, &bb);
 }
 
-void putchar(i32 c)
+void putchar(int c)
 {
+    u32 rows = (bb.BPP == 2) ? bb.Height : (bb.Height / 8);
+    u32 cols = (bb.BPP == 2) ? bb.Width : (bb.Width / 8);
+
     if (c < 0x20)
     {
         switch (c)
         {
         case '\n':
             posx = 0;
-            if (++posy >= fb.Height)
+            if (++posy >= rows)
                 posy = 0;
             break;
         case '\r':
@@ -54,28 +70,57 @@ void putchar(i32 c)
         return;
     }
 
-    Framebuffer_Write(&bb, posx, posy, 7 << 8 | (c & 0xff));
+    if (bb.BPP == 2)
+        Framebuffer_Write(&bb, posx, posy, 7 << 8 | (c & 0xff));
+    else if (bb.BPP == 3 || bb.BPP == 4)
+        draw_char(c, posx * 8, posy * 8, 0xffffff);
 
-    if (++posx >= bb.Width)
+    if (++posx >= cols)
     {
         posx = 0;
-        if (++posy >= bb.Height)
+        if (++posy >= rows)
             posy = 0;
     }
 }
 
-void main(u32 magic, u32 addr)
+void wprint(const int *str)
 {
-    if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || (addr & 7))
+    for (int *p = (int *)str; *p; ++p)
+        putchar(*p);
+}
+
+mb_tag_t *get_tag(mb_tag_t *info, u32 type)
+{
+    for (mb_tag_t *ptr = info + 1;
+         ptr->type != MULTIBOOT_TAG_TYPE_END;
+         ptr = (mb_tag_t *)((u8 *)ptr + ((ptr->size + 7) & ~7)))
+        if (ptr->type == type)
+            return ptr;
+    return nullptr;
+}
+
+extern "C" void kernel_main(u32 magic, mb_tag_t *info)
+{
+    if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || ((u32)info & 7))
         return;
 
-    Framebuffer_Setup(&fb, (void *)0xB8000, 80, 25, 160, 16);
-    Framebuffer_Setup(&bb, (void *)KERNEL_END, 80, 25, 160, 16);
-    reset();
+    {
+        mb_tag_framebuffer_t *tag = (mb_tag_framebuffer_t *)get_tag(info, MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
 
-    int complete_framebuffer = 0;
+        u64 fb_addr = tag->framebuffer_addr;
+        u32 fb_width = tag->framebuffer_width;
+        u32 fb_height = tag->framebuffer_height;
+        u32 fb_pitch = tag->framebuffer_pitch;
+        u8 fb_bpp = tag->framebuffer_bpp;
 
-    for (mb_tag_t *ptr = (mb_tag_t *)addr + 1;
+        Framebuffer_Setup(&fb, (u8 *)fb_addr, fb_width, fb_height, fb_pitch, fb_bpp);
+        Framebuffer_Setup(&bb, (u8 *)KERNEL_END, fb_width, fb_height, fb_pitch, fb_bpp);
+        reset();
+
+        draw_test(0);
+    }
+
+    for (mb_tag_t *ptr = info + 1;
          ptr->type != MULTIBOOT_TAG_TYPE_END;
          ptr = (mb_tag_t *)((u8 *)ptr + ((ptr->size + 7) & ~7)))
     {
@@ -102,11 +147,7 @@ void main(u32 magic, u32 addr)
         case MULTIBOOT_TAG_TYPE_FRAMEBUFFER:
         {
             mb_tag_framebuffer_t *tag = (mb_tag_framebuffer_t *)ptr;
-
-            Framebuffer_Setup(&fb, (void *)(u32)tag->framebuffer_addr, tag->framebuffer_width, tag->framebuffer_height, tag->framebuffer_pitch, tag->framebuffer_bpp);
-            Framebuffer_Setup(&bb, (void *)(u32)KERNEL_END, tag->framebuffer_width, tag->framebuffer_height, tag->framebuffer_pitch, tag->framebuffer_bpp);
-
-            complete_framebuffer = (tag->framebuffer_type == MULTIBOOT_FRAMEBUFFER_TYPE_RGB && (tag->framebuffer_bpp == 24 || tag->framebuffer_bpp == 32));
+            (void)tag;
             break;
         }
         case MULTIBOOT_TAG_TYPE_MMAP:
@@ -138,8 +179,15 @@ void main(u32 magic, u32 addr)
                     type_string = "reserved";
                     break;
                 }
-                printf(" base = %p, length = %p, type = %s\n", entry->base_addr, entry->length, type_string);
+                printf(" base = %p, length = %8uKB, type = %s\n", entry->base_addr, (u32)(entry->length / 1024), type_string);
             }
+
+            u64 size = Memory_GetSize((mmap_t){
+                tag->entries,
+                (mb_mmap_entry_t *)((u8 *)tag + tag->size),
+                tag->entry_size,
+            });
+            printf("memory size = %uKB\n", (u32)(size / 1024));
 
             break;
         }
@@ -156,14 +204,7 @@ void main(u32 magic, u32 addr)
             break;
         }
         }
-
-        swap_buffers();
     }
 
-    if (complete_framebuffer)
-        for (unsigned int i = 0;; ++i)
-        {
-            clear_color(i);
-            swap_buffers();
-        }
+    swap_buffers();
 }

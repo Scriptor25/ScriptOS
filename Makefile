@@ -1,9 +1,9 @@
 AS = i686-elf-as
-GCC = i686-elf-gcc
+GCC = i686-elf-g++
 QEMU = qemu-system-i386
 CPP = i686-elf-cpp
 
-GCCFLAGS = -std=gnu99 -ffreestanding -O2 -Wall -Wextra
+GCCFLAGS = -std=c++20 -ffreestanding -O2 -Wall -Wextra
 
 SRC = src
 BOOTSRC = $(SRC)/boot
@@ -17,7 +17,7 @@ KERNEL = $(BUILD)/kernel.bin
 ISO = $(BUILD)/$(OSNAME).iso
 
 BOOTOBJS = $(patsubst $(SRC)/%.s,$(BUILD)/%.o,$(wildcard $(BOOTSRC)/*.s))
-KERNELOBJS = $(patsubst $(SRC)/%.c,$(BUILD)/%.o,$(wildcard $(KERNELSRC)/*.c))
+KERNELOBJS = $(patsubst $(SRC)/%.cpp,$(BUILD)/%.o,$(wildcard $(KERNELSRC)/*.cpp))
 OBJS = $(BOOTOBJS) $(KERNELOBJS)
 
 .PHONY: build launch clean
@@ -42,7 +42,7 @@ $(BOOTBUILD)/%.o: $(BOOTBUILD)/%.s.pp
 $(BOOTBUILD)/%.s.pp: $(BOOTSRC)/%.s $(BOOTBUILD)
 	$(CPP) $< -o $@ -I include
 
-$(KERNELBUILD)/%.o: $(KERNELSRC)/%.c $(KERNELBUILD)
+$(KERNELBUILD)/%.o: $(KERNELSRC)/%.cpp $(KERNELBUILD)
 	$(GCC) -c $< -o $@ $(GCCFLAGS) -I include
 
 $(KERNEL): $(SRC)/linker.ld $(OBJS)

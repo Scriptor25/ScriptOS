@@ -1,5 +1,5 @@
 #define ASM_FILE 1
-#include <scriptos/multiboot2.h>
+#include <scriptos/multiboot2.hpp>
 
 .extern _data_end
 .extern _bss_end
@@ -72,7 +72,7 @@ _start:
         pushl %eax
 
         /* enter kernel main */
-        call main
+        call kernel_main
 
         /* halt */
 .loop:  cli

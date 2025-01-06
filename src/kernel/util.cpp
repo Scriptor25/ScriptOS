@@ -1,4 +1,4 @@
-#include <scriptos/util.h>
+#include <scriptos/util.hpp>
 
 int is_digit(int c)
 {

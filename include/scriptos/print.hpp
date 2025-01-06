@@ -1,6 +1,6 @@
 #pragma once
 
-#include <scriptos/vararg.h>
+#include <scriptos/vararg.hpp>
 
 void putchar(int c);
 int print(const char *str);

@@ -1,6 +1,6 @@
-#include <scriptos/print.h>
-#include <scriptos/types.h>
-#include <scriptos/util.h>
+#include <scriptos/print.hpp>
+#include <scriptos/types.hpp>
+#include <scriptos/util.hpp>
 
 int print(const char *str)
 {
