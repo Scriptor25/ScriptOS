@@ -12,7 +12,7 @@ public:
 
     bool operator[](u64 index) const;
     bool Get(u64 index) const;
-    void Put(u64 index, bool value);
+    void Set(u64 index, bool value);
 
 private:
     u64 m_Size;

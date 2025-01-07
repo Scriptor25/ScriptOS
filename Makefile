@@ -46,7 +46,7 @@ $(KERNELBUILD)/%.o: $(KERNELSRC)/%.cpp $(KERNELBUILD)
 	$(GCC) -c $< -o $@ $(GCCFLAGS) -I include
 
 $(KERNEL): $(SRC)/linker.ld $(OBJS)
-	$(GCC) -o $(KERNEL) -ffreestanding -O2 -nostdlib -T $^ -lgcc
+	$(GCC) -o $(KERNEL) -ffreestanding -O2 -nostdlib -T $^
 	grub-file --is-x86-multiboot2 $(KERNEL)
 
 $(ISO): $(KERNEL) $(SRC)/grub.cfg

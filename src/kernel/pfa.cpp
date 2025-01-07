@@ -20,7 +20,7 @@ void PageFrameAllocator::Init(const MemoryMap &mmap)
 
     auto memory_size = Memory_GetSize(mmap);
     m_FreeMemory = memory_size;
-    u64 bitmap_size = memory_size / (PAGE_SIZE * 8) + 1;
+    auto bitmap_size = memory_size / (PAGE_SIZE * 8) + 1;
 
     printf("largest addr = %p, length = %uKB\n", (void *)largest_addr, (u32)(largest_length / 1024));
     printf("bitmap size = %uB\n", (u32)(bitmap_size));
@@ -37,18 +37,18 @@ void PageFrameAllocator::Init(const MemoryMap &mmap)
             auto page_count = entry.length / PAGE_SIZE;
             if (rem)
                 page_count++;
-            // ReservePages((void *)entry.base_addr, page_count);
-            printf("reserve pages address = %p, count = %u\n", (void *)entry.base_addr, page_count);
+            ReservePages((void *)entry.base_addr, page_count);
+            // printf("reserve pages address = %p, count = %u\n", (void *)entry.base_addr, page_count);
         }
 }
 
 void PageFrameAllocator::FreePage(void *address)
 {
-    u64 index = (u64)address / PAGE_SIZE;
+    auto index = (u64)address / PAGE_SIZE;
     if (!m_PageMap[index])
         return;
 
-    m_PageMap.Put(index, false);
+    m_PageMap.Set(index, false);
     m_FreeMemory += PAGE_SIZE;
     m_UsedMemory -= PAGE_SIZE;
 }
@@ -61,11 +61,11 @@ void PageFrameAllocator::FreePages(void *address, u64 count)
 
 void PageFrameAllocator::LockPage(void *address)
 {
-    u64 index = (u64)address / PAGE_SIZE;
+    auto index = (u64)address / PAGE_SIZE;
     if (m_PageMap[index])
         return;
 
-    m_PageMap.Put(index, true);
+    m_PageMap.Set(index, true);
     m_FreeMemory -= PAGE_SIZE;
     m_UsedMemory += PAGE_SIZE;
 }
@@ -90,11 +90,11 @@ void PageFrameAllocator::InitBitmap(u64 size, u8 *buffer)
 
 void PageFrameAllocator::ReservePage(void *address)
 {
-    u64 index = (u64)address / PAGE_SIZE;
+    auto index = (u64)address / PAGE_SIZE;
     if (!m_PageMap[index])
         return;
 
-    m_PageMap.Put(index, false);
+    m_PageMap.Set(index, false);
     m_FreeMemory -= PAGE_SIZE;
     m_ReservedMemory += PAGE_SIZE;
 }
@@ -107,11 +107,11 @@ void PageFrameAllocator::ReservePages(void *address, u64 count)
 
 void PageFrameAllocator::UnreservePage(void *address)
 {
-    u64 index = (u64)address / PAGE_SIZE;
+    auto index = (u64)address / PAGE_SIZE;
     if (m_PageMap[index])
         return;
 
-    m_PageMap.Put(index, true);
+    m_PageMap.Set(index, true);
     m_FreeMemory += PAGE_SIZE;
     m_ReservedMemory -= PAGE_SIZE;
 }

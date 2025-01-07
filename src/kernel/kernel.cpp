@@ -13,13 +13,13 @@ static u32 posx;
 static u32 posy;
 static Framebuffer fb;
 
-void reset()
+static void reset()
 {
     posx = posy = 0;
     fb.Clear(0);
 }
 
-void draw_char(int c, u32 x, u32 y, u32 color)
+static void draw_char(int c, u32 x, u32 y, u32 color)
 {
     auto bmp = Font_GetChar(c);
     if (!bmp)
@@ -30,26 +30,26 @@ void draw_char(int c, u32 x, u32 y, u32 color)
                 fb.Write(x + i, y + j, color);
 }
 
-void draw_test(int offset)
+static void draw_test(int offset)
 {
     for (u32 j = 0; j < fb.GetHeight(); ++j)
         for (u32 i = 0; i < fb.GetWidth(); ++i)
         {
-            f32 fr = (f32)(((i + offset) * 8) % fb.GetWidth()) / (f32)(fb.GetWidth() - 1);
-            f32 fg = (f32)(((j + offset) * 8) % fb.GetHeight()) / (f32)(fb.GetHeight() - 1);
+            auto fr = (f32)(((i + offset) * 8) % fb.GetWidth()) / (f32)(fb.GetWidth() - 1);
+            auto fg = (f32)(((j + offset) * 8) % fb.GetHeight()) / (f32)(fb.GetHeight() - 1);
 
-            u32 ur = (u32)(fr * 255.999f);
-            u32 ug = (u32)(fg * 255.999f);
+            auto ur = (u32)(fr * 255.999f);
+            auto ug = (u32)(fg * 255.999f);
 
-            u32 color = (ur & 0xff) << 16 | (ug & 0xff) << 8;
+            auto color = (ur & 0xff) << 16 | (ug & 0xff) << 8;
             fb.Write(i, j, color);
         }
 }
 
 void putchar(int c)
 {
-    u32 rows = (fb.GetBytePerPixel() == 2) ? fb.GetHeight() : (fb.GetHeight() / 8);
-    u32 cols = (fb.GetBytePerPixel() == 2) ? fb.GetWidth() : (fb.GetWidth() / 8);
+    auto rows = (fb.GetBytePerPixel() == 2) ? fb.GetHeight() : (fb.GetHeight() / 8);
+    auto cols = (fb.GetBytePerPixel() == 2) ? fb.GetWidth() : (fb.GetWidth() / 8);
 
     if (c < 0x20)
     {
@@ -80,82 +80,66 @@ void putchar(int c)
     }
 }
 
-void wprint(const int *str)
-{
-    for (int *p = (int *)str; *p; ++p)
-        putchar(*p);
-}
-
-mb_tag_t *get_tag(mb_tag_t *info, u32 type)
-{
-    for (mb_tag_t *ptr = info + 1;
-         ptr->type != MULTIBOOT_TAG_TYPE_END;
-         ptr = (mb_tag_t *)((u8 *)ptr + ((ptr->size + 7) & ~7)))
-        if (ptr->type == type)
-            return ptr;
-    return nullptr;
-}
-
-extern "C" void kernel_main(u32 magic, mb_tag_t *info)
+extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
 {
     if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || ((u32)info & 7))
         return;
 
     {
-        mb_tag_framebuffer_t *tag = (mb_tag_framebuffer_t *)get_tag(info, MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
+        auto &tag = info->GetTag<multiboot_tag_framebuffer>(MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
 
-        u64 fb_addr = tag->framebuffer_addr;
-        u32 fb_width = tag->framebuffer_width;
-        u32 fb_height = tag->framebuffer_height;
-        u32 fb_pitch = tag->framebuffer_pitch;
-        u8 fb_bpp = tag->framebuffer_bpp;
+        auto fb_addr = tag.framebuffer_addr;
+        auto fb_width = tag.framebuffer_width;
+        auto fb_height = tag.framebuffer_height;
+        auto fb_pitch = tag.framebuffer_pitch;
+        auto fb_bpp = tag.framebuffer_bpp;
 
         fb.Init((u8 *)fb_addr, fb_width, fb_height, fb_pitch, fb_bpp);
         reset();
+
+        draw_test(0);
     }
 
     PageFrameAllocator alloc;
     {
-        mb_tag_mmap_t *tag = (mb_tag_mmap_t *)get_tag(info, MULTIBOOT_TAG_TYPE_MMAP);
-        const MemoryMap mmap(tag->entries, (mb_mmap_entry_t *)((u8 *)tag + tag->size), tag->entry_size);
+        auto &tag = info->GetTag<multiboot_tag_mmap>(MULTIBOOT_TAG_TYPE_MMAP);
+        const MemoryMap mmap(tag.entries, (multiboot_mmap_entry *)((u8 *)&tag + tag.size), tag.entry_size);
         alloc.Init(mmap);
     }
 
-    for (mb_tag_t *ptr = info + 1;
-         ptr->type != MULTIBOOT_TAG_TYPE_END;
-         ptr = (mb_tag_t *)((u8 *)ptr + ((ptr->size + 7) & ~7)))
+    for (auto &entry : *info)
     {
-        switch (ptr->type)
+        switch (entry.type)
         {
         case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
         {
-            mb_tag_basic_meminfo_t *tag = (mb_tag_basic_meminfo_t *)ptr;
-            printf("memory lower = %uKB, upper = %uKB\n", tag->mem_lower, tag->mem_upper);
+            auto &tag = *(const multiboot_tag_basic_meminfo *)&entry;
+            printf("memory lower = %uKB, upper = %uKB\n", tag.mem_lower, tag.mem_upper);
             break;
         }
         case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME:
         {
-            mb_tag_string_t *tag = (mb_tag_string_t *)ptr;
-            printf("bootloader = '%s'\n", tag->string);
+            auto &tag = *(const multiboot_tag_string *)&entry;
+            printf("bootloader = '%s'\n", tag.string);
             break;
         }
         case MULTIBOOT_TAG_TYPE_BOOTDEV:
         {
-            mb_tag_bootdev_t *tag = (mb_tag_bootdev_t *)ptr;
-            printf("boot device %p,%u,%u\n", (void *)tag->biosdev, tag->part, tag->slice);
+            auto &tag = *(const multiboot_tag_bootdev *)&entry;
+            printf("boot device %p,%u,%u\n", (void *)tag.biosdev, tag.part, tag.slice);
             break;
         }
         case MULTIBOOT_TAG_TYPE_FRAMEBUFFER:
         {
-            mb_tag_framebuffer_t *tag = (mb_tag_framebuffer_t *)ptr;
-            printf("framebuffer %p, %ux%ux%u\n", (void *)tag->framebuffer_addr, tag->framebuffer_width, tag->framebuffer_height, tag->framebuffer_bpp);
+            auto &tag = *(const multiboot_tag_framebuffer *)&entry;
+            printf("framebuffer %p, %ux%ux%u\n", (void *)tag.framebuffer_addr, tag.framebuffer_width, tag.framebuffer_height, tag.framebuffer_bpp);
             break;
         }
         case MULTIBOOT_TAG_TYPE_MMAP:
         {
-            mb_tag_mmap_t *tag = (mb_tag_mmap_t *)ptr;
+            auto &tag = *(const multiboot_tag_mmap *)&entry;
 
-            const MemoryMap mmap(tag->entries, (mb_mmap_entry_t *)((u8 *)tag + tag->size), tag->entry_size);
+            const MemoryMap mmap(tag.entries, (const multiboot_mmap_entry *)((u8 *)&tag + tag.size), tag.entry_size);
 
             printf("memory map:\n");
 
@@ -183,21 +167,21 @@ extern "C" void kernel_main(u32 magic, mb_tag_t *info)
                 printf(" base = %p, length = %8uKB, type = %s\n", (void *)entry.base_addr, (u32)(entry.length / 1024), type_string);
             }
 
-            u64 size = Memory_GetSize(mmap);
+            auto size = Memory_GetSize(mmap);
             printf("memory size = %uKB\n", (u32)(size / 1024));
 
             break;
         }
         case MULTIBOOT_TAG_TYPE_MODULE:
         {
-            mb_tag_module_t *tag = (mb_tag_module_t *)ptr;
-            printf("module start = %#x, end = %#x, string = %s\n", tag->mod_start, tag->mod_end, tag->string);
+            auto &tag = *(const multiboot_tag_module *)&entry;
+            printf("module start = %#x, end = %#x, string = %s\n", tag.mod_start, tag.mod_end, tag.string);
             break;
         }
         case MULTIBOOT_TAG_TYPE_NETWORK:
         {
-            mb_tag_network_t *tag = (mb_tag_network_t *)ptr;
-            printf("dhcp ack = %s\n", tag->dhcpack);
+            auto &tag = *(const multiboot_tag_network *)&entry;
+            printf("dhcp ack = %s\n", tag.dhcpack);
             break;
         }
         }

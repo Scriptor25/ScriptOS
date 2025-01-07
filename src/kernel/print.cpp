@@ -10,6 +10,14 @@ int print(const char *str)
     return p - str;
 }
 
+int wprint(const int *str)
+{
+    int *p;
+    for (p = (int *)str; *p; ++p)
+        putchar(*p);
+    return p - str;
+}
+
 int printn(const char *str, int num)
 {
     for (int n = 0; n < num; ++n)

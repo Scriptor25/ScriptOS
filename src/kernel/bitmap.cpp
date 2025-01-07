@@ -29,7 +29,7 @@ bool Bitmap::Get(u64 index) const
     return m_Buffer[byte_index] & bit_mask;
 }
 
-void Bitmap::Put(u64 index, bool value)
+void Bitmap::Set(u64 index, bool value)
 {
     u64 byte_index = index / 8;
     u8 bit_index = index % 8;

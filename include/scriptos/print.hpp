@@ -4,6 +4,7 @@
 
 void putchar(int c);
 int print(const char *str);
+int wprint(const int *str);
 int printn(const char *str, int num);
 
 int printf(const char *format, ...);

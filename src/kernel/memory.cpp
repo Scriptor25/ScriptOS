@@ -23,17 +23,17 @@ void *memset(void *dst, u64 src, u64 count)
     return dst;
 }
 
-MemoryMap::MemoryMap(const mb_mmap_entry_t *beg, const mb_mmap_entry_t *end, const u32 entry_size)
+MemoryMap::MemoryMap(const multiboot_mmap_entry *beg, const multiboot_mmap_entry *end, const u32 entry_size)
     : m_Beg(beg), m_End(end), m_EntrySize(entry_size)
 {
 }
 
-Iterator<const mb_mmap_entry_t> MemoryMap::begin() const
+Iterator<const multiboot_mmap_entry> MemoryMap::begin() const
 {
     return Iterator(m_Beg, m_EntrySize);
 }
 
-Iterator<const mb_mmap_entry_t> MemoryMap::end() const
+Iterator<const multiboot_mmap_entry> MemoryMap::end() const
 {
     return Iterator(m_End, m_EntrySize);
 }

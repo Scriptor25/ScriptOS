@@ -10,14 +10,14 @@ void *memset(void *dst, u64 src, u64 num);
 class MemoryMap
 {
 public:
-    MemoryMap(const mb_mmap_entry_t *beg, const mb_mmap_entry_t *end, u32 entry_size);
+    MemoryMap(const multiboot_mmap_entry *beg, const multiboot_mmap_entry *end, u32 entry_size);
 
-    Iterator<const mb_mmap_entry_t> begin() const;
-    Iterator<const mb_mmap_entry_t> end() const;
+    Iterator<const multiboot_mmap_entry> begin() const;
+    Iterator<const multiboot_mmap_entry> end() const;
 
 private:
-    const mb_mmap_entry_t *m_Beg;
-    const mb_mmap_entry_t *m_End;
+    const multiboot_mmap_entry *m_Beg;
+    const multiboot_mmap_entry *m_End;
     u32 m_EntrySize;
 };
 
