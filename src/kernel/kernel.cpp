@@ -7,14 +7,23 @@
 #include <scriptos/multiboot2.hpp>
 #include <scriptos/pfa.hpp>
 #include <scriptos/print.hpp>
+#include <scriptos/gdt.hpp>
 #include <scriptos/types.hpp>
 
-static Framebuffer fb;
+static u32 posx = 0;
+static u32 posy = 0;
+static Framebuffer front_buffer;
+static PageFrameAllocator alloc;
 
 static void reset()
 {
-    putchar(0xdeadbeef);
-    fb.Clear(0);
+    posx = posy = 0;
+    front_buffer.Clear(0x00000000);
+}
+
+static void swap_buffers()
+{
+    Framebuffer::Blit(front_buffer, front_buffer);
 }
 
 static void draw_char(int c, u32 x, u32 y, u32 color)
@@ -25,39 +34,29 @@ static void draw_char(int c, u32 x, u32 y, u32 color)
     for (u8 j = 0; j < 8; ++j)
         for (u8 i = 0; i < 8; ++i)
             if (Font_GetBit(bmp, i, j))
-                fb.Write(x + i, y + j, color);
+                front_buffer.Write(x + i, y + j, color);
 }
 
 static void draw_test(int offset, int scale)
 {
-    for (u32 j = 0; j < fb.GetHeight(); ++j)
-        for (u32 i = 0; i < fb.GetWidth(); ++i)
+    for (u32 j = 0; j < front_buffer.GetHeight(); ++j)
+        for (u32 i = 0; i < front_buffer.GetWidth(); ++i)
         {
-            auto fr = (f32)(((i + offset) * scale) % fb.GetWidth()) / (f32)(fb.GetWidth() - 1);
-            auto fg = (f32)(((j + offset) * scale) % fb.GetHeight()) / (f32)(fb.GetHeight() - 1);
+            auto fr = (f32)(((i + offset) * scale) % front_buffer.GetWidth()) / (f32)(front_buffer.GetWidth() - 1);
+            auto fg = (f32)(((j + offset) * scale) % front_buffer.GetHeight()) / (f32)(front_buffer.GetHeight() - 1);
 
             auto ur = (u32)(fr * 255.999f);
             auto ug = (u32)(fg * 255.999f);
 
             auto color = (ur & 0xff) << 16 | (ug & 0xff) << 8;
-            fb.Write(i, j, color);
+            front_buffer.Write(i, j, color);
         }
 }
 
 void putchar(int c)
 {
-    static u32 posx = 0;
-    static u32 posy = 0;
-
-    if (c == (int)0xdeadbeef)
-    {
-        posx = 0;
-        posy = 0;
-        return;
-    }
-
-    auto rows = (fb.GetBytePerPixel() == 2) ? fb.GetHeight() : (fb.GetHeight() / 8);
-    auto cols = (fb.GetBytePerPixel() == 2) ? fb.GetWidth() : (fb.GetWidth() / 8);
+    auto rows = (front_buffer.GetBytePerPixel() == 2) ? front_buffer.GetHeight() : (front_buffer.GetHeight() / 8);
+    auto cols = (front_buffer.GetBytePerPixel() == 2) ? front_buffer.GetWidth() : (front_buffer.GetWidth() / 8);
 
     if (c < 0x20)
     {
@@ -75,9 +74,9 @@ void putchar(int c)
         return;
     }
 
-    if (fb.GetBytePerPixel() == 2)
-        fb.Write(posx, posy, 7 << 8 | (c & 0xff));
-    else if (fb.GetBytePerPixel() == 3 || fb.GetBytePerPixel() == 4)
+    if (front_buffer.GetBytePerPixel() == 2)
+        front_buffer.Write(posx, posy, 7 << 8 | (c & 0xff));
+    else if (front_buffer.GetBytePerPixel() == 3 || front_buffer.GetBytePerPixel() == 4)
         draw_char(c, posx * 8, posy * 8, 0xffffff);
 
     if (++posx >= cols)
@@ -94,25 +93,24 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
         return;
 
     {
-        auto &tag = info->GetTag<multiboot_tag_framebuffer>(MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
-
-        auto fb_addr = tag.framebuffer_addr;
-        auto fb_width = tag.framebuffer_width;
-        auto fb_height = tag.framebuffer_height;
-        auto fb_pitch = tag.framebuffer_pitch;
-        auto fb_bpp = tag.framebuffer_bpp;
-
-        fb.Init((u8 *)fb_addr, fb_width, fb_height, fb_pitch, fb_bpp);
-        reset();
-
-        draw_test(0, 1);
-    }
-
-    PageFrameAllocator alloc;
-    {
         auto &tag = info->GetTag<multiboot_tag_mmap>(MULTIBOOT_TAG_TYPE_MMAP);
         const MemoryMap mmap(tag.entries, (multiboot_mmap_entry *)((u8 *)&tag + tag.size), tag.entry_size);
         alloc.Init(mmap);
+    }
+
+    {
+        auto &tag = info->GetTag<multiboot_tag_framebuffer>(MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
+
+        auto addr = tag.framebuffer_addr;
+        auto width = tag.framebuffer_width;
+        auto height = tag.framebuffer_height;
+        auto pitch = tag.framebuffer_pitch;
+        auto bpp = tag.framebuffer_bpp;
+
+        front_buffer.Init((u8 *)addr, width, height, pitch, bpp);
+
+        reset();
+        draw_test(0, 1);
     }
 
     for (auto &entry : *info)
@@ -256,4 +254,12 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
     printf("free:     %uKB\n", (u32)(alloc.GetFree() / 1024));
     printf("used:     %uKB\n", (u32)(alloc.GetUsed() / 1024));
     printf("reserved: %uKB\n", (u32)(alloc.GetReserved() / 1024));
+
+    for (auto [byte_index_, bit_index_, active_] : alloc.GetPageMap())
+    {
+        for (unsigned i = 0; i < 8; ++i)
+            front_buffer.Write(posx * 8 + bit_index_ * 8 + i, posy * 8 + byte_index_ / 8, active_ ? 0xffffffff : 0x00000000);
+    }
+
+    swap_buffers();
 }

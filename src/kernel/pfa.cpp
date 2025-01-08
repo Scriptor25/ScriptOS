@@ -5,28 +5,9 @@
 
 void PageFrameAllocator::Init(const MemoryMap &mmap)
 {
-    u64 largest_addr = 0;
-    u64 largest_length = 0;
-
-    for (auto &entry : mmap)
-    {
-        if (entry.type != MULTIBOOT_MEMORY_AVAILABLE)
-            continue;
-        if (entry.length < largest_length)
-            continue;
-
-        largest_addr = entry.base_addr;
-        largest_length = entry.length;
-    }
-
-    printf("largest addr = %p, length = %uKB\n", (void *)largest_addr, (u32)(largest_length / 1024));
-
     auto memory_size = Memory_GetSize(mmap);
     m_FreeMemory = memory_size;
     auto bitmap_size = ceil_div(memory_size, PAGE_SIZE * 8);
-
-    printf("bitmap size = %uKB\n", (u32)(bitmap_size / 1024));
-    printf("kernel start = %p, end = %p\n", KERNEL_START, KERNEL_END);
 
     InitBitmap(bitmap_size, (u8 *)KERNEL_END);
     ReservePages(KERNEL_START, ceil_div((u64)KERNEL_END - (u64)KERNEL_START, PAGE_SIZE));
@@ -73,6 +54,8 @@ void PageFrameAllocator::LockPages(void *address, u64 count)
     for (u64 off = 0; off < count; ++off)
         LockPage((void *)((u64)address + off * PAGE_SIZE));
 }
+
+const Bitmap &PageFrameAllocator::GetPageMap() const { return m_PageMap; }
 
 u64 PageFrameAllocator::GetFree() const { return m_FreeMemory; }
 

@@ -4,8 +4,8 @@
 #include <scriptos/multiboot2.hpp>
 #include <scriptos/types.hpp>
 
-void *memcpy(void *dst, const void *src, u64 num);
-void *memset(void *dst, u64 src, u64 num);
+void *memcpy(void *dst, const void *src, usize num);
+void *memset(void *dst, int src, usize num);
 
 class MemoryMap
 {

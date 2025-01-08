@@ -1,24 +1,24 @@
 #include <scriptos/info.hpp>
 #include <scriptos/memory.hpp>
 
-void *memcpy(void *dst, const void *src, u64 count)
+void *memcpy(void *dst, const void *src, usize count)
 {
-    u64 rem = count % 8;
-    u64 end = count - rem;
-    for (u64 i = 0; i < end; i += 8)
-        *(u64 *)((u8 *)dst + i) = *(const u64 *)((const u8 *)src + i);
-    for (u64 i = end; i < count; ++i)
+    auto rem = count % 8;
+    auto end = count - rem;
+    for (usize i = 0; i < end; i += sizeof(int))
+        *(int *)((u8 *)dst + i) = *(const int *)((const u8 *)src + i);
+    for (usize i = end; i < count; ++i)
         *((u8 *)dst + i) = *((const u8 *)src + i);
     return dst;
 }
 
-void *memset(void *dst, u64 src, u64 count)
+void *memset(void *dst, int src, usize count)
 {
-    u64 rem = count % 8;
-    u64 end = count - rem;
-    for (u64 i = 0; i < end; i += 8)
-        *(u64 *)((u8 *)dst + i) = src;
-    for (u64 i = end; i < count; ++i)
+    usize rem = count % 8;
+    usize end = count - rem;
+    for (usize i = 0; i < end; i += sizeof(int))
+        *(int *)((u8 *)dst + i) = src;
+    for (usize i = end; i < count; ++i)
         *((u8 *)dst + i) = (u8)src;
     return dst;
 }

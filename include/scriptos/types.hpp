@@ -13,12 +13,16 @@ typedef float f32;
 typedef double f64;
 typedef long double f128;
 
-#if defined(__i386__)
+#if defined(__i386__) || defined(__i686__)
 typedef int iptr;
 typedef unsigned int uptr;
+typedef long int isize;
+typedef unsigned long int usize;
 #elif defined(__x86_64__)
 typedef long long int iptr;
 typedef unsigned long long int uptr;
+typedef long int isize;
+typedef unsigned long int usize;
 #else
 #error "unsupported architecture"
 #endif

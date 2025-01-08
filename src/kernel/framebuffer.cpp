@@ -48,7 +48,7 @@ void *Framebuffer::ReadArray(u32 x, u32 y, u32 width, u32 height, void *dst)
 
 void Framebuffer::Clear(u32 value)
 {
-    memset(m_Base, ((u64)value) << 32 | ((u64)value), m_Pitch * m_Height);
+    memset(m_Base, value, m_Pitch * m_Height);
 }
 
 u32 Framebuffer::GetWidth() const
