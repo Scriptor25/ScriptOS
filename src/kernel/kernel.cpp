@@ -9,13 +9,11 @@
 #include <scriptos/print.hpp>
 #include <scriptos/types.hpp>
 
-static u32 posx;
-static u32 posy;
 static Framebuffer fb;
 
 static void reset()
 {
-    posx = posy = 0;
+    putchar(0xdeadbeef);
     fb.Clear(0);
 }
 
@@ -30,13 +28,13 @@ static void draw_char(int c, u32 x, u32 y, u32 color)
                 fb.Write(x + i, y + j, color);
 }
 
-static void draw_test(int offset)
+static void draw_test(int offset, int scale)
 {
     for (u32 j = 0; j < fb.GetHeight(); ++j)
         for (u32 i = 0; i < fb.GetWidth(); ++i)
         {
-            auto fr = (f32)(((i + offset) * 8) % fb.GetWidth()) / (f32)(fb.GetWidth() - 1);
-            auto fg = (f32)(((j + offset) * 8) % fb.GetHeight()) / (f32)(fb.GetHeight() - 1);
+            auto fr = (f32)(((i + offset) * scale) % fb.GetWidth()) / (f32)(fb.GetWidth() - 1);
+            auto fg = (f32)(((j + offset) * scale) % fb.GetHeight()) / (f32)(fb.GetHeight() - 1);
 
             auto ur = (u32)(fr * 255.999f);
             auto ug = (u32)(fg * 255.999f);
@@ -48,6 +46,16 @@ static void draw_test(int offset)
 
 void putchar(int c)
 {
+    static u32 posx = 0;
+    static u32 posy = 0;
+
+    if (c == (int)0xdeadbeef)
+    {
+        posx = 0;
+        posy = 0;
+        return;
+    }
+
     auto rows = (fb.GetBytePerPixel() == 2) ? fb.GetHeight() : (fb.GetHeight() / 8);
     auto cols = (fb.GetBytePerPixel() == 2) ? fb.GetWidth() : (fb.GetWidth() / 8);
 
@@ -97,7 +105,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
         fb.Init((u8 *)fb_addr, fb_width, fb_height, fb_pitch, fb_bpp);
         reset();
 
-        draw_test(0);
+        draw_test(0, 1);
     }
 
     PageFrameAllocator alloc;
@@ -184,6 +192,64 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
             printf("dhcp ack = %s\n", tag.dhcpack);
             break;
         }
+        case MULTIBOOT_TAG_TYPE_LOAD_BASE_ADDR:
+        {
+            auto &tag = *(const multiboot_tag_load_base_addr *)&entry;
+            printf("base address = %p\n", (void *)tag.load_base_addr);
+            break;
+        }
+        case MULTIBOOT_TAG_TYPE_ELF_SECTIONS:
+        {
+            auto &tag = *(const multiboot_tag_elf_sections *)&entry;
+            printf("elf sections = %p, entry size = %u, num = %u, shndx = %u\n",
+                   tag.sections,
+                   tag.entsize,
+                   tag.num,
+                   tag.shndx);
+            break;
+        }
+        case MULTIBOOT_TAG_TYPE_ACPI_OLD:
+        {
+            auto &tag = *(multiboot_tag_old_acpi *)&entry;
+            printf("old acpi = %p\n", tag.rsdp);
+            break;
+        }
+        case MULTIBOOT_TAG_TYPE_CMDLINE:
+        {
+            auto &tag = *(multiboot_tag_string *)&entry;
+            printf("cmdline = '%s'\n", tag.string);
+            break;
+        }
+        case MULTIBOOT_TAG_TYPE_APM:
+        {
+            auto &tag = *(multiboot_tag_apm *)&entry;
+            printf("apm version = %#x, flags = %u, offset = %u, cseg = (%p, %u), cseg 16 = (%p, %u), dseg = (%p, %u)\n",
+                   tag.version,
+                   tag.flags,
+                   tag.offset,
+                   tag.cseg,
+                   tag.cseg_len,
+                   tag.cseg_16,
+                   tag.cseg_16_len,
+                   tag.dseg,
+                   tag.dseg_len);
+            break;
+        }
+        case MULTIBOOT_TAG_TYPE_VBE:
+        {
+            auto &tag = *(multiboot_tag_vbe *)&entry;
+            printf("vbe mode = %u, seg = %u, off = %u, len = %u, ctrl info = '%.512s', mode info = '%.256s'\n",
+                   tag.vbe_mode,
+                   tag.vbe_interface_seg,
+                   tag.vbe_interface_off,
+                   tag.vbe_interface_len,
+                   tag.vbe_control_info,
+                   tag.vbe_mode_info);
+            break;
+        }
+        default:
+            printf("tag %u\n", entry.type);
+            break;
         }
     }
 

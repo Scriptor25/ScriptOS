@@ -34,15 +34,15 @@ tar -xzf $GCC_FILENAME -C $SRC
 mkdir -p $BINUTILS_BUILD
 cd $BINUTILS_BUILD
 $SRC/$BINUTILS_NAME/configure --target=$TARGET --prefix=$PREFIX --with-sysroot --disable-nls --disable-werror
-sudo make -j 8
+make -j 8
 sudo make install
 
 # build gcc
 mkdir -p $GCC_BUILD
 cd $GCC_BUILD
 $SRC/$GCC_NAME/configure --target=$TARGET --prefix=$PREFIX --disable-nls --enable-languages=c,c++ --without-headers
-sudo make -j 8 all-gcc
-sudo make -j 8 all-target
+make -j 8 all-gcc
+make -j 8 all-target
 sudo make install-gcc
 sudo make install-target-libgcc
 

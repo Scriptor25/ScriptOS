@@ -20,7 +20,7 @@ int wprint(const int *str)
 
 int printn(const char *str, int num)
 {
-    for (int n = 0; n < num; ++n)
+    for (int n = 0; n < num && str[n]; ++n)
         putchar(str[n]);
     return num;
 }
@@ -128,7 +128,7 @@ static print_int_t print_int(va_list ap, int flags, int width, int precision, in
             num++;
         }
 
-    return (print_int_t){ap, num};
+    return {ap, num};
 }
 
 int vprintf(const char *format, va_list ap)
@@ -304,7 +304,7 @@ int vprintf(const char *format, va_list ap)
             {
                 char buf[16];
                 void *ptr = va_arg(ap, void *);
-                int len = itoa(buf, (unsigned int)ptr, 16, 0);
+                int len = itoa(buf, (u32)(uptr)ptr, 16, 0);
                 for (unsigned x = len; x < sizeof(void *) * 2; ++x)
                     putchar('0');
                 printn(buf, len);
