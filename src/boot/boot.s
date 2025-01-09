@@ -7,10 +7,6 @@
 .set CHECKSUM,      -(MAGIC + ARCHITECTURE + HEADER_LENGTH)
 .set STACK_SIZE,    0x4000
 
-.section .data
-page_directory:
-        .long 0
-
 .section .text
 .global _start
 _start:
@@ -65,13 +61,6 @@ multiboot_entry:
         /* reset eflags */
         pushl $0
         popf
-
-        /* enable paging */
-        // mov page_directory, %eax
-        // mov %eax, %cr3
-        // mov %cr0, %eax
-        // or $0x80000001, %eax
-        // mov %eax, %cr0
 
         /* push multiboot info pointer */
         pushl %ebx

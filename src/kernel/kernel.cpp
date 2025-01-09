@@ -1,13 +1,14 @@
 #include <scriptos/bitmap.hpp>
 #include <scriptos/font.hpp>
 #include <scriptos/framebuffer.hpp>
+#include <scriptos/gdt.hpp>
 #include <scriptos/info.hpp>
 #include <scriptos/io.hpp>
 #include <scriptos/memory.hpp>
 #include <scriptos/multiboot2.hpp>
+#include <scriptos/paging.hpp>
 #include <scriptos/pfa.hpp>
 #include <scriptos/print.hpp>
-#include <scriptos/gdt.hpp>
 #include <scriptos/types.hpp>
 
 static u32 posx = 0;
@@ -120,7 +121,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
         case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
         {
             auto &tag = *(const multiboot_tag_basic_meminfo *)&entry;
-            printf("memory lower = %uKB, upper = %uKB\n", tag.mem_lower, tag.mem_upper);
+            printf("memory lower = %uKiB, upper = %uKiB\n", tag.mem_lower, tag.mem_upper);
             break;
         }
         case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME:
@@ -174,7 +175,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
             }
 
             auto size = Memory_GetSize(mmap);
-            printf("memory size = %uKB\n", (u32)(size / 1024));
+            printf("memory size = %uKiB\n", (u32)(size / 1024));
 
             break;
         }
@@ -251,14 +252,24 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
         }
     }
 
-    printf("free:     %uKB\n", (u32)(alloc.GetFree() / 1024));
-    printf("used:     %uKB\n", (u32)(alloc.GetUsed() / 1024));
-    printf("reserved: %uKB\n", (u32)(alloc.GetReserved() / 1024));
+    printf("free:     %uKiB\n", (u32)(alloc.GetFree() / 1024));
+    printf("used:     %uKiB\n", (u32)(alloc.GetUsed() / 1024));
+    printf("reserved: %uKiB\n", (u32)(alloc.GetReserved() / 1024));
+
+    reset_paging();
+    // identity_paging((void *)0x200000, 0x100000);
+    // enable_paging();
+    // print_cr3();
+
+    for (unsigned i = 0; i < 20; ++i)
+    {
+        auto address = alloc.RequestPage();
+        printf("allocated address = %p\n", address);
+    }
 
     for (auto [byte_index_, bit_index_, active_] : alloc.GetPageMap())
     {
-        for (unsigned i = 0; i < 8; ++i)
-            front_buffer.Write(posx * 8 + bit_index_ * 8 + i, posy * 8 + byte_index_ / 8, active_ ? 0xffffffff : 0x00000000);
+        front_buffer.Write(posx * 8 + bit_index_, posy * 8 + byte_index_ / 2, active_ ? 0xffffffff : 0x00000000);
     }
 
     swap_buffers();

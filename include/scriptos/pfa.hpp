@@ -15,6 +15,8 @@ public:
     void LockPage(void *address);
     void LockPages(void *address, u64 count);
 
+    void *RequestPage();
+
     const Bitmap &GetPageMap() const;
 
     u64 GetFree() const;

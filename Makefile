@@ -3,7 +3,9 @@ GCC = i686-elf-g++
 QEMU = qemu-system-i386
 CPP = i686-elf-cpp
 
-GCCFLAGS = -std=c++20 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti
+OPT = -O2 # -O0 -g
+
+GCCFLAGS = -std=c++20 -ffreestanding $(OPT) -Wall -Wextra -fno-exceptions -fno-rtti
 
 SRC = src
 BOOTSRC = $(SRC)/boot
@@ -25,7 +27,10 @@ OBJS = $(BOOTOBJS) $(KERNELOBJS)
 build: $(ISO)
 
 launch: $(ISO)
-	$(QEMU) -cdrom $(ISO) -m 256M
+	$(QEMU) -cdrom $(ISO)
+
+debug:
+	$(QEMU) -cdrom $(ISO) -s
 
 clean:
 	-rm -rf $(BUILD)
@@ -46,7 +51,9 @@ $(KERNELBUILD)/%.o: $(KERNELSRC)/%.cpp $(KERNELBUILD)
 	$(GCC) -c $< -o $@ $(GCCFLAGS) -I include
 
 $(KERNEL): $(SRC)/linker.ld $(OBJS)
-	$(GCC) -T $^ -o $(KERNEL) -ffreestanding -O2 -nostdlib -lgcc
+	$(GCC) -T $^ -o $(KERNEL) -ffreestanding $(OPT) -nostdlib -lgcc
+	objcopy --only-keep-debug $(KERNEL) $(BUILD)/kernel.sym
+	objcopy --strip-debug $(KERNEL)
 	grub-file --is-x86-multiboot2 $(KERNEL)
 
 $(ISO): $(KERNEL) $(SRC)/grub.cfg

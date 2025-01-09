@@ -10,11 +10,11 @@ void PageFrameAllocator::Init(const MemoryMap &mmap)
     auto bitmap_size = ceil_div(memory_size, PAGE_SIZE * 8);
 
     InitBitmap(bitmap_size, (u8 *)KERNEL_END);
-    ReservePages(KERNEL_START, ceil_div((u64)KERNEL_END - (u64)KERNEL_START, PAGE_SIZE));
     LockPages((u8 *)KERNEL_END, ceil_div(bitmap_size, PAGE_SIZE));
+    LockPages(KERNEL_START, ceil_div((u64)KERNEL_END - (u64)KERNEL_START, PAGE_SIZE));
 
     for (auto &entry : mmap)
-        if (entry.type != MULTIBOOT_MEMORY_AVAILABLE)
+        if (entry.type != MULTIBOOT_MEMORY_AVAILABLE || entry.base_addr == 0)
         {
             auto page_count = ceil_div(entry.length, PAGE_SIZE);
             ReservePages((void *)entry.base_addr, page_count);
@@ -53,6 +53,19 @@ void PageFrameAllocator::LockPages(void *address, u64 count)
 {
     for (u64 off = 0; off < count; ++off)
         LockPage((void *)((u64)address + off * PAGE_SIZE));
+}
+
+void *PageFrameAllocator::RequestPage()
+{
+    auto size = m_PageMap.GetSize();
+    for (u64 index = 0; index < size; ++index)
+        if (!m_PageMap[index])
+        {
+            auto address = (void *)(index * PAGE_SIZE);
+            LockPage(address);
+            return address;
+        }
+    return nullptr;
 }
 
 const Bitmap &PageFrameAllocator::GetPageMap() const { return m_PageMap; }
