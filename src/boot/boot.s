@@ -59,17 +59,17 @@ multiboot_entry:
         mov $(stack + STACK_SIZE), %esp
 
         /* reset eflags */
-        pushl $0
+        push $0
         popf
 
         /* push multiboot info pointer */
-        pushl %ebx
+        push %ebx
         /* push magic value */
-        pushl %eax
+        push %eax
 
         /* enter kernel main */
         call kernel_main
-
+ 
         /* halt */
 .loop:  cli
         hlt

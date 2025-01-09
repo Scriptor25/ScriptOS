@@ -1,7 +1,8 @@
-AS = i686-elf-as
-GCC = i686-elf-g++
+TARGET = i686-elf
+AS = $(TARGET)-as
+GCC = $(TARGET)-g++
 QEMU = qemu-system-i386
-CPP = i686-elf-cpp
+CPP = $(TARGET)-cpp
 
 OPT = -O2 # -O0 -g
 

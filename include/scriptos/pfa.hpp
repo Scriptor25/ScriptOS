@@ -8,6 +8,8 @@
 class PageFrameAllocator
 {
 public:
+    static PageFrameAllocator &Get();
+
     void Init(const MemoryMap &mmap);
 
     void FreePage(void *address);
@@ -36,4 +38,6 @@ private:
     u64 m_FreeMemory = 0;
     u64 m_UsedMemory = 0;
     u64 m_ReservedMemory = 0;
+
+    static PageFrameAllocator INSTANCE;
 };

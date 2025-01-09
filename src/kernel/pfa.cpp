@@ -3,6 +3,13 @@
 #include <scriptos/print.hpp>
 #include <scriptos/util.hpp>
 
+PageFrameAllocator PageFrameAllocator::INSTANCE;
+
+PageFrameAllocator &PageFrameAllocator::Get()
+{
+    return INSTANCE;
+}
+
 void PageFrameAllocator::Init(const MemoryMap &mmap)
 {
     auto memory_size = Memory_GetSize(mmap);
@@ -11,7 +18,6 @@ void PageFrameAllocator::Init(const MemoryMap &mmap)
 
     InitBitmap(bitmap_size, (u8 *)KERNEL_END);
     LockPages((u8 *)KERNEL_END, ceil_div(bitmap_size, PAGE_SIZE));
-    LockPages(KERNEL_START, ceil_div((u64)KERNEL_END - (u64)KERNEL_START, PAGE_SIZE));
 
     for (auto &entry : mmap)
         if (entry.type != MULTIBOOT_MEMORY_AVAILABLE || entry.base_addr == 0)
@@ -19,6 +25,8 @@ void PageFrameAllocator::Init(const MemoryMap &mmap)
             auto page_count = ceil_div(entry.length, PAGE_SIZE);
             ReservePages((void *)entry.base_addr, page_count);
         }
+
+    LockPages(KERNEL_START, ceil_div((u64)KERNEL_END - (u64)KERNEL_START, PAGE_SIZE));
 }
 
 void PageFrameAllocator::FreePage(void *address)

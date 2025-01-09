@@ -5,93 +5,109 @@
 struct PageDirectoryEntry_4MiB
 {
     /* present bit */
-    u8 Present : 1 = 0;
+    bool Present : 1;
     /* read/write bit */
-    u8 Read_Write : 1 = 0;
+    bool ReadWrite : 1;
     /* user/supervisor bit */
-    u8 User_Supervisor : 1 = 0;
+    bool UserSupervisor : 1;
     /* write-through bit */
-    u8 Write_Through : 1 = 0;
+    bool WriteThrough : 1;
     /* cache disable bit */
-    u8 Cache_Disable : 1 = 0;
+    bool CacheDisable : 1;
     /* accessed bit */
-    u8 Accessed : 1 = 0;
+    bool Accessed : 1;
     /* dirty bit */
-    u8 Dirty : 1 = 0;
+    bool Dirty : 1;
     /* page size bit (= 1) */
-    u8 Page_Size : 1 = 0;
+    bool PageSize : 1;
     /* global bit */
-    u8 Global : 1 = 0;
+    bool Global : 1;
     /* ignored */
-    u8 _Ignored : 3 = 0;
+    u8 _Ignored : 3;
     /* page attribute bit */
-    u8 Page_Attribute : 1 = 0;
+    bool PageAttribute : 1;
     /* address [39:32] */
-    u32 Address_39_32 : 8 = 0;
+    u32 Address_39_32 : 8;
     /* reserved */
-    u8 _Reserved : 1 = 0;
+    bool _Reserved : 1;
     /* address [31:22] */
-    u32 Address_31_22 : 10 = 0;
+    u32 Address_31_22 : 10;
 };
 
-struct PageDirectoryEntry_4KiB
+union PageDirectoryEntry
 {
-    /* present bit */
-    u8 Present : 1 = 0;
-    /* read/write bit */
-    u8 Read_Write : 1 = 0;
-    /* user/supervisor bit */
-    u8 User_Supervisor : 1 = 0;
-    /* write-through bit */
-    u8 Write_Through : 1 = 0;
-    /* cache disable bit */
-    u8 Cache_Disable : 1 = 0;
-    /* accessed bit */
-    u8 Accessed : 1 = 0;
-    /* ignored */
-    u8 _Ignored_0 : 1 = 0;
-    /* page size bit (= 0) */
-    u8 Page_Size : 1 = 0;
-    /* ignored */
-    u8 _Ignored_1 : 4 = 0;
-    /* address [31:12] */
-    u32 Address_31_12 : 20 = 0;
+    struct
+    {
+        /* present bit */
+        bool Present : 1;
+        /* read/write bit */
+        bool ReadWrite : 1;
+        /* user/supervisor bit */
+        bool UserSupervisor : 1;
+        /* write-through bit */
+        bool WriteThrough : 1;
+        /* cache disable bit */
+        bool CacheDisable : 1;
+        /* accessed bit */
+        bool Accessed : 1;
+        /* ignored */
+        u8 _Ignored_0 : 1;
+        /* page size bit (= 0) */
+        bool PageSize : 1;
+        /* ignored */
+        u8 _Ignored_1 : 4;
+        /* address [31:12] */
+        u32 Address_31_12 : 20;
+    };
+
+    u32 Raw;
 };
 
 struct PageTableEntry
 {
     /* present bit */
-    u8 Present : 1 = 0;
+    bool Present : 1;
     /* read/write bit */
-    u8 Read_Write : 1 = 0;
+    bool ReadWrite : 1;
     /* user/supervisor bit */
-    u8 User_Supervisor : 1 = 0;
+    bool UserSupervisor : 1;
     /* write-through bit */
-    u8 Write_Through : 1 = 0;
+    bool WriteThrough : 1;
     /* cache disable bit */
-    u8 Cache_Disable : 1 = 0;
+    bool CacheDisable : 1;
     /* accessed bit */
-    u8 Accessed : 1 = 0;
+    bool Accessed : 1;
     /* dirty bit */
-    u8 Dirty : 1 = 0;
+    bool Dirty : 1;
     /* page attribute bit */
-    u8 Page_Attribute : 1 = 0;
+    bool PageAttribute : 1;
     /* global bit */
-    u8 Global : 1 = 0;
+    bool Global : 1;
     /* ignored */
-    u8 _Ignored : 3 = 0;
+    u8 _Ignored : 3;
     /* address [31:12] */
-    u32 Address_31_12 : 20 = 0;
+    u32 Address_31_12 : 20;
 };
 
-union PageEntry
+struct PageIndex
 {
-    PageDirectoryEntry_4KiB PDE;
-    PageDirectoryEntry_4MiB HPDE;
-    PageTableEntry PTE;
-    u32 Data = 0;
+    explicit PageIndex(u64 virtual_address);
+
+    void Print() const;
+
+    u64 PD;
+    u64 PT;
 };
 
-void reset_paging();
-void enable_paging();
-void print_cr3();
+class PageTableManager
+{
+public:
+    explicit PageTableManager(PageDirectoryEntry *pt);
+
+    void MapPage(void *virtual_address, void *physical_address);
+
+private:
+    PageDirectoryEntry *m_PD;
+};
+
+void setup_paging();
