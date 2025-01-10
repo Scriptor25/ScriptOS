@@ -1,6 +1,6 @@
 #include <scriptos/bitmap.hpp>
 
-Bitmap::Iter::Iter(const Bitmap &bitmap, u32 index)
+Bitmap::Iter::Iter(const Bitmap &bitmap, usize index)
     : m_Bitmap(bitmap), m_Index(index)
 {
 }
@@ -34,13 +34,13 @@ bool Bitmap::Iter::operator==(const Iter &other) const { return other.m_Index ==
 
 bool Bitmap::Iter::operator!=(const Iter &other) const { return other.m_Index != m_Index; }
 
-void Bitmap::Init(u32 size, u8 *buffer)
+void Bitmap::Init(usize size, u8 *buffer)
 {
     m_Size = size;
     m_Buffer = buffer;
 }
 
-u32 Bitmap::GetSize() const
+usize Bitmap::GetSize() const
 {
     return m_Size;
 }
@@ -50,21 +50,27 @@ void *Bitmap::GetBuffer() const
     return m_Buffer;
 }
 
-bool Bitmap::operator[](u32 index) const
+bool Bitmap::operator[](usize index) const
 {
     return Get(index);
 }
 
-bool Bitmap::Get(u32 index) const
+bool Bitmap::Get(usize index) const
 {
+    if (index >= m_Size * 8)
+        return false;
+
     auto byte_index = index / 8;
     auto bit_index = index % 8;
     auto bit_mask = 1 << bit_index;
     return m_Buffer[byte_index] & bit_mask;
 }
 
-void Bitmap::Set(u32 index, bool value)
+bool Bitmap::Set(usize index, bool value)
 {
+    if (index >= m_Size * 8)
+        return false;
+
     auto byte_index = index / 8;
     auto bit_index = index % 8;
     auto bit_mask = 1 << bit_index;
@@ -72,6 +78,8 @@ void Bitmap::Set(u32 index, bool value)
         m_Buffer[byte_index] |= bit_mask;
     else
         m_Buffer[byte_index] &= ~bit_mask;
+
+    return true;
 }
 
 Bitmap::Iter Bitmap::begin() const
@@ -81,5 +89,5 @@ Bitmap::Iter Bitmap::begin() const
 
 Bitmap::Iter Bitmap::end() const
 {
-    return Iter(*this, m_Size);
+    return Iter(*this, m_Size * 8);
 }

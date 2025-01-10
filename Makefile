@@ -4,7 +4,7 @@ GCC = $(TARGET)-g++
 QEMU = qemu-system-i386
 CPP = $(TARGET)-cpp
 
-OPT = -O0 -g
+OPT = -O2
 
 GCCFLAGS = -std=c++20 -ffreestanding $(OPT) -Wall -Wextra -fno-exceptions -fno-rtti
 

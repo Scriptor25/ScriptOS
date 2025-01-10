@@ -16,7 +16,7 @@ public:
     class Iter
     {
     public:
-        explicit Iter(const Bitmap &bitmap, u32 index);
+        explicit Iter(const Bitmap &bitmap, usize index);
 
         BitEntry operator*() const;
         Iter &operator++();
@@ -27,23 +27,23 @@ public:
 
     private:
         const Bitmap &m_Bitmap;
-        u32 m_Index;
+        usize m_Index;
     };
 
     void
-    Init(u32 size, u8 *buffer);
+    Init(usize size, u8 *buffer);
 
-    u32 GetSize() const;
+    usize GetSize() const;
     void *GetBuffer() const;
 
-    bool operator[](u32 index) const;
-    bool Get(u32 index) const;
-    void Set(u32 index, bool value);
+    bool operator[](usize index) const;
+    bool Get(usize index) const;
+    bool Set(usize index, bool value);
 
     Iter begin() const;
     Iter end() const;
 
 private:
-    u32 m_Size;
+    usize m_Size;
     u8 *m_Buffer;
 };

@@ -23,7 +23,6 @@ static Framebuffer front_buffer;
 static void reset()
 {
     posx = posy = 0;
-    front_buffer.Clear(0x00000000);
 }
 
 static void draw_char(int c, u32 x, u32 y, u32 color)
@@ -37,7 +36,7 @@ static void draw_char(int c, u32 x, u32 y, u32 color)
                 front_buffer.Write(x + i, y + j, color);
 }
 
-static void draw_test(int offset, int scale)
+static void draw_color_test(int offset = 0, int scale = 1)
 {
     for (u32 j = 0; j < front_buffer.GetHeight(); ++j)
         for (u32 i = 0; i < front_buffer.GetWidth(); ++i)
@@ -51,6 +50,22 @@ static void draw_test(int offset, int scale)
             auto color = (ur & 0xff) << 16 | (ug & 0xff) << 8;
             front_buffer.Write(i, j, color);
         }
+}
+
+static void draw_rect(u32 x1, u32 y1, u32 x2, u32 y2, u32 color)
+{
+    for (u32 j = y1; j <= y2; ++j)
+        for (u32 i = x1; i <= x2; ++i)
+            front_buffer.Write(i, j, color);
+}
+
+static void draw_page_map()
+{
+    auto &page_map = PageFrameAllocator::Get().GetPageMap();
+    draw_rect(posx * 8, posy * 8 + 3, posx * 8 + page_map.GetSize() / 8 + 2, posy * 8 + 12, 0xffffffff);
+    for (auto [byte_index_, bit_index_, active_] : page_map)
+        front_buffer.Write(posx * 8 + byte_index_ / 8 + 1, posy * 8 + bit_index_ + 4, active_ ? 0xff545454 : 0xff12c421);
+    posy += 2;
 }
 
 void putchar(int c)
@@ -92,22 +107,21 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
     if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || ((uptr)info & 7))
         return;
 
-    PageTableManager mgr(PageDirectory);
-
+    MemoryMap mmap;
     {
         auto &tag = info->GetTag<multiboot_tag_mmap>(MULTIBOOT_TAG_TYPE_MMAP);
-        const MemoryMap mmap(tag.entries, (multiboot_mmap_entry *)((u8 *)&tag + tag.size), tag.entry_size);
-        PageFrameAllocator::Get().Init(mmap);
-
-        Paging_Setup();
-
-        auto &page_map = PageFrameAllocator::Get().GetPageMap();
-        mgr.MapPages(page_map.GetBuffer(), page_map.GetBuffer(), page_map.GetSize());
-
-        auto page_count = ceil_div((uptr)KERNEL_END - (uptr)KERNEL_START, PAGE_SIZE);
-        PageFrameAllocator::Get().LockPages(KERNEL_START, page_count);
-        mgr.MapPages(KERNEL_START, KERNEL_START, page_count);
+        mmap = MemoryMap(tag.entries, (multiboot_mmap_entry *)((u8 *)&tag + tag.size), tag.entry_size);
     }
+
+    PageFrameAllocator::Get().Init(mmap);
+    PageFrameAllocator::Get().LockPages(KERNEL_START, ceil_div((uptr)KERNEL_END - (uptr)KERNEL_START, PAGE_SIZE));
+
+    auto page_directory = (PageDirectoryEntry *)PageFrameAllocator::Get().RequestPage();
+    memset(page_directory, 0, PAGE_SIZE);
+
+    PageTableManager ptm(page_directory);
+    ptm.MapPages(nullptr, nullptr, ceil_div(Memory_GetSize(mmap), PAGE_SIZE));
+    ptm.SetupPaging();
 
     {
         auto &tag = info->GetTag<multiboot_tag_framebuffer>(MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
@@ -119,13 +133,15 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
         auto bpp = tag.framebuffer_bpp;
 
         front_buffer.Init((u8 *)addr, width, height, pitch, bpp);
+
         auto page_count = ceil_div(pitch * height, PAGE_SIZE);
         PageFrameAllocator::Get().LockPages((void *)addr, page_count);
-        mgr.MapPages((void *)addr, (void *)addr, page_count);
+        ptm.MapPages((void *)addr, (void *)addr, page_count);
 
-        reset();
-        draw_test(0, 1);
+        draw_color_test();
     }
+
+    reset();
 
     for (auto &entry : *info)
     {
@@ -259,6 +275,8 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
                    tag.vbe_mode_info);
             break;
         }
+        case MULTIBOOT_TAG_TYPE_END:
+            break;
         default:
             printf("tag %u\n", entry.type);
             break;
@@ -269,9 +287,5 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
     printf("used:     %uKiB\n", KiB(PageFrameAllocator::Get().GetUsed()));
     printf("reserved: %uKiB\n", KiB(PageFrameAllocator::Get().GetReserved()));
 
-    auto &page_map = PageFrameAllocator::Get().GetPageMap();
-    printf("page map size = %u\n", page_map.GetSize());
-    for (auto [byte_index_, bit_index_, active_] : page_map)
-        front_buffer.Write(posx * 8 + byte_index_, posy * 8 + bit_index_, active_ ? 0xffffffff : 0x00000000);
-    posy++;
+    draw_page_map();
 }

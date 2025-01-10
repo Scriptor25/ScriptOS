@@ -19,7 +19,7 @@ void PageFrameAllocator::Init(const MemoryMap &mmap)
     InitBitmap(bitmap_size, (u8 *)KERNEL_END);
 
     for (auto &entry : mmap)
-        if (entry.type != MULTIBOOT_MEMORY_AVAILABLE || entry.base_addr == 0)
+        if (entry.type != MULTIBOOT_MEMORY_AVAILABLE)
         {
             auto page_count = ceil_div(entry.length, PAGE_SIZE);
             ReservePages((void *)entry.base_addr, page_count);
@@ -33,8 +33,9 @@ void PageFrameAllocator::FreePage(void *address)
     auto index = (uptr)address / PAGE_SIZE;
     if (!m_PageMap[index])
         return;
+    if (!m_PageMap.Set(index, false))
+        return;
 
-    m_PageMap.Set(index, false);
     m_FreeMemory += PAGE_SIZE;
     m_UsedMemory -= PAGE_SIZE;
 }
@@ -50,8 +51,9 @@ void PageFrameAllocator::LockPage(void *address)
     auto index = (uptr)address / PAGE_SIZE;
     if (m_PageMap[index])
         return;
+    if (!m_PageMap.Set(index, true))
+        return;
 
-    m_PageMap.Set(index, true);
     m_FreeMemory -= PAGE_SIZE;
     m_UsedMemory += PAGE_SIZE;
 }
@@ -94,8 +96,9 @@ void PageFrameAllocator::ReservePage(void *address)
     auto index = (uptr)address / PAGE_SIZE;
     if (m_PageMap[index])
         return;
+    if (!m_PageMap.Set(index, true))
+        return;
 
-    m_PageMap.Set(index, true);
     m_FreeMemory -= PAGE_SIZE;
     m_ReservedMemory += PAGE_SIZE;
 }
@@ -111,8 +114,9 @@ void PageFrameAllocator::UnreservePage(void *address)
     auto index = (uptr)address / PAGE_SIZE;
     if (!m_PageMap[index])
         return;
+    if (!m_PageMap.Set(index, false))
+        return;
 
-    m_PageMap.Set(index, false);
     m_FreeMemory += PAGE_SIZE;
     m_ReservedMemory -= PAGE_SIZE;
 }

@@ -23,6 +23,11 @@ void *memset(void *dst, int src, usize count)
     return dst;
 }
 
+MemoryMap::MemoryMap()
+    : m_Beg(nullptr), m_End(nullptr), m_EntrySize(0)
+{
+}
+
 MemoryMap::MemoryMap(const multiboot_mmap_entry *beg, const multiboot_mmap_entry *end, const u32 entry_size)
     : m_Beg(beg), m_End(end), m_EntrySize(entry_size)
 {

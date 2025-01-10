@@ -112,11 +112,8 @@ public:
     void MapPage(void *virtual_address, void *physical_address);
     void MapPages(void *virtual_address, void *physical_address, usize count);
 
+    void SetupPaging();
+
 private:
     PageDirectoryEntry *m_PD;
 };
-
-extern PageDirectoryEntry PageDirectory[];
-extern PageTableEntry PageTable[];
-
-void Paging_Setup();

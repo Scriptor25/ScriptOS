@@ -4,9 +4,6 @@
 
 #define NUM_ENTRIES 0x400
 
-PageDirectoryEntry PageDirectory[NUM_ENTRIES] alignas(PAGE_SIZE);
-PageTableEntry PageTable[NUM_ENTRIES] alignas(PAGE_SIZE);
-
 PageIndex::PageIndex(uptr virtual_address)
 {
     PDI = (virtual_address >> 22);
@@ -62,17 +59,9 @@ void PageTableManager::MapPages(void *virtual_address, void *physical_address, u
         MapPage((u8 *)virtual_address + (PAGE_SIZE * i), (u8 *)physical_address + (PAGE_SIZE * i));
 }
 
-void Paging_Setup()
+void PageTableManager::SetupPaging()
 {
-    for (u32 i = 0; i < NUM_ENTRIES; i++)
-        PageTable[i].Raw = (i * PAGE_SIZE) | 0x3;
-
-    PageDirectory[0].Raw = ((uptr)PageTable) | 0x3;
-
-    for (u32 i = 1; i < NUM_ENTRIES; i++)
-        PageDirectory[i].Raw = 0;
-
-    asm volatile("mov %0, %%cr3" : : "r"(PageDirectory));
+    asm volatile("mov %0, %%cr3" : : "r"(m_PD));
 
     u32 cr0;
     asm volatile("mov %%cr0, %0" : "=r"(cr0));

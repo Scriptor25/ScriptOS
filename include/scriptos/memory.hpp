@@ -10,6 +10,7 @@ void *memset(void *dst, int src, usize num);
 class MemoryMap
 {
 public:
+    MemoryMap();
     MemoryMap(const multiboot_mmap_entry *beg, const multiboot_mmap_entry *end, u32 entry_size);
 
     Iterator<const multiboot_mmap_entry> begin() const;
