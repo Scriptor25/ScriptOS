@@ -50,7 +50,7 @@ typedef struct print_int
     int num;
 } print_int_t;
 
-static print_int_t print_int(va_list ap, int flags, int width, int precision, int is_signed, int base, int uppercase)
+static print_int_t print_int(va_list ap, int flags, int width, int precision, bool is_signed, int base, bool uppercase)
 {
     (void)precision;
 
@@ -252,7 +252,7 @@ int vprintf(const char *format, va_list ap)
             case 'i':
             case 'I':
             {
-                print_int_t result = print_int(ap, flags, width, precision, 1, 10, 0);
+                print_int_t result = print_int(ap, flags, width, precision, true, 10, false);
                 ap = result.ap;
                 num += result.num;
                 break;
@@ -260,7 +260,7 @@ int vprintf(const char *format, va_list ap)
             case 'u':
             case 'U':
             {
-                print_int_t result = print_int(ap, flags, width, precision, 0, 10, 0);
+                print_int_t result = print_int(ap, flags, width, precision, false, 10, false);
                 ap = result.ap;
                 num += result.num;
                 break;
@@ -268,21 +268,29 @@ int vprintf(const char *format, va_list ap)
             case 'o':
             case 'O':
             {
-                print_int_t result = print_int(ap, flags, width, precision, 0, 8, 0);
+                print_int_t result = print_int(ap, flags, width, precision, false, 8, false);
                 ap = result.ap;
                 num += result.num;
                 break;
             }
             case 'x':
             {
-                print_int_t result = print_int(ap, flags, width, precision, 0, 16, 0);
+                print_int_t result = print_int(ap, flags, width, precision, false, 16, false);
                 ap = result.ap;
                 num += result.num;
                 break;
             }
             case 'X':
             {
-                print_int_t result = print_int(ap, flags, width, precision, 0, 16, 1);
+                print_int_t result = print_int(ap, flags, width, precision, false, 16, true);
+                ap = result.ap;
+                num += result.num;
+                break;
+            }
+            case 'b':
+            case 'B':
+            {
+                print_int_t result = print_int(ap, flags, width, precision, false, 2, false);
                 ap = result.ap;
                 num += result.num;
                 break;

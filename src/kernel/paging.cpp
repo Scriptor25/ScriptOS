@@ -4,18 +4,18 @@
 
 #define NUM_ENTRIES 0x400
 
-static u32 PD[NUM_ENTRIES] alignas(PAGE_SIZE);
-static u32 PT[NUM_ENTRIES] alignas(PAGE_SIZE);
+PageDirectoryEntry PageDirectory[NUM_ENTRIES] alignas(PAGE_SIZE);
+PageTableEntry PageTable[NUM_ENTRIES] alignas(PAGE_SIZE);
 
-PageIndex::PageIndex(u64 virtual_address)
+PageIndex::PageIndex(uptr virtual_address)
 {
-    PD = (virtual_address >> 22);
-    PT = (virtual_address >> 12) & 0x3ff;
+    PDI = (virtual_address >> 22);
+    PTI = (virtual_address >> 12) & 0x3ff;
 }
 
 void PageIndex::Print() const
 {
-    printf("%u - %u\n", (u32)PT, (u32)PD);
+    printf("%u - %u\n", (u32)PTI, (u32)PDI);
 }
 
 PageTableManager::PageTableManager(PageDirectoryEntry *pd)
@@ -25,45 +25,54 @@ PageTableManager::PageTableManager(PageDirectoryEntry *pd)
 
 void PageTableManager::MapPage(void *virtual_address, void *physical_address)
 {
-    PageIndex index((u64)virtual_address);
+    PageIndex index((uptr)virtual_address);
 
     PageTableEntry *pt;
 
-    auto &pde = m_PD[index.PD];
+    auto &pde = m_PD[index.PDI];
     if (!pde.Present)
     {
         pt = (PageTableEntry *)PageFrameAllocator::Get().RequestPage();
         memset(pt, 0, PAGE_SIZE);
 
-        pde.Address_31_12 = (uptr)pt >> 12;
         pde.Present = true;
         pde.ReadWrite = true;
+        pde.Address_31_12 = (uptr)pt >> 12;
     }
     else
     {
         pt = (PageTableEntry *)(pde.Address_31_12 << 12);
     }
 
-    
+    auto &pte = pt[index.PTI];
+    pte.Present = true;
+    pte.ReadWrite = true;
+    pte.Address_31_12 = (uptr)physical_address >> 12;
 
-    auto& pte = pt[index.PT];
-    if (!pte.Present)
-    {
-
-    }
+    asm volatile(
+        "invlpg (%0);"
+        :
+        : "r"(virtual_address)
+        : "memory");
 }
 
-void setup_paging()
+void PageTableManager::MapPages(void *virtual_address, void *physical_address, usize count)
+{
+    for (usize i = 0; i < count; ++i)
+        MapPage((u8 *)virtual_address + (PAGE_SIZE * i), (u8 *)physical_address + (PAGE_SIZE * i));
+}
+
+void Paging_Setup()
 {
     for (u32 i = 0; i < NUM_ENTRIES; i++)
-        PT[i] = (i * PAGE_SIZE) | 0x3;
+        PageTable[i].Raw = (i * PAGE_SIZE) | 0x3;
 
-    PD[0] = ((u32)PT) | 0x3;
+    PageDirectory[0].Raw = ((uptr)PageTable) | 0x3;
 
     for (u32 i = 1; i < NUM_ENTRIES; i++)
-        PD[i] = 0;
+        PageDirectory[i].Raw = 0;
 
-    asm volatile("mov %0, %%cr3" : : "r"(PD));
+    asm volatile("mov %0, %%cr3" : : "r"(PageDirectory));
 
     u32 cr0;
     asm volatile("mov %%cr0, %0" : "=r"(cr0));

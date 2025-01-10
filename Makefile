@@ -4,7 +4,7 @@ GCC = $(TARGET)-g++
 QEMU = qemu-system-i386
 CPP = $(TARGET)-cpp
 
-OPT = -O2 # -O0 -g
+OPT = -O0 -g
 
 GCCFLAGS = -std=c++20 -ffreestanding $(OPT) -Wall -Wextra -fno-exceptions -fno-rtti
 
@@ -30,7 +30,7 @@ build: $(ISO)
 launch: $(ISO)
 	$(QEMU) -cdrom $(ISO)
 
-debug:
+debug: $(ISO)
 	$(QEMU) -cdrom $(ISO) -s
 
 clean:

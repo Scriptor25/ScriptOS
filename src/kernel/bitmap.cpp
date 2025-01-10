@@ -1,6 +1,6 @@
 #include <scriptos/bitmap.hpp>
 
-Bitmap::Iter::Iter(const Bitmap &bitmap, u64 index)
+Bitmap::Iter::Iter(const Bitmap &bitmap, u32 index)
     : m_Bitmap(bitmap), m_Index(index)
 {
 }
@@ -34,13 +34,13 @@ bool Bitmap::Iter::operator==(const Iter &other) const { return other.m_Index ==
 
 bool Bitmap::Iter::operator!=(const Iter &other) const { return other.m_Index != m_Index; }
 
-void Bitmap::Init(u64 size, u8 *buffer)
+void Bitmap::Init(u32 size, u8 *buffer)
 {
     m_Size = size;
     m_Buffer = buffer;
 }
 
-u64 Bitmap::GetSize() const
+u32 Bitmap::GetSize() const
 {
     return m_Size;
 }
@@ -50,12 +50,12 @@ void *Bitmap::GetBuffer() const
     return m_Buffer;
 }
 
-bool Bitmap::operator[](u64 index) const
+bool Bitmap::operator[](u32 index) const
 {
     return Get(index);
 }
 
-bool Bitmap::Get(u64 index) const
+bool Bitmap::Get(u32 index) const
 {
     auto byte_index = index / 8;
     auto bit_index = index % 8;
@@ -63,7 +63,7 @@ bool Bitmap::Get(u64 index) const
     return m_Buffer[byte_index] & bit_mask;
 }
 
-void Bitmap::Set(u64 index, bool value)
+void Bitmap::Set(u32 index, bool value)
 {
     auto byte_index = index / 8;
     auto bit_index = index % 8;

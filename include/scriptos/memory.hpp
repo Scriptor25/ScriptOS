@@ -21,4 +21,4 @@ private:
     u32 m_EntrySize;
 };
 
-u64 Memory_GetSize(const MemoryMap &mmap);
+u32 Memory_GetSize(const MemoryMap &mmap);

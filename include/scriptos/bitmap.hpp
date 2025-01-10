@@ -4,8 +4,8 @@
 
 struct BitEntry
 {
-    u64 ByteIndex;
-    u64 BitIndex;
+    u32 ByteIndex;
+    u32 BitIndex;
 
     bool Active;
 };
@@ -16,7 +16,7 @@ public:
     class Iter
     {
     public:
-        explicit Iter(const Bitmap &bitmap, u64 index);
+        explicit Iter(const Bitmap &bitmap, u32 index);
 
         BitEntry operator*() const;
         Iter &operator++();
@@ -27,23 +27,23 @@ public:
 
     private:
         const Bitmap &m_Bitmap;
-        u64 m_Index;
+        u32 m_Index;
     };
 
     void
-    Init(u64 size, u8 *buffer);
+    Init(u32 size, u8 *buffer);
 
-    u64 GetSize() const;
+    u32 GetSize() const;
     void *GetBuffer() const;
 
-    bool operator[](u64 index) const;
-    bool Get(u64 index) const;
-    void Set(u64 index, bool value);
+    bool operator[](u32 index) const;
+    bool Get(u32 index) const;
+    void Set(u32 index, bool value);
 
     Iter begin() const;
     Iter end() const;
 
 private:
-    u64 m_Size;
+    u32 m_Size;
     u8 *m_Buffer;
 };

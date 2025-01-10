@@ -38,9 +38,9 @@ Iterator<const multiboot_mmap_entry> MemoryMap::end() const
     return Iterator(m_End, m_EntrySize);
 }
 
-u64 Memory_GetSize(const MemoryMap &mmap)
+u32 Memory_GetSize(const MemoryMap &mmap)
 {
-    u64 size = 0;
+    u32 size = 0;
 
     for (auto &entry : mmap)
         size += entry.length;

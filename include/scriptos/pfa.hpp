@@ -13,31 +13,31 @@ public:
     void Init(const MemoryMap &mmap);
 
     void FreePage(void *address);
-    void FreePages(void *address, u64 count);
+    void FreePages(void *address, u32 count);
     void LockPage(void *address);
-    void LockPages(void *address, u64 count);
+    void LockPages(void *address, u32 count);
 
     void *RequestPage();
 
     const Bitmap &GetPageMap() const;
 
-    u64 GetFree() const;
-    u64 GetUsed() const;
-    u64 GetReserved() const;
+    u32 GetFree() const;
+    u32 GetUsed() const;
+    u32 GetReserved() const;
 
 private:
-    void InitBitmap(u64 bitmap_size, u8 *buffer);
+    void InitBitmap(u32 bitmap_size, u8 *buffer);
 
     void ReservePage(void *address);
-    void ReservePages(void *address, u64 count);
+    void ReservePages(void *address, u32 count);
     void UnreservePage(void *address);
-    void UnreservePages(void *address, u64 count);
+    void UnreservePages(void *address, u32 count);
 
     Bitmap m_PageMap;
 
-    u64 m_FreeMemory = 0;
-    u64 m_UsedMemory = 0;
-    u64 m_ReservedMemory = 0;
+    u32 m_FreeMemory = 0;
+    u32 m_UsedMemory = 0;
+    u32 m_ReservedMemory = 0;
 
     static PageFrameAllocator INSTANCE;
 };

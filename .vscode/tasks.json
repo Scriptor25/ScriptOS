@@ -38,6 +38,15 @@
             "group": {
                 "kind": "build"
             }
+        },
+        {
+            "label": "Clean Debug",
+            "type": "shell",
+            "command": "make clean debug",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build"
+            }
         }
     ]
 }

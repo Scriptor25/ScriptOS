@@ -12,6 +12,10 @@
 #include <scriptos/types.hpp>
 #include <scriptos/util.hpp>
 
+#define KiB(BYTES) (BYTES / 1024)
+#define MiB(BYTES) (BYTES / (1024 * 1024))
+#define GiB(BYTES) (BYTES / (1024 * 1024 * 1024))
+
 static u32 posx = 0;
 static u32 posy = 0;
 static Framebuffer front_buffer;
@@ -85,13 +89,24 @@ void putchar(int c)
 
 extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
 {
-    if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || ((u32)info & 7))
+    if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || ((uptr)info & 7))
         return;
+
+    PageTableManager mgr(PageDirectory);
 
     {
         auto &tag = info->GetTag<multiboot_tag_mmap>(MULTIBOOT_TAG_TYPE_MMAP);
         const MemoryMap mmap(tag.entries, (multiboot_mmap_entry *)((u8 *)&tag + tag.size), tag.entry_size);
         PageFrameAllocator::Get().Init(mmap);
+
+        Paging_Setup();
+
+        auto &page_map = PageFrameAllocator::Get().GetPageMap();
+        mgr.MapPages(page_map.GetBuffer(), page_map.GetBuffer(), page_map.GetSize());
+
+        auto page_count = ceil_div((uptr)KERNEL_END - (uptr)KERNEL_START, PAGE_SIZE);
+        PageFrameAllocator::Get().LockPages(KERNEL_START, page_count);
+        mgr.MapPages(KERNEL_START, KERNEL_START, page_count);
     }
 
     {
@@ -104,7 +119,9 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
         auto bpp = tag.framebuffer_bpp;
 
         front_buffer.Init((u8 *)addr, width, height, pitch, bpp);
-        PageFrameAllocator::Get().LockPages((void *)addr, ceil_div(pitch * height, PAGE_SIZE));
+        auto page_count = ceil_div(pitch * height, PAGE_SIZE);
+        PageFrameAllocator::Get().LockPages((void *)addr, page_count);
+        mgr.MapPages((void *)addr, (void *)addr, page_count);
 
         reset();
         draw_test(0, 1);
@@ -167,11 +184,11 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
                     type_string = "reserved";
                     break;
                 }
-                printf(" base = %p, length = %8uKB, type = %s\n", (void *)entry.base_addr, (u32)(entry.length / 1024), type_string);
+                printf(" base = %p, length = %8uKB, type = %s\n", (void *)entry.base_addr, (u32)KiB(entry.length), type_string);
             }
 
             auto size = Memory_GetSize(mmap);
-            printf("memory size = %uKiB\n", (u32)(size / 1024));
+            printf("memory size = %uKiB\n", KiB(size));
 
             break;
         }
@@ -218,22 +235,22 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
         case MULTIBOOT_TAG_TYPE_APM:
         {
             auto &tag = *(multiboot_tag_apm *)&entry;
-            printf("apm version = %#x, flags = %u, offset = %u, cseg = (%p, %u), cseg 16 = (%p, %u), dseg = (%p, %u)\n",
+            printf("apm version = %#x, flags = %016b, offset = %u, cseg = (%p, %uKiB), cseg 16 = (%p, %uKiB), dseg = (%p, %uKiB)\n",
                    tag.version,
                    tag.flags,
                    tag.offset,
                    tag.cseg,
-                   tag.cseg_len,
+                   KiB(tag.cseg_len),
                    tag.cseg_16,
-                   tag.cseg_16_len,
+                   KiB(tag.cseg_16_len),
                    tag.dseg,
-                   tag.dseg_len);
+                   KiB(tag.dseg_len));
             break;
         }
         case MULTIBOOT_TAG_TYPE_VBE:
         {
             auto &tag = *(multiboot_tag_vbe *)&entry;
-            printf("vbe mode = %u, seg = %u, off = %u, len = %u, ctrl info = '%.512s', mode info = '%.256s'\n",
+            printf("vbe mode = %u, seg = 0x%x, off = 0x%x, len = %u, ctrl info = '%.512s', mode info = '%.256s'\n",
                    tag.vbe_mode,
                    tag.vbe_interface_seg,
                    tag.vbe_interface_off,
@@ -248,13 +265,13 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
         }
     }
 
-    printf("free:     %uKiB\n", (u32)(PageFrameAllocator::Get().GetFree() / 1024));
-    printf("used:     %uKiB\n", (u32)(PageFrameAllocator::Get().GetUsed() / 1024));
-    printf("reserved: %uKiB\n", (u32)(PageFrameAllocator::Get().GetReserved() / 1024));
+    printf("free:     %uKiB\n", KiB(PageFrameAllocator::Get().GetFree()));
+    printf("used:     %uKiB\n", KiB(PageFrameAllocator::Get().GetUsed()));
+    printf("reserved: %uKiB\n", KiB(PageFrameAllocator::Get().GetReserved()));
 
-    for (auto [byte_index_, bit_index_, active_] : PageFrameAllocator::Get().GetPageMap())
+    auto &page_map = PageFrameAllocator::Get().GetPageMap();
+    printf("page map size = %u\n", page_map.GetSize());
+    for (auto [byte_index_, bit_index_, active_] : page_map)
         front_buffer.Write(posx * 8 + byte_index_, posy * 8 + bit_index_, active_ ? 0xffffffff : 0x00000000);
     posy++;
-
-    setup_paging();
 }
