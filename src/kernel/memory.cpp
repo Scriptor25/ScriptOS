@@ -33,6 +33,25 @@ MemoryMap::MemoryMap(const multiboot_mmap_entry *beg, const multiboot_mmap_entry
 {
 }
 
+u64 MemoryMap::Size()
+{
+    return m_Size = ((const MemoryMap *)this)->Size();
+}
+
+u64 MemoryMap::Size() const
+{
+    if (m_Size)
+        return m_Size;
+    u64 size = 0;
+    for (auto &entry : *this)
+    {
+        if (entry.base_addr + entry.length > 0xffffffff)
+            break;
+        size += entry.length;
+    }
+    return size;
+}
+
 Iterator<const multiboot_mmap_entry> MemoryMap::begin() const
 {
     return Iterator(m_Beg, m_EntrySize);
@@ -41,14 +60,4 @@ Iterator<const multiboot_mmap_entry> MemoryMap::begin() const
 Iterator<const multiboot_mmap_entry> MemoryMap::end() const
 {
     return Iterator(m_End, m_EntrySize);
-}
-
-u32 Memory_GetSize(const MemoryMap &mmap)
-{
-    u32 size = 0;
-
-    for (auto &entry : mmap)
-        size += entry.length;
-
-    return size;
 }

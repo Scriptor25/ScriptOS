@@ -13,6 +13,7 @@ public:
     u32 Read(u32 x, u32 y);
     void *ReadArray(u32 x, u32 y, u32 width, u32 height, void *dst);
     void Clear(u32 value);
+    void Fill(u32 x, u32 y, u32 width, u32 height, u32 value);
 
     u32 GetWidth() const;
     u32 GetHeight() const;

@@ -23,7 +23,6 @@ PageTableManager::PageTableManager(PageDirectoryEntry *pd)
 void PageTableManager::MapPage(void *virtual_address, void *physical_address)
 {
     PageIndex index((uptr)virtual_address);
-
     PageTableEntry *pt;
 
     auto &pde = m_PD[index.PDI];
@@ -55,8 +54,9 @@ void PageTableManager::MapPage(void *virtual_address, void *physical_address)
 
 void PageTableManager::MapPages(void *virtual_address, void *physical_address, usize count)
 {
-    for (usize i = 0; i < count; ++i)
-        MapPage((u8 *)virtual_address + (PAGE_SIZE * i), (u8 *)physical_address + (PAGE_SIZE * i));
+    auto size = count * PAGE_SIZE;
+    for (usize i = 0; i < size; i += PAGE_SIZE)
+        MapPage((u8 *)virtual_address + i, (u8 *)physical_address + i);
 }
 
 void PageTableManager::SetupPaging()

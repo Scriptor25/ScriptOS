@@ -3,8 +3,6 @@
 #include <scriptos/bitmap.hpp>
 #include <scriptos/memory.hpp>
 
-#define PAGE_SIZE 0x1000
-
 class PageFrameAllocator
 {
 public:
@@ -13,31 +11,31 @@ public:
     void Init(const MemoryMap &mmap);
 
     void FreePage(void *address);
-    void FreePages(void *address, u32 count);
+    void FreePages(void *address, usize count);
     void LockPage(void *address);
-    void LockPages(void *address, u32 count);
+    void LockPages(void *address, usize count);
 
     void *RequestPage();
 
     const Bitmap &GetPageMap() const;
 
-    u32 GetFree() const;
-    u32 GetUsed() const;
-    u32 GetReserved() const;
+    usize GetFree() const;
+    usize GetUsed() const;
+    usize GetReserved() const;
 
 private:
-    void InitBitmap(u32 bitmap_size, u8 *buffer);
+    void InitBitmap(usize bitmap_size, u8 *buffer);
 
     void ReservePage(void *address);
-    void ReservePages(void *address, u32 count);
+    void ReservePages(void *address, usize count);
     void UnreservePage(void *address);
-    void UnreservePages(void *address, u32 count);
+    void UnreservePages(void *address, usize count);
 
     Bitmap m_PageMap;
 
-    u32 m_FreeMemory = 0;
-    u32 m_UsedMemory = 0;
-    u32 m_ReservedMemory = 0;
+    usize m_FreeMemory = 0;
+    usize m_UsedMemory = 0;
+    usize m_ReservedMemory = 0;
 
     static PageFrameAllocator INSTANCE;
 };

@@ -1,7 +1,11 @@
 #pragma once
 
-int is_digit(int c);
+bool is_digit(int c);
 
 int itoa(char *buf, unsigned int value, unsigned int base, unsigned int upper);
 
-int ceil_div(int divisor, int dividend);
+template <typename T, typename U, typename V>
+T ceil_div(U divisor, V dividend)
+{
+    return (divisor / dividend) + !!(divisor % dividend);
+}
