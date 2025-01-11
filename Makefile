@@ -5,8 +5,8 @@ PP = $(TARGET)-cpp
 QEMU = qemu-system-i386
 
 OPT = -O0 -g
-CCFLAGS = -std=c++20 -ffreestanding $(OPT) -Wall -Wextra -fno-exceptions -fno-rtti
-LDFLAGS = -ffreestanding $(OPT) -nostdlib -lgcc
+CCFLAGS = $(OPT) -std=c++20 -ffreestanding -mno-red-zone -Wall -Wextra -fno-exceptions -fno-rtti
+LDFLAGS = $(OPT) -ffreestanding -nostdlib -lgcc
 
 SRC_DIR = src
 BIN_DIR = bin
@@ -38,15 +38,19 @@ clean:
 	-rm -rf $(BIN_DIR)
 
 $(BIN_DIR)/%.s.o: $(BIN_DIR)/%.s.pp
-	mkdir -p $(@D)
+	@ mkdir -p $(@D)
 	$(AS) $< -o $@
 
 $(BIN_DIR)/%.s.pp: $(SRC_DIR)/%.s
-	mkdir -p $(@D)
+	@ mkdir -p $(@D)
 	$(PP) $< -o $@ -I include
 
+$(BIN_DIR)/kernel/interrupts.cpp.o: $(SRC_DIR)/kernel/interrupts.cpp
+	@ mkdir -p $(@D)
+	$(CC) -c $< -o $@ $(CCFLAGS) -mgeneral-regs-only -I include
+
 $(BIN_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
-	mkdir -p $(@D)
+	@ mkdir -p $(@D)
 	$(CC) -c $< -o $@ $(CCFLAGS) -I include
 
 $(KERNEL_BIN): $(SRC_DIR)/linker.ld $(OBJS)
@@ -56,7 +60,7 @@ $(KERNEL_BIN): $(SRC_DIR)/linker.ld $(OBJS)
 	grub-file --is-x86-multiboot2 $(KERNEL_BIN)
 
 $(ISO): $(KERNEL_BIN) $(SRC_DIR)/grub.cfg
-	mkdir -p $(ISO_DIR)/boot/grub
+	@ mkdir -p $(ISO_DIR)/boot/grub
 	cp $(KERNEL_BIN) $(ISO_DIR)/boot/kernel.bin
 	cp $(SRC_DIR)/grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
 	grub-mkrescue -o $(ISO) $(ISO_DIR)

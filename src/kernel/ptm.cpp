@@ -21,8 +21,7 @@ void PageTableManager::MapPage(void *virtual_address, void *physical_address)
     auto &pde = m_PD[index.PDI];
     if (!pde.Present)
     {
-        pt = (PageTableEntry *)PageFrameAllocator::Get().RequestPage();
-        memset(pt, 0, PAGE_SIZE);
+        pt = (PageTableEntry *)PageFrameAllocator::Get().RequestEmptyPage();
 
         pde.Present = true;
         pde.ReadWrite = true;

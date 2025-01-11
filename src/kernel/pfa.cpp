@@ -78,6 +78,13 @@ void *PageFrameAllocator::RequestPage()
     return nullptr;
 }
 
+void *PageFrameAllocator::RequestEmptyPage()
+{
+    auto address = RequestPage();
+    memset(address, 0, PAGE_SIZE);
+    return address;
+}
+
 const Bitmap &PageFrameAllocator::GetPageMap() const { return m_PageMap; }
 
 usize PageFrameAllocator::GetFree() const { return m_FreeMemory; }

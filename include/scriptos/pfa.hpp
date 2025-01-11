@@ -16,6 +16,7 @@ public:
     void LockPages(void *address, usize count);
 
     void *RequestPage();
+    void *RequestEmptyPage();
 
     const Bitmap &GetPageMap() const;
 

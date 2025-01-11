@@ -2,6 +2,7 @@
 #include <scriptos/font.hpp>
 #include <scriptos/framebuffer.hpp>
 #include <scriptos/gdt.hpp>
+#include <scriptos/idt.hpp>
 #include <scriptos/info.hpp>
 #include <scriptos/io.hpp>
 #include <scriptos/memory.hpp>
@@ -118,12 +119,12 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     PageFrameAllocator::Get().Init(mmap);
     PageFrameAllocator::Get().LockPages(KERNEL_START, ceil_div<usize>((uptr)KERNEL_END - (uptr)KERNEL_START, PAGE_SIZE));
 
-    auto page_directory = (PageDirectoryEntry *)PageFrameAllocator::Get().RequestPage();
-    memset(page_directory, 0, PAGE_SIZE);
-
+    auto page_directory = (PageDirectoryEntry *)PageFrameAllocator::Get().RequestEmptyPage();
     PageTableManager ptm(page_directory);
     ptm.MapPages(nullptr, nullptr, ceil_div<usize>(mmap.Size(), PAGE_SIZE));
     ptm.SetupPaging();
+
+    InitIDT();
 
     {
         auto &tag = info.GetTag<multiboot_tag_framebuffer>(MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
@@ -240,4 +241,10 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     putchar('\n');
 
     draw_page_map(16);
+
+    auto test = (int *)0x80000000;
+    *test = 26;
+
+    for (;;)
+        ;
 }

@@ -40,12 +40,12 @@ struct GDT_Entry
     GDT_Entry() = default;
     GDT_Entry(u32 base, u32 limit, u8 access, u8 flags);
 
-    u16 LimitLow;
-    u16 BaseLow;
-    u8 BaseMiddle;
+    u16 LimitLo;
+    u16 BaseLo;
+    u8 BaseMi;
     u8 Access;
-    u8 FlagsLimitHigh;
-    u8 BaseHigh;
+    u8 Flags_LimitHi;
+    u8 BaseHi;
 } __attribute__((packed));
 
 struct GDT_Descriptor
