@@ -1,27 +1,28 @@
 TARGET = i686-elf
 AS = $(TARGET)-as
-GCC = $(TARGET)-g++
+CC = $(TARGET)-g++
+PP = $(TARGET)-cpp
 QEMU = qemu-system-i386
-CPP = $(TARGET)-cpp
 
 OPT = -O2
+CCFLAGS = -std=c++20 -ffreestanding $(OPT) -Wall -Wextra -fno-exceptions -fno-rtti
+LDFLAGS = -ffreestanding $(OPT) -nostdlib -lgcc
 
-GCCFLAGS = -std=c++20 -ffreestanding $(OPT) -Wall -Wextra -fno-exceptions -fno-rtti
-
-SRC = src
-BOOTSRC = $(SRC)/boot
-KERNELSRC = $(SRC)/kernel
-BUILD = build
-BOOTBUILD = $(BUILD)/boot
-KERNELBUILD = $(BUILD)/kernel
+SRC_DIR = src
+BIN_DIR = bin
 
 OSNAME = scriptos
-KERNEL = $(BUILD)/kernel.bin
-ISO = $(BUILD)/$(OSNAME).iso
+KERNEL_BIN = $(BIN_DIR)/kernel.bin
+KERNEL_SYM = $(BIN_DIR)/kernel.sym
 
-BOOTOBJS = $(patsubst $(SRC)/%.s,$(BUILD)/%.o,$(wildcard $(BOOTSRC)/*.s))
-KERNELOBJS = $(patsubst $(SRC)/%.cpp,$(BUILD)/%.o,$(wildcard $(KERNELSRC)/*.cpp))
-OBJS = $(BOOTOBJS) $(KERNELOBJS)
+ISO_DIR = $(BIN_DIR)/iso
+ISO = $(BIN_DIR)/$(OSNAME).iso
+
+rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+
+ASM_SRC = $(call rwildcard,$(SRC_DIR),*.s)
+CPP_SRC = $(call rwildcard,$(SRC_DIR),*.cpp)
+OBJS = $(patsubst $(SRC_DIR)/%.s,$(BIN_DIR)/%.s.o,$(ASM_SRC)) $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.cpp.o,$(CPP_SRC))
 
 .PHONY: build launch clean
 
@@ -34,31 +35,28 @@ debug: $(ISO)
 	$(QEMU) -cdrom $(ISO) -s
 
 clean:
-	-rm -rf $(BUILD)
+	-rm -rf $(BIN_DIR)
 
-$(BOOTBUILD):
-	mkdir -p $(BOOTBUILD)
+$(BIN_DIR)/%.s.o: $(BIN_DIR)/%.s.pp
+	mkdir -p $(@D)
+	$(AS) $< -o $@
 
-$(KERNELBUILD):
-	mkdir -p $(KERNELBUILD)
+$(BIN_DIR)/%.s.pp: $(SRC_DIR)/%.s
+	mkdir -p $(@D)
+	$(PP) $< -o $@ -I include
 
-$(BOOTBUILD)/%.o: $(BOOTBUILD)/%.s.pp
-	$(AS) $< -o $@ -I include
+$(BIN_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
+	mkdir -p $(@D)
+	$(CC) -c $< -o $@ $(CCFLAGS) -I include
 
-$(BOOTBUILD)/%.s.pp: $(BOOTSRC)/%.s $(BOOTBUILD)
-	$(CPP) $< -o $@ -I include
+$(KERNEL_BIN): $(SRC_DIR)/linker.ld $(OBJS)
+	$(CC) -T $^ -o $(KERNEL_BIN) $(LDFLAGS)
+	objcopy --only-keep-debug $(KERNEL_BIN) $(KERNEL_SYM)
+	objcopy --strip-debug $(KERNEL_BIN)
+	grub-file --is-x86-multiboot2 $(KERNEL_BIN)
 
-$(KERNELBUILD)/%.o: $(KERNELSRC)/%.cpp $(KERNELBUILD)
-	$(GCC) -c $< -o $@ $(GCCFLAGS) -I include
-
-$(KERNEL): $(SRC)/linker.ld $(OBJS)
-	$(GCC) -T $^ -o $(KERNEL) -ffreestanding $(OPT) -nostdlib -lgcc
-	objcopy --only-keep-debug $(KERNEL) $(BUILD)/kernel.sym
-	objcopy --strip-debug $(KERNEL)
-	grub-file --is-x86-multiboot2 $(KERNEL)
-
-$(ISO): $(KERNEL) $(SRC)/grub.cfg
-	mkdir -p $(BUILD)/iso/boot/grub
-	cp $(KERNEL) $(BUILD)/iso/boot/kernel.bin
-	cp $(SRC)/grub.cfg $(BUILD)/iso/boot/grub/grub.cfg
-	grub-mkrescue -o $(ISO) $(BUILD)/iso
+$(ISO): $(KERNEL_BIN) $(SRC_DIR)/grub.cfg
+	mkdir -p $(ISO_DIR)/boot/grub
+	cp $(KERNEL_BIN) $(ISO_DIR)/boot/kernel.bin
+	cp $(SRC_DIR)/grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
+	grub-mkrescue -o $(ISO) $(ISO_DIR)
