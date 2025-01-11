@@ -379,9 +379,9 @@ public:
     class Iter
     {
     public:
-        explicit Iter(const multiboot_tag *tag);
+        explicit Iter(multiboot_tag *tag);
 
-        const multiboot_tag &operator*() const;
+        multiboot_tag &operator*() const;
 
         Iter &operator++();
         Iter operator++(int);
@@ -390,19 +390,18 @@ public:
         bool operator!=(const Iter &other) const;
 
     private:
-        const multiboot_tag *m_Tag;
+        multiboot_tag *m_Tag;
     };
 
     Iter begin() const;
     Iter end() const;
 
-    template <typename T>
-    const T &GetTag(u32 type) const
+    const multiboot_tag *operator[](u32 type) const
     {
         for (auto &tag : *this)
             if (tag.type == type)
-                return *(const T *)&tag;
-        return *(const T *)nullptr;
+                return &tag;
+        return nullptr;
     }
 
 private:

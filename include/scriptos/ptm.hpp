@@ -14,6 +14,7 @@ struct PageIndex
 class PageTableManager
 {
 public:
+    PageTableManager();
     explicit PageTableManager(PageDirectoryEntry *pd);
 
     void MapPage(void *virtual_address, void *physical_address);

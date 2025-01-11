@@ -8,6 +8,11 @@ PageIndex::PageIndex(uptr virtual_address)
     PTI = (virtual_address >> 12) & 0x3ff;
 }
 
+PageTableManager::PageTableManager()
+    : m_PD(nullptr)
+{
+}
+
 PageTableManager::PageTableManager(PageDirectoryEntry *pd)
     : m_PD(pd)
 {

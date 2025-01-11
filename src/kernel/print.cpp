@@ -1,31 +1,37 @@
+#include <scriptos/graphics.hpp>
 #include <scriptos/print.hpp>
 #include <scriptos/types.hpp>
 #include <scriptos/util.hpp>
 
-int print(const char *str)
+void putchar(int c)
 {
-    char *p;
-    for (p = (char *)str; *p; ++p)
-        putchar(*p);
-    return p - str;
+    Graphics::Get().PutChar(c);
 }
 
-int wprint(const int *str)
+int print(cstr string)
+{
+    str p;
+    for (p = (str)string; *p; ++p)
+        putchar(*p);
+    return p - string;
+}
+
+int wprint(const int *string)
 {
     int *p;
-    for (p = (int *)str; *p; ++p)
+    for (p = (int *)string; *p; ++p)
         putchar(*p);
-    return p - str;
+    return p - string;
 }
 
-int printn(const char *str, int num)
+int printn(cstr string, int num)
 {
-    for (int n = 0; n < num && str[n]; ++n)
-        putchar(str[n]);
+    for (int n = 0; n < num && string[n]; ++n)
+        putchar(string[n]);
     return num;
 }
 
-int printf(const char *format, ...)
+int printf(cstr format, ...)
 {
     va_list ap;
     va_start(ap, format);
@@ -131,7 +137,7 @@ static print_int_t print_int(va_list ap, int flags, int width, int precision, bo
     return {ap, num};
 }
 
-int vprintf(const char *format, va_list ap)
+int vprintf(cstr format, va_list ap)
 {
     int num = 0;
 
@@ -146,7 +152,7 @@ int vprintf(const char *format, va_list ap)
 
     int flags = 0, width = 0, precision = 0;
 
-    char *p = (char *)format;
+    auto p = (str)format;
 
     while (*p)
     {
@@ -303,9 +309,9 @@ int vprintf(const char *format, va_list ap)
             case 's':
             case 'S':
                 if (precision < 0)
-                    num += print(va_arg(ap, const char *));
+                    num += print(va_arg(ap, cstr));
                 else
-                    num += printn(va_arg(ap, const char *), precision);
+                    num += printn(va_arg(ap, cstr), precision);
                 break;
             case 'p':
             case 'P':

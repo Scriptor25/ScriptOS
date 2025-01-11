@@ -18,6 +18,8 @@ public:
     void *RequestPage();
     void *RequestEmptyPage();
 
+    void *RequestPages(usize count);
+
     const Bitmap &GetPageMap() const;
 
     usize GetFree() const;

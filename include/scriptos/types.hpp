@@ -13,6 +13,9 @@ typedef float f32;
 typedef double f64;
 typedef long double f128;
 
+typedef char *str;
+typedef const char *cstr;
+
 #if defined(__i386__) || defined(__i686__)
 typedef int iptr;
 typedef unsigned int uptr;

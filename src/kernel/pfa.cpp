@@ -67,7 +67,7 @@ void PageFrameAllocator::LockPages(void *address, usize count)
 
 void *PageFrameAllocator::RequestPage()
 {
-    auto size = m_PageMap.GetSize();
+    auto size = m_PageMap.GetSize() * 8;
     for (usize index = 0; index < size; ++index)
         if (!m_PageMap[index])
         {
@@ -83,6 +83,27 @@ void *PageFrameAllocator::RequestEmptyPage()
     auto address = RequestPage();
     memset(address, 0, PAGE_SIZE);
     return address;
+}
+
+void *PageFrameAllocator::RequestPages(usize count)
+{
+    auto size = m_PageMap.GetSize() * 8;
+    for (usize oi = 0; oi < size; ++oi)
+        if (!m_PageMap[oi])
+        {
+            usize ii;
+            for (ii = 0; ii < count; ++ii)
+                if (m_PageMap[oi + ii])
+                    break;
+            if (ii < count)
+                continue;
+
+            auto address = (void *)(oi * PAGE_SIZE);
+            LockPages(address, count);
+            return address;
+        }
+
+    return nullptr;
 }
 
 const Bitmap &PageFrameAllocator::GetPageMap() const { return m_PageMap; }

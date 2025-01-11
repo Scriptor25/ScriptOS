@@ -11,3 +11,8 @@ u8 inb(u16 port)
     asm volatile("in %1, %0" : "=a"(value) : "Nd"(port));
     return value;
 }
+
+void io_wait()
+{
+    outb(0x80, 0);
+}

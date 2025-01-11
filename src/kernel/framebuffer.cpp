@@ -18,14 +18,14 @@ void Framebuffer::Init(u8 *base, u32 width, u32 height, u32 pitch, u8 bpp)
     m_Width = width;
     m_Height = height;
     m_Pitch = pitch;
-    m_BytePerPixel = bpp / 8;
+    m_BPP = bpp / 8;
 }
 
 void Framebuffer::Write(u32 x, u32 y, u32 value)
 {
     if (x >= m_Width || y >= m_Height)
         return;
-    *(u32 *)(m_Base + x * m_BytePerPixel + y * m_Pitch) = value;
+    *(u32 *)(m_Base + x * m_BPP + y * m_Pitch) = value;
 }
 
 void Framebuffer::WriteArray(u32 x, u32 y, u32 width, u32 height, const void *src)
@@ -37,16 +37,16 @@ void Framebuffer::WriteArray(u32 x, u32 y, u32 width, u32 height, const void *sr
     if (y + height > m_Height)
         height = m_Height - y;
 
-    auto pitch = width * m_BytePerPixel;
+    auto pitch = width * m_BPP;
     for (u32 j = 0; j < height; ++j)
-        memcpy(m_Base + x * m_BytePerPixel + (j + y) * m_Pitch, (u8 *)src + y * pitch, pitch);
+        memcpy(m_Base + x * m_BPP + (j + y) * m_Pitch, (u8 *)src + y * pitch, pitch);
 }
 
 u32 Framebuffer::Read(u32 x, u32 y)
 {
     if (x >= m_Width || y >= m_Height)
         return 0;
-    return *(u32 *)(m_Base + x * m_BytePerPixel + y * m_Pitch);
+    return *(u32 *)(m_Base + x * m_BPP + y * m_Pitch);
 }
 
 void *Framebuffer::ReadArray(u32 x, u32 y, u32 width, u32 height, void *dst)
@@ -58,9 +58,9 @@ void *Framebuffer::ReadArray(u32 x, u32 y, u32 width, u32 height, void *dst)
     if (y + height > m_Height)
         height = m_Height - y;
 
-    auto pitch = width * m_BytePerPixel;
+    auto pitch = width * m_BPP;
     for (u32 j = 0; j < height; ++j)
-        memcpy((u8 *)dst + y * pitch, m_Base + x * m_BytePerPixel + (j + y) * m_Pitch, pitch);
+        memcpy((u8 *)dst + y * pitch, m_Base + x * m_BPP + (j + y) * m_Pitch, pitch);
     return dst;
 }
 
@@ -78,22 +78,22 @@ void Framebuffer::Fill(u32 x, u32 y, u32 width, u32 height, u32 value)
     if (y + height > m_Height)
         height = m_Height - y;
 
-    auto pitch = width * m_BytePerPixel;
+    auto pitch = width * m_BPP;
     for (u32 j = 0; j < height; ++j)
-        memset(m_Base + x * m_BytePerPixel + (j + y) * m_Pitch, value, pitch);
+        memset(m_Base + x * m_BPP + (j + y) * m_Pitch, value, pitch);
 }
 
-u32 Framebuffer::GetWidth() const
+u32 Framebuffer::Width() const
 {
     return m_Width;
 }
 
-u32 Framebuffer::GetHeight() const
+u32 Framebuffer::Height() const
 {
     return m_Height;
 }
 
-u8 Framebuffer::GetBytePerPixel() const
+u8 Framebuffer::BPP() const
 {
-    return m_BytePerPixel;
+    return m_BPP;
 }

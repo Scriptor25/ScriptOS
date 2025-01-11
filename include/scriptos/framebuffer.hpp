@@ -15,14 +15,14 @@ public:
     void Clear(u32 value);
     void Fill(u32 x, u32 y, u32 width, u32 height, u32 value);
 
-    u32 GetWidth() const;
-    u32 GetHeight() const;
-    u8 GetBytePerPixel() const;
+    u32 Width() const;
+    u32 Height() const;
+    u8 BPP() const;
 
 private:
     u8 *m_Base;
     u32 m_Width;
     u32 m_Height;
     u32 m_Pitch;
-    u8 m_BytePerPixel;
+    u8 m_BPP;
 };
