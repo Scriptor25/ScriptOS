@@ -19,14 +19,15 @@ void PageFrameAllocator::Init(const MemoryMap &mmap)
 
     InitBitmap(bitmap_size, (u8 *)KERNEL_END);
 
-    for (auto &entry : mmap)
-        if (entry.type != MULTIBOOT_MEMORY_AVAILABLE && entry.base_addr & 0xffffffff)
-        {
-            auto page_count = ceil_div<usize>(entry.length, PAGE_SIZE);
-            ReservePages((void *)(uptr)entry.base_addr, page_count);
-        }
+    ReservePages((void *)0x00000000, ceil_div<usize>(0x000003ff - 0x00000000, PAGE_SIZE));
+    ReservePages((void *)0x00000400, ceil_div<usize>(0x000004ff - 0x00000400, PAGE_SIZE));
+    ReservePages((void *)0x000a0000, ceil_div<usize>(0x000fffff - 0x000a0000, PAGE_SIZE));
 
-    LockPages((u8 *)KERNEL_END, ceil_div<usize>(bitmap_size, PAGE_SIZE));
+    for (auto &entry : mmap)
+        if (entry.type != MULTIBOOT_MEMORY_AVAILABLE)
+            ReservePages((void *)(uptr)entry.base_addr, ceil_div<usize>(entry.length, PAGE_SIZE));
+
+    LockPages((void *)KERNEL_END, ceil_div<usize>(bitmap_size, PAGE_SIZE));
 }
 
 void PageFrameAllocator::FreePage(void *address)

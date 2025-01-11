@@ -9,6 +9,8 @@ Graphics &Graphics::Get()
 
 void Graphics::Init(u8 *fb_addr, u8 *bb_addr, u32 width, u32 height, u32 pitch, u8 bpp)
 {
+    m_Dirty = true;
+
     m_FrontBuffer.Init(fb_addr, width, height, pitch, bpp);
     m_BackBuffer.Init(bb_addr, width, height, pitch, bpp);
 }
@@ -25,11 +27,18 @@ u32 Graphics::Height() const
 
 void Graphics::SwapBuffers()
 {
+    if (!m_Dirty)
+        return;
+
+    m_Dirty = false;
+
     Framebuffer::Blit(m_FrontBuffer, m_BackBuffer);
 }
 
 void Graphics::Clear(u32 color)
 {
+    m_Dirty = true;
+
     m_BackBuffer.Clear(color);
 }
 
@@ -39,6 +48,8 @@ void Graphics::DrawChar(int c, usize x, usize y, u32 color)
     if (!bmp)
         return;
 
+    m_Dirty = true;
+
     for (u8 j = 0; j < 8; ++j)
         for (u8 i = 0; i < 8; ++i)
             if (Font_GetBit(bmp, i, j))
@@ -47,11 +58,15 @@ void Graphics::DrawChar(int c, usize x, usize y, u32 color)
 
 void Graphics::DrawRect(usize x1, usize y1, usize x2, usize y2, u32 color)
 {
+    m_Dirty = true;
+
     m_BackBuffer.Fill(x1, y1, x2 - x1, y2 - y1, color);
 }
 
 void Graphics::DrawColorTest(usize offset, usize scale)
 {
+    m_Dirty = true;
+
     auto fb_width = m_BackBuffer.Width();
     auto fb_height = m_BackBuffer.Height();
 

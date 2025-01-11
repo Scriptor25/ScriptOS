@@ -164,6 +164,8 @@ __attribute__((interrupt)) void Keyboard_Handler(interrupt_frame *frame)
     print("hi");
 
     auto scancode = inb(0x60);
+    (void)scancode;
+
     PIC_EndMaster();
 }
 

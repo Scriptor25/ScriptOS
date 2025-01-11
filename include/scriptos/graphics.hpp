@@ -26,6 +26,7 @@ public:
     void SetCharColor(u32 color);
 
 private:
+    bool m_Dirty;
     Framebuffer m_FrontBuffer, m_BackBuffer;
     usize m_PosX, m_PosY;
     u32 m_CharColor;
