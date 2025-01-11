@@ -102,15 +102,17 @@ void putchar(int c)
     }
 }
 
-extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
+extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 {
-    if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || ((uptr)info & 7))
+    if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || ((uptr)&info & 7))
         return;
+
+    InitGDT();
 
     MemoryMap mmap;
     {
-        auto &tag = info->GetTag<multiboot_tag_mmap>(MULTIBOOT_TAG_TYPE_MMAP);
-        mmap = MemoryMap(tag.entries, (multiboot_mmap_entry *)((u8 *)&tag + tag.size), tag.entry_size);
+        auto &tag = info.GetTag<multiboot_tag_mmap>(MULTIBOOT_TAG_TYPE_MMAP);
+        mmap = MemoryMap(tag.entries, (const multiboot_mmap_entry *)((u8 *)&tag + tag.size), tag.entry_size);
     }
 
     PageFrameAllocator::Get().Init(mmap);
@@ -124,7 +126,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
     ptm.SetupPaging();
 
     {
-        auto &tag = info->GetTag<multiboot_tag_framebuffer>(MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
+        auto &tag = info.GetTag<multiboot_tag_framebuffer>(MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
 
         auto addr = tag.framebuffer_addr;
         auto width = tag.framebuffer_width;
@@ -143,7 +145,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo *info)
 
     reset();
 
-    for (auto &entry : *info)
+    for (auto &entry : info)
     {
         switch (entry.type)
         {

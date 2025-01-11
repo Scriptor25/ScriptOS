@@ -4,7 +4,7 @@ CC = $(TARGET)-g++
 PP = $(TARGET)-cpp
 QEMU = qemu-system-i386
 
-OPT = -O2
+OPT = -O0 -g
 CCFLAGS = -std=c++20 -ffreestanding $(OPT) -Wall -Wextra -fno-exceptions -fno-rtti
 LDFLAGS = -ffreestanding $(OPT) -nostdlib -lgcc
 
