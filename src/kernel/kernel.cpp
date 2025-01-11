@@ -7,8 +7,8 @@
 #include <scriptos/info.hpp>
 #include <scriptos/interrupts.hpp>
 #include <scriptos/io.hpp>
+#include <scriptos/mb_info.hpp>
 #include <scriptos/memory.hpp>
-#include <scriptos/multiboot2.hpp>
 #include <scriptos/paging.hpp>
 #include <scriptos/pfa.hpp>
 #include <scriptos/print.hpp>
@@ -27,8 +27,7 @@ static void setup_memory(const MultibootInfo &info)
 {
     auto &pfa = PageFrameAllocator::Get();
 
-    auto &tag = *(multiboot_tag_mmap *)info[MULTIBOOT_TAG_TYPE_MMAP];
-    MemoryMap mmap(tag.entries, (const multiboot_mmap_entry *)((u8 *)&tag + tag.size), tag.entry_size);
+    auto mmap = info.GetMMap();
 
     pfa.Init(mmap);
     pfa.LockPages(KERNEL_START, ceil_div<usize>((uptr)KERNEL_END - (uptr)KERNEL_START, PAGE_SIZE));
@@ -63,6 +62,30 @@ static void setup_graphics(const MultibootInfo &info)
     graphics.SetCharColor(0xfffefefe);
 }
 
+static void draw_memory_diagram()
+{
+    auto &graphics = Graphics::Get();
+    auto &[px, py] = graphics.Pos();
+
+    auto &pfa = PageFrameAllocator::Get();
+    auto &page_map = pfa.GetPageMap();
+
+    auto h = 2 * CHAR_H;
+    auto sx = 16;
+    auto top = py + CHAR_H - 5;
+    auto bottom = py + CHAR_H + 5;
+    auto left = px;
+    auto right = px + page_map.GetSize() / sx + 2;
+
+    graphics.DrawRect(left, top, right, bottom, 0xffc8c8c8);
+
+    for (auto [byte_, bit_, set_] : page_map)
+        graphics.DrawPixel(left + 1 + byte_ / sx, top + 1 + bit_, set_ ? 0xffff0000 : 0xff00ff00);
+
+    px = 0;
+    py += h;
+}
+
 extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 {
     if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || ((uptr)&info & 7))
@@ -83,6 +106,8 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     asm volatile("sti");
 
     print("Hello World!\n");
+
+    draw_memory_diagram();
 
     for (;;)
         Graphics::Get().SwapBuffers();

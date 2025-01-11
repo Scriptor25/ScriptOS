@@ -373,40 +373,4 @@ struct multiboot_tag_load_base_addr
     u32 load_base_addr;
 };
 
-class MultibootInfo
-{
-public:
-    class Iter
-    {
-    public:
-        explicit Iter(multiboot_tag *tag);
-
-        multiboot_tag &operator*() const;
-
-        Iter &operator++();
-        Iter operator++(int);
-
-        bool operator==(const Iter &other) const;
-        bool operator!=(const Iter &other) const;
-
-    private:
-        multiboot_tag *m_Tag;
-    };
-
-    Iter begin() const;
-    Iter end() const;
-
-    const multiboot_tag *operator[](u32 type) const
-    {
-        for (auto &tag : *this)
-            if (tag.type == type)
-                return &tag;
-        return nullptr;
-    }
-
-private:
-    u32 m_TotalSize;
-    u32 m_Reserved;
-};
-
 #endif

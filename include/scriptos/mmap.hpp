@@ -9,9 +9,9 @@ public:
     class Iter
     {
     public:
-        Iter(const multiboot_mmap_entry *ptr, u32 entry_size);
+        Iter(multiboot_mmap_entry *ptr, u32 entry_size);
 
-        const multiboot_mmap_entry &operator*() const;
+        multiboot_mmap_entry &operator*() const;
 
         Iter &operator++();
         Iter operator++(int);
@@ -20,12 +20,12 @@ public:
         bool operator!=(const Iter &other) const;
 
     private:
-        const multiboot_mmap_entry *m_Ptr;
+        multiboot_mmap_entry *m_Ptr;
         u32 m_EntrySize;
     };
 
     MemoryMap();
-    MemoryMap(const multiboot_mmap_entry *beg, const multiboot_mmap_entry *end, u32 entry_size);
+    MemoryMap(multiboot_mmap_entry *beg, multiboot_mmap_entry *end, u32 entry_size);
 
     u64 Size();
     u64 Size() const;
@@ -34,8 +34,8 @@ public:
     Iter end() const;
 
 private:
-    const multiboot_mmap_entry *m_Beg;
-    const multiboot_mmap_entry *m_End;
+    multiboot_mmap_entry *m_Beg;
+    multiboot_mmap_entry *m_End;
 
     u32 m_EntrySize;
     u64 m_Size = 0;

@@ -19,15 +19,18 @@ void PageFrameAllocator::Init(const MemoryMap &mmap)
 
     InitBitmap(bitmap_size, (u8 *)KERNEL_END);
 
-    ReservePages((void *)0x00000000, ceil_div<usize>(0x000003ff - 0x00000000, PAGE_SIZE));
-    ReservePages((void *)0x00000400, ceil_div<usize>(0x000004ff - 0x00000400, PAGE_SIZE));
-    ReservePages((void *)0x000a0000, ceil_div<usize>(0x000fffff - 0x000a0000, PAGE_SIZE));
+    ReservePages((void *)0x00000000, ceil_div<usize>(0x000003ff - 0x00000000, PAGE_SIZE)); // interrupt vector table
+    ReservePages((void *)0x00000400, ceil_div<usize>(0x000004ff - 0x00000400, PAGE_SIZE)); // bios data area
+    ReservePages((void *)0x00000500, ceil_div<usize>(0x000007ff - 0x00000500, PAGE_SIZE)); // grub data area
+    // ReservePages((void *)0x00000800, ceil_div<usize>(0x0009efff - 0x00000800, PAGE_SIZE)); // crashes for some reason
+    ReservePages((void *)0x0009f000, ceil_div<usize>(0x0009ffff - 0x0009f000, PAGE_SIZE)); // extended bios data area
+    ReservePages((void *)0x000a0000, ceil_div<usize>(0x000fffff - 0x000a0000, PAGE_SIZE)); // video, vga bios, system bios and others
 
     for (auto &entry : mmap)
         if (entry.type != MULTIBOOT_MEMORY_AVAILABLE)
-            ReservePages((void *)(uptr)entry.base_addr, ceil_div<usize>(entry.length, PAGE_SIZE));
+            ReservePages((void *)entry.base_addr, ceil_div<usize>(entry.length, PAGE_SIZE));
 
-    LockPages((void *)KERNEL_END, ceil_div<usize>(bitmap_size, PAGE_SIZE));
+    LockPages(KERNEL_END, ceil_div<usize>(bitmap_size, PAGE_SIZE));
 }
 
 void PageFrameAllocator::FreePage(void *address)
