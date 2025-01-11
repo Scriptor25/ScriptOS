@@ -1,4 +1,5 @@
 #include <scriptos/info.hpp>
+#include <scriptos/memory.hpp>
 #include <scriptos/pfa.hpp>
 #include <scriptos/print.hpp>
 #include <scriptos/util.hpp>

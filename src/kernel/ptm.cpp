@@ -1,18 +1,11 @@
-#include <scriptos/paging.hpp>
+#include <scriptos/memory.hpp>
 #include <scriptos/pfa.hpp>
-#include <scriptos/print.hpp>
-
-#define NUM_ENTRIES 0x400
+#include <scriptos/ptm.hpp>
 
 PageIndex::PageIndex(uptr virtual_address)
 {
     PDI = (virtual_address >> 22);
     PTI = (virtual_address >> 12) & 0x3ff;
-}
-
-void PageIndex::Print() const
-{
-    printf("%u - %u\n", (u32)PTI, (u32)PDI);
 }
 
 PageTableManager::PageTableManager(PageDirectoryEntry *pd)

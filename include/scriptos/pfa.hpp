@@ -1,7 +1,7 @@
 #pragma once
 
 #include <scriptos/bitmap.hpp>
-#include <scriptos/memory.hpp>
+#include <scriptos/mmap.hpp>
 
 class PageFrameAllocator
 {

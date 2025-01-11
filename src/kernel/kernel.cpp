@@ -9,6 +9,7 @@
 #include <scriptos/paging.hpp>
 #include <scriptos/pfa.hpp>
 #include <scriptos/print.hpp>
+#include <scriptos/ptm.hpp>
 #include <scriptos/types.hpp>
 #include <scriptos/util.hpp>
 

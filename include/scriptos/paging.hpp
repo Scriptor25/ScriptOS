@@ -2,6 +2,8 @@
 
 #include <scriptos/types.hpp>
 
+#define NUM_ENTRIES 0x400
+
 struct PageDirectoryEntry_4MiB
 {
     /* present bit */
@@ -92,28 +94,4 @@ union PageTableEntry
     };
 
     u32 Raw;
-};
-
-struct PageIndex
-{
-    explicit PageIndex(uptr virtual_address);
-
-    void Print() const;
-
-    uptr PDI;
-    uptr PTI;
-};
-
-class PageTableManager
-{
-public:
-    explicit PageTableManager(PageDirectoryEntry *pd);
-
-    void MapPage(void *virtual_address, void *physical_address);
-    void MapPages(void *virtual_address, void *physical_address, usize count);
-
-    void SetupPaging();
-
-private:
-    PageDirectoryEntry *m_PD;
 };
