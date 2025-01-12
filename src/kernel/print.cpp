@@ -64,19 +64,19 @@ static print_int_t print_int(va_list ap, int flags, int width, int precision, bo
 
     int num = 0;
 
-    int left_justify = flags & flag_left_justify;
-    int force_sign = flags & flag_force_sign;
-    int blank_space = flags & flag_blank_space;
-    int prefix = flags & flag_prefix;
-    int pad_zero = flags & flag_pad_zero;
+    auto left_justify = flags & flag_left_justify;
+    auto force_sign = flags & flag_force_sign;
+    auto blank_space = flags & flag_blank_space;
+    auto prefix = flags & flag_prefix;
+    auto pad_zero = flags & flag_pad_zero;
 
-    int i = va_arg(ap, int);
+    auto i = va_arg(ap, int);
 
-    int has_sign = is_signed && i < 0;
+    auto has_sign = is_signed && i < 0;
     if (has_sign)
         i = -i;
 
-    int len = itoa(buf, (unsigned int)i, base, uppercase);
+    auto len = uitoa(buf, (unsigned int)i, base, uppercase);
 
     if (!left_justify && !pad_zero)
         for (int x = len; x < width; ++x)
@@ -211,7 +211,7 @@ int vprintf(cstr format, va_list ap)
                 }
                 width = 0;
             }
-            if (is_digit(*p))
+            if (isdigit(*p))
             {
                 width = width * 10 + (*p - 0x30);
                 p++;
@@ -242,7 +242,7 @@ int vprintf(cstr format, va_list ap)
                     break;
                 }
             }
-            if (is_digit(*p))
+            if (isdigit(*p))
             {
                 precision = precision * 10 + (*p - 0x30);
                 p++;
@@ -317,8 +317,8 @@ int vprintf(cstr format, va_list ap)
             case 'P':
             {
                 char buf[16];
-                void *ptr = va_arg(ap, void *);
-                int len = itoa(buf, (u32)(uptr)ptr, 16, 0);
+                auto ptr = va_arg(ap, void *);
+                auto len = uitoa(buf, (uptr)ptr, 16, 0);
                 for (unsigned x = len; x < sizeof(void *) * 2; ++x)
                     putchar('0');
                 printn(buf, len);

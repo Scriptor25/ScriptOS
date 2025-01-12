@@ -1,7 +1,9 @@
 #include <scriptos/mmap.hpp>
 
-MemoryMap::Iter::Iter(multiboot_mmap_entry *ptr, u32 entry_size)
-    : m_Ptr(ptr), m_EntrySize(entry_size) {}
+MemoryMap::Iter::Iter(multiboot_mmap_entry *ptr, usize entry_size)
+    : m_Ptr(ptr), m_EntrySize(entry_size)
+{
+}
 
 multiboot_mmap_entry &MemoryMap::Iter::operator*() const { return *m_Ptr; }
 
@@ -22,43 +24,24 @@ bool MemoryMap::Iter::operator==(const Iter &other) const { return other.m_Ptr =
 bool MemoryMap::Iter::operator!=(const Iter &other) const { return other.m_Ptr != m_Ptr; }
 
 MemoryMap::MemoryMap()
-    : m_Beg(nullptr), m_End(nullptr), m_EntrySize(0)
+    : m_Beg(nullptr), m_End(nullptr), m_EntrySize(0), m_Size(0)
 {
 }
 
-MemoryMap::MemoryMap(multiboot_mmap_entry *beg, multiboot_mmap_entry *end, u32 entry_size)
-    : m_Beg(beg), m_End(end), m_EntrySize(entry_size)
+MemoryMap::MemoryMap(multiboot_mmap_entry *beg, multiboot_mmap_entry *end, usize entry_size)
+    : m_Beg(beg), m_End(end), m_EntrySize(entry_size), m_Size(0)
 {
-}
-
-u64 MemoryMap::Size()
-{
-    if (m_Size)
-        return m_Size;
-
     for (auto &entry : *this)
     {
-        if (entry.base_addr + entry.length > 0xffffffff)
+        if (entry.base_addr_hi || entry.length_hi)
             break;
-        m_Size += entry.length;
+        m_Size += entry.length_lo;
     }
-    return m_Size;
 }
 
-u64 MemoryMap::Size() const
-{
-    if (m_Size)
-        return m_Size;
+usize MemoryMap::Size() { return m_Size; }
 
-    u64 size = 0;
-    for (auto &entry : *this)
-    {
-        if (entry.base_addr + entry.length > 0xffffffff)
-            break;
-        size += entry.length;
-    }
-    return size;
-}
+usize MemoryMap::Size() const { return m_Size; }
 
 MemoryMap::Iter MemoryMap::begin() const
 {

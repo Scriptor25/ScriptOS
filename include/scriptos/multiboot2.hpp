@@ -155,8 +155,10 @@ struct multiboot_color
 
 struct multiboot_mmap_entry
 {
-    u64 base_addr;
-    u64 length;
+    u32 base_addr_lo;
+    u32 base_addr_hi;
+    u32 length_lo;
+    u32 length_hi;
     u32 type;
     u32 reserved;
 };
@@ -233,7 +235,8 @@ struct multiboot_tag_framebuffer
     u32 type;
     u32 size;
 
-    u64 framebuffer_addr;
+    u32 framebuffer_addr_lo;
+    u32 framebuffer_addr_hi;
     u32 framebuffer_pitch;
     u32 framebuffer_width;
     u32 framebuffer_height;
@@ -301,7 +304,8 @@ struct multiboot_tag_efi64
     u32 type;
     u32 size;
 
-    u64 pointer;
+    u32 pointer_lo;
+    u32 pointer_hi;
 };
 
 struct multiboot_tag_smbios
@@ -362,7 +366,8 @@ struct multiboot_tag_efi64_ih
     u32 type;
     u32 size;
 
-    u64 pointer;
+    u32 pointer_lo;
+    u32 pointer_hi;
 };
 
 struct multiboot_tag_load_base_addr

@@ -7,27 +7,15 @@
 class MultibootInfo
 {
 public:
-    class Iter
-    {
-    public:
-        explicit Iter(multiboot_tag *tag);
-
-        multiboot_tag &operator*() const;
-
-        Iter &operator++();
-        Iter operator++(int);
-
-        bool operator==(const Iter &other) const;
-        bool operator!=(const Iter &other) const;
-
-    private:
-        multiboot_tag *m_Tag;
-    };
-
-    Iter begin() const;
-    Iter end() const;
-
     multiboot_tag *operator[](u32 type) const;
+
+    template <typename T>
+    void ForEach(T callback) const
+    {
+        for (auto tag = (multiboot_tag *)this + 1; tag->type != MULTIBOOT_TAG_TYPE_END; tag = (multiboot_tag *)((uptr)tag + ((tag->size + 7) & ~7)))
+            if (callback(tag))
+                return;
+    }
 
     MemoryMap GetMMap() const;
 

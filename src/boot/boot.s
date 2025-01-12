@@ -26,8 +26,8 @@ address_tag_start:
         .long address_tag_end - address_tag_start
         .long multiboot_header
         .long _start
-        .long _data_end
-        .long _bss_end
+        .long __data_end
+        .long __bss_end
 address_tag_end:
 
         .align 8

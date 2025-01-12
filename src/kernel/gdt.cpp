@@ -12,6 +12,8 @@ GDT_Entry::GDT_Entry(u32 base, u32 limit, u8 access, u8 flags)
 
 static GDT_Entry gdt[3] __attribute__((aligned(0x1000)));
 
+extern "C" void LoadGDT(GDT_Descriptor *descriptor, u16 code_segment, u16 data_segment);
+
 void InitGDT()
 {
     gdt[0] = {0, 0, 0, 0};                                                                                                                                          // null

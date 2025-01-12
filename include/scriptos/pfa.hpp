@@ -20,11 +20,11 @@ public:
 
     void *RequestPages(usize count);
 
-    const Bitmap &GetPageMap() const;
+    const Bitmap &PageMap() const;
 
-    usize GetFree() const;
-    usize GetUsed() const;
-    usize GetReserved() const;
+    usize FreeMemory() const;
+    usize UsedMemory() const;
+    usize ReservedMemory() const;
 
 private:
     void InitBitmap(usize bitmap_size, u8 *buffer);

@@ -1,8 +1,9 @@
 #include <scriptos/graphics.hpp>
+#include <scriptos/io.hpp>
 #include <scriptos/panic.hpp>
 #include <scriptos/print.hpp>
 
-void Panic(cstr message)
+void Panic(cstr format, ...)
 {
     auto &graphics = Graphics::Get();
     graphics.DrawColorTest();
@@ -12,7 +13,10 @@ void Panic(cstr message)
     print("Kernel Panic");
     putchar('\n');
     putchar('\n');
-    print(message);
+    va_list ap;
+    va_start(ap, format);
+    vprintf(format, ap);
+    va_end(ap);
     putchar('\n');
 
     graphics.SwapBuffers();

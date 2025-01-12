@@ -2,12 +2,28 @@
 
 #include <scriptos/types.hpp>
 
-bool is_digit(int c);
+#define KiB(BYTES) (BYTES / 1024)
+#define MiB(BYTES) (BYTES / (1024 * 1024))
+#define GiB(BYTES) (BYTES / (1024 * 1024 * 1024))
+#define TiB(BYTES) (BYTES / (1024 * 1024 * 1024 * 1024))
 
-int itoa(str buf, unsigned int value, unsigned int base, unsigned int upper);
+bool isalnum(int c);
+bool isalpha(int c);
+bool isblank(int c);
+bool iscntrl(int c);
+bool isdigit(int c);
+bool isgraph(int c);
+bool islower(int c);
+bool isprint(int c);
+bool ispunct(int c);
+bool isspace(int c);
+bool isupper(int c);
+bool isxdigit(int c);
 
-template <typename T, typename U, typename V>
-constexpr T ceil_div(U divisor, V dividend)
+int uitoa(str buf, unsigned value, unsigned base, bool upper);
+
+template <typename T, typename U>
+constexpr auto ceil_div(T divisor, U dividend)
 {
     return (divisor / dividend) + !!(divisor % dividend);
 }

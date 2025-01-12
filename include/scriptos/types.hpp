@@ -16,6 +16,8 @@ typedef long double f128;
 typedef char *str;
 typedef const char *cstr;
 
+typedef decltype(nullptr) nullptr_t;
+
 #if defined(__i386__) || defined(__i686__)
 typedef int iptr;
 typedef unsigned int uptr;

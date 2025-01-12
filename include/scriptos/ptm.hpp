@@ -5,7 +5,7 @@
 
 struct PageIndex
 {
-    explicit PageIndex(uptr virtual_address);
+    PageIndex(uptr virtual_address);
 
     uptr PDI;
     uptr PTI;
@@ -15,7 +15,7 @@ class PageTableManager
 {
 public:
     PageTableManager();
-    explicit PageTableManager(PageDirectoryEntry *pd);
+    explicit PageTableManager(PageDirectoryEntry *page_directory);
 
     void MapPage(void *virtual_address, void *physical_address);
     void MapPages(void *virtual_address, void *physical_address, usize count);
@@ -23,5 +23,5 @@ public:
     void SetupPaging();
 
 private:
-    PageDirectoryEntry *m_PD;
+    PageDirectoryEntry *m_PageDirectory;
 };

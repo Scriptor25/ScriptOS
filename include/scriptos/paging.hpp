@@ -3,6 +3,7 @@
 #include <scriptos/types.hpp>
 
 #define NUM_ENTRIES 0x400
+#define PAGE_SIZE 0x1000
 
 struct PageDirectoryEntry_4MiB
 {

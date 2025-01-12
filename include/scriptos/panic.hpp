@@ -2,4 +2,4 @@
 
 #include <scriptos/types.hpp>
 
-void Panic(cstr message);
+void Panic(cstr format, ...);

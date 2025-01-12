@@ -9,12 +9,12 @@ PageIndex::PageIndex(uptr virtual_address)
 }
 
 PageTableManager::PageTableManager()
-    : m_PD(nullptr)
+    : m_PageDirectory(nullptr)
 {
 }
 
-PageTableManager::PageTableManager(PageDirectoryEntry *pd)
-    : m_PD(pd)
+PageTableManager::PageTableManager(PageDirectoryEntry *page_directory)
+    : m_PageDirectory(page_directory)
 {
 }
 
@@ -23,7 +23,7 @@ void PageTableManager::MapPage(void *virtual_address, void *physical_address)
     PageIndex index((uptr)virtual_address);
     PageTableEntry *pt;
 
-    auto &pde = m_PD[index.PDI];
+    auto &pde = m_PageDirectory[index.PDI];
     if (!pde.Present)
     {
         pt = (PageTableEntry *)PageFrameAllocator::Get().RequestEmptyPage();
@@ -58,7 +58,7 @@ void PageTableManager::MapPages(void *virtual_address, void *physical_address, u
 
 void PageTableManager::SetupPaging()
 {
-    asm volatile("mov %0, %%cr3" : : "r"(m_PD));
+    asm volatile("mov %0, %%cr3" : : "r"(m_PageDirectory));
 
     u32 cr0;
     asm volatile("mov %%cr0, %0" : "=r"(cr0));

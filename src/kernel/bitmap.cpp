@@ -7,13 +7,10 @@ Bitmap::Iter::Iter(const Bitmap &bitmap, usize index)
 
 BitEntry Bitmap::Iter::operator*() const
 {
-    auto byte_index = m_Index / 8;
-    auto bit_index = m_Index % 8;
-    auto active = m_Bitmap.Get(m_Index);
     return {
-        byte_index,
-        bit_index,
-        active,
+        m_Index / 8,
+        m_Index % 8,
+        m_Bitmap[m_Index],
     };
 }
 
@@ -40,12 +37,12 @@ void Bitmap::Init(usize size, u8 *buffer)
     m_Buffer = buffer;
 }
 
-usize Bitmap::GetSize() const
+usize Bitmap::Size() const
 {
     return m_Size;
 }
 
-void *Bitmap::GetBuffer() const
+void *Bitmap::Buffer() const
 {
     return m_Buffer;
 }
@@ -66,7 +63,7 @@ bool Bitmap::Get(usize index) const
     return m_Buffer[byte_index] & bit_mask;
 }
 
-bool Bitmap::Set(usize index, bool value)
+bool Bitmap::Set(usize index)
 {
     if (index >= m_Size * 8)
         return false;
@@ -74,11 +71,19 @@ bool Bitmap::Set(usize index, bool value)
     auto byte_index = index / 8;
     auto bit_index = index % 8;
     auto bit_mask = 1 << bit_index;
-    if (value)
-        m_Buffer[byte_index] |= bit_mask;
-    else
-        m_Buffer[byte_index] &= ~bit_mask;
+    m_Buffer[byte_index] |= bit_mask;
+    return true;
+}
 
+bool Bitmap::Clr(usize index)
+{
+    if (index >= m_Size * 8)
+        return false;
+
+    auto byte_index = index / 8;
+    auto bit_index = index % 8;
+    auto bit_mask = 1 << bit_index;
+    m_Buffer[byte_index] &= ~bit_mask;
     return true;
 }
 

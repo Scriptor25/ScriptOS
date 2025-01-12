@@ -33,12 +33,13 @@ public:
     void
     Init(usize size, u8 *buffer);
 
-    usize GetSize() const;
-    void *GetBuffer() const;
+    usize Size() const;
+    void *Buffer() const;
 
     bool operator[](usize index) const;
     bool Get(usize index) const;
-    bool Set(usize index, bool value);
+    bool Set(usize index);
+    bool Clr(usize index);
 
     Iter begin() const;
     Iter end() const;

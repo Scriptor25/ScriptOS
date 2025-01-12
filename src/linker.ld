@@ -4,36 +4,36 @@ SECTIONS
 {
     . = 2M;
 
-    _kernel_start = .;
+    __kernel_start = .;
 
     .text BLOCK(4K) : ALIGN(4K)
     {
-        _text_start = .;
+        __text_start = .;
         *(.text)
-        _text_end = .;
+        __text_end = .;
     }
 
     .rodata BLOCK(4K) : ALIGN(4K)
     {
-        _rodata_start = .;
+        __rodata_start = .;
         *(.rodata)
-        _rodata_end = .;
+        __rodata_end = .;
     }
 
     .data BLOCK(4K) : ALIGN(4K)
     {
-        _data_start = .;
+        __data_start = .;
         *(.data)
-        _data_end = .;
+        __data_end = .;
     }
 
     .bss BLOCK(4K) : ALIGN(4K)
     {
-        _bss_start = .;
+        __bss_start = .;
         *(COMMON)
         *(.bss)
-        _bss_end = .;
+        __bss_end = .;
     }
 
-    _kernel_end = .;
+    __kernel_end = .;
 }
