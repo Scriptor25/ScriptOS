@@ -69,7 +69,7 @@ multiboot_entry:
 
         /* enter kernel main */
         call kernel_main
- 
+        
         /* halt */
 .loop:  cli
         hlt

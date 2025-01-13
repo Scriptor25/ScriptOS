@@ -7,11 +7,21 @@
 #include <scriptos/pfa.hpp>
 #include <scriptos/pic.hpp>
 #include <scriptos/print.hpp>
+#include <scriptos/ps2.hpp>
 #include <scriptos/ptm.hpp>
 #include <scriptos/types.hpp>
 #include <scriptos/util.hpp>
 
 static PageTableManager ptm;
+
+struct A
+{
+    A(u32 b) : B(b) {}
+
+    u32 B;
+};
+
+static A abc(123);
 
 static void setup_memory(const MultibootInfo &info)
 {
@@ -78,20 +88,13 @@ static void draw_memory_diagram()
     py += CHAR_H * ceil_div(s, w);
 }
 
-static void enable_keyboard_interrupt()
-{
-    asm volatile("cli");
-
-    outb(PIC1_DATA, 0b11111101);
-    io_wait();
-    outb(PIC2_DATA, 0b11111111);
-    io_wait();
-
-    asm volatile("sti");
-}
+extern "C" void _init();
+extern "C" void _fini();
 
 extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 {
+    _init();
+
     if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || ((uptr)&info & 7))
         return;
 
@@ -128,16 +131,12 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
         printf("base = %p%p, length = %#08x%08x, type = '%s'\n", entry.base_addr_hi, entry.base_addr_lo, entry.length_hi, entry.length_lo, type);
     }
 
-    enable_keyboard_interrupt();
+    printf("abc = %u\n", abc.B);
 
-    auto address = PageFrameAllocator::Get().RequestPage();
-    auto test = (u32 *)0xC0000000;
-
-    ptm.MapPage(test, address);
-
-    *test = 123;
-    printf("[%p] = %u, [%p] = %u\n", test, *test, address, *(u32 *)address);
+    PS2_Enable_Keyboard_Interrupt();
 
     for (;;)
         Graphics::Get().SwapBuffers();
+
+    _fini();
 }

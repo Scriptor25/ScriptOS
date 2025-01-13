@@ -2,6 +2,7 @@
 #include <scriptos/idt.hpp>
 #include <scriptos/interrupts.hpp>
 #include <scriptos/pfa.hpp>
+#include <scriptos/ps2.hpp>
 
 IDT_Entry::IDT_Entry(u32 offset, u16 selector, u8 attributes)
 {
@@ -20,9 +21,9 @@ void InitIDT()
     idt.Ptr = (IDT_Entry *)PageFrameAllocator::Get().RequestEmptyPage();
 
     idt.Ptr[0x00] = {(uptr)DE_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x01] = {(uptr)DB_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x03] = {(uptr)BP_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x04] = {(uptr)OF_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x01] = {(uptr)DB_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Trap_Gate};
+    idt.Ptr[0x03] = {(uptr)BP_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Trap_Gate};
+    idt.Ptr[0x04] = {(uptr)OF_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Trap_Gate};
     idt.Ptr[0x05] = {(uptr)BR_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
     idt.Ptr[0x06] = {(uptr)UD_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
     idt.Ptr[0x07] = {(uptr)NM_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
@@ -42,7 +43,7 @@ void InitIDT()
     idt.Ptr[0x1d] = {(uptr)VC_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
     idt.Ptr[0x1e] = {(uptr)SX_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
 
-    idt.Ptr[0x21] = {(uptr)Keyboard_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x21] = {(uptr)PS2_Keyboard_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
 
     asm volatile("lidt %0" : : "m"(idt));
 }

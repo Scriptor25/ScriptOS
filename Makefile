@@ -5,7 +5,7 @@ PP = $(TARGET)-cpp
 QEMU = qemu-system-i386
 
 OPT = -O0 -g
-CCFLAGS = $(OPT) -std=c++20 -ffreestanding -mno-red-zone -Wall -Wextra -fno-exceptions -fno-rtti
+CFLAGS = $(OPT) -std=c++20 -ffreestanding -mno-red-zone -Wall -Wextra -fno-exceptions -fno-rtti
 LDFLAGS = $(OPT) -ffreestanding -nostdlib -lgcc
 
 SRC_DIR = src
@@ -24,6 +24,11 @@ ASM_SRC = $(call rwildcard,$(SRC_DIR),*.s)
 CPP_SRC = $(call rwildcard,$(SRC_DIR),*.cpp)
 OBJS = $(patsubst $(SRC_DIR)/%.s,$(BIN_DIR)/%.s.o,$(ASM_SRC)) $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.cpp.o,$(CPP_SRC))
 
+CRTI_OBJ = $(BIN_DIR)/crti.o
+CRTBEGIN_OBJ = $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
+CRTEND_OBJ = $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
+CRTN_OBJ = $(BIN_DIR)/crtn.o
+
 .PHONY: build launch clean
 
 build: $(ISO)
@@ -37,24 +42,32 @@ debug: $(ISO)
 clean:
 	-rm -rf $(BIN_DIR)
 
+$(CRTI_OBJ): $(SRC_DIR)/crti.S
+	@ mkdir -p $(@D)
+	$(AS) -o $@ -I include $<
+
+$(CRTN_OBJ): $(SRC_DIR)/crtn.S
+	@ mkdir -p $(@D)
+	$(AS) -o $@ -I include $<
+
 $(BIN_DIR)/%.s.o: $(BIN_DIR)/%.s.pp
 	@ mkdir -p $(@D)
-	$(AS) $< -o $@
+	$(AS) -o $@ $<
 
 $(BIN_DIR)/%.s.pp: $(SRC_DIR)/%.s
 	@ mkdir -p $(@D)
-	$(PP) $< -o $@ -I include
+	$(PP) -o $@ -I include $<
 
 $(BIN_DIR)/kernel/interrupts.cpp.o: $(SRC_DIR)/kernel/interrupts.cpp
 	@ mkdir -p $(@D)
-	$(CC) -c $< -o $@ $(CCFLAGS) -mgeneral-regs-only -I include
+	$(CC) $(CFLAGS) -mgeneral-regs-only -o $@ -I include -c $<
 
 $(BIN_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
 	@ mkdir -p $(@D)
-	$(CC) -c $< -o $@ $(CCFLAGS) -I include
+	$(CC) $(CFLAGS) -o $@ -I include -c $<
 
-$(KERNEL_BIN): $(SRC_DIR)/linker.ld $(OBJS)
-	$(CC) -T $^ -o $(KERNEL_BIN) $(LDFLAGS)
+$(KERNEL_BIN): $(SRC_DIR)/linker.ld $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJS) $(CRTEND_OBJ) $(CRTN_OBJ)
+	$(CC) $(LDFLAGS) -o $@ -T $^
 	objcopy --only-keep-debug $(KERNEL_BIN) $(KERNEL_SYM)
 	objcopy --strip-debug $(KERNEL_BIN)
 	grub-file --is-x86-multiboot2 $(KERNEL_BIN)
