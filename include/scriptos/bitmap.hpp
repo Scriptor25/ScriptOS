@@ -44,6 +44,6 @@ public:
     Iter end() const;
 
 private:
-    usize m_Size = 0;
-    u8 *m_Buffer = nullptr;
+    usize m_Size;
+    u8 *m_Buffer;
 };

@@ -9,7 +9,7 @@
 template <typename T>
 struct Point
 {
-    T x{}, y{};
+    T x, y;
 };
 
 class Graphics
@@ -39,8 +39,8 @@ public:
     void SetCharColor(u32 color);
 
 private:
-    bool m_Dirty = true;
+    bool m_Dirty;
     Framebuffer m_FrontBuffer, m_BackBuffer;
     Point<usize> m_Pos;
-    u32 m_CharColor = 0xffffffff;
+    u32 m_CharColor;
 };

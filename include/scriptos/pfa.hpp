@@ -34,7 +34,7 @@ private:
 
     Bitmap m_PageMap;
 
-    usize m_FreeMemory = 0;
-    usize m_UsedMemory = 0;
-    usize m_ReservedMemory = 0;
+    usize m_FreeMemory;
+    usize m_UsedMemory;
+    usize m_ReservedMemory;
 };
