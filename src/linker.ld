@@ -10,8 +10,6 @@ SECTIONS
     {
         __text_start = .;
         *(.text)
-        *(.init)
-        *(.fini)
         __text_end = .;
     }
 

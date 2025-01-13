@@ -1,10 +1,9 @@
 #include <scriptos/graphics.hpp>
 
-Graphics Graphics::INSTANCE;
-
-Graphics &Graphics::Get()
+Graphics &Graphics::GetInstance()
 {
-    return INSTANCE;
+    static Graphics instance;
+    return instance;
 }
 
 void Graphics::Init(u8 *fb_addr, u8 *bb_addr, u32 width, u32 height, u32 pitch, u8 bpp)

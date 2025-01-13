@@ -2,31 +2,38 @@
 #include <scriptos/pfa.hpp>
 #include <scriptos/ptm.hpp>
 
-PageIndex::PageIndex(uptr virtual_address)
+struct page_index
 {
-    PDI = (virtual_address >> 22);
-    PTI = (virtual_address >> 12) & 0x3ff;
+    page_index(uptr virtual_address)
+    {
+        pdi = (virtual_address >> 22);
+        pti = (virtual_address >> 12) & 0x3ff;
+    }
+
+    uptr pdi;
+    uptr pti;
+};
+
+PageTableManager &PageTableManager::GetKernelInstance()
+{
+    static PageTableManager instance;
+    return instance;
 }
 
-PageTableManager::PageTableManager()
-    : m_PageDirectory(nullptr)
+void PageTableManager::Init(PageDirectoryEntry *page_directory)
 {
-}
-
-PageTableManager::PageTableManager(PageDirectoryEntry *page_directory)
-    : m_PageDirectory(page_directory)
-{
+    m_PageDirectory = page_directory;
 }
 
 void PageTableManager::MapPage(void *virtual_address, void *physical_address)
 {
-    PageIndex index((uptr)virtual_address);
+    page_index index((uptr)virtual_address);
     PageTableEntry *pt;
 
-    auto &pde = m_PageDirectory[index.PDI];
+    auto &pde = m_PageDirectory[index.pdi];
     if (!pde.Present)
     {
-        pt = (PageTableEntry *)PageFrameAllocator::Get().RequestEmptyPage();
+        pt = (PageTableEntry *)PageFrameAllocator::GetInstance().RequestEmptyPage();
 
         pde.Present = true;
         pde.ReadWrite = true;
@@ -37,7 +44,7 @@ void PageTableManager::MapPage(void *virtual_address, void *physical_address)
         pt = (PageTableEntry *)(pde.Address_31_12 << 12);
     }
 
-    auto &pte = pt[index.PTI];
+    auto &pte = pt[index.pti];
     pte.Present = true;
     pte.ReadWrite = true;
     pte.Address_31_12 = (uptr)physical_address >> 12;
@@ -53,7 +60,7 @@ void PageTableManager::MapPages(void *virtual_address, void *physical_address, u
 {
     auto size = count * PAGE_SIZE;
     for (usize i = 0; i < size; i += PAGE_SIZE)
-        MapPage((u8 *)virtual_address + i, (u8 *)physical_address + i);
+        MapPage((void *)((uptr)virtual_address + i), (void *)((uptr)physical_address + i));
 }
 
 void PageTableManager::SetupPaging()

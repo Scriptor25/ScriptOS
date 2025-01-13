@@ -18,7 +18,7 @@ static IDT_Descriptor idt;
 void InitIDT()
 {
     idt.Limit = 0x800;
-    idt.Ptr = (IDT_Entry *)PageFrameAllocator::Get().RequestEmptyPage();
+    idt.Ptr = (IDT_Entry *)PageFrameAllocator::GetInstance().RequestEmptyPage();
 
     idt.Ptr[0x00] = {(uptr)DE_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
     idt.Ptr[0x01] = {(uptr)DB_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Trap_Gate};

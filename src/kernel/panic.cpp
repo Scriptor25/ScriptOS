@@ -5,7 +5,7 @@
 
 void Panic(cstr format, ...)
 {
-    auto &graphics = Graphics::Get();
+    auto &graphics = Graphics::GetInstance();
     graphics.DrawColorTest();
     graphics.Reset();
     graphics.SetCharColor(0xffffffff);

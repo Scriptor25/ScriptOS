@@ -4,5 +4,5 @@
 void __assert(bool x, cstr exp, cstr file, usize line)
 {
     if (!x)
-        printf("%s:%u: assertion failed: '%s'", file, line, exp);
+        printf("%s:%u: assertion failed: '%s'\n", file, line, exp);
 }

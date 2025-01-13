@@ -5,7 +5,7 @@
 
 void putchar(int c)
 {
-    Graphics::Get().PutChar(c);
+    Graphics::GetInstance().PutChar(c);
 }
 
 int print(cstr string)

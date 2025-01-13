@@ -30,8 +30,7 @@ public:
         usize m_Index;
     };
 
-    void
-    Init(usize size, u8 *buffer);
+    void Init(usize size, u8 *buffer);
 
     usize Size() const;
     void *Buffer() const;
@@ -45,6 +44,6 @@ public:
     Iter end() const;
 
 private:
-    usize m_Size;
-    u8 *m_Buffer;
+    usize m_Size = 0;
+    u8 *m_Buffer = nullptr;
 };

@@ -6,7 +6,7 @@
 class PageFrameAllocator
 {
 public:
-    static PageFrameAllocator &Get();
+    static PageFrameAllocator &GetInstance();
 
     void Init(const MemoryMap &mmap);
 
@@ -17,8 +17,6 @@ public:
 
     void *RequestPage();
     void *RequestEmptyPage();
-
-    void *RequestPages(usize count);
 
     const Bitmap &PageMap() const;
 
@@ -39,6 +37,4 @@ private:
     usize m_FreeMemory = 0;
     usize m_UsedMemory = 0;
     usize m_ReservedMemory = 0;
-
-    static PageFrameAllocator INSTANCE;
 };

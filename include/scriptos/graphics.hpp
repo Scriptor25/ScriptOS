@@ -9,13 +9,13 @@
 template <typename T>
 struct Point
 {
-    T x, y;
+    T x{}, y{};
 };
 
 class Graphics
 {
 public:
-    static Graphics &Get();
+    static Graphics &GetInstance();
 
     void Init(u8 *fb_addr, u8 *bb_addr, u32 width, u32 height, u32 pitch, u8 bpp);
     u32 Width() const;
@@ -39,10 +39,8 @@ public:
     void SetCharColor(u32 color);
 
 private:
-    bool m_Dirty;
+    bool m_Dirty = true;
     Framebuffer m_FrontBuffer, m_BackBuffer;
     Point<usize> m_Pos;
-    u32 m_CharColor;
-
-    static Graphics INSTANCE;
+    u32 m_CharColor = 0xffffffff;
 };

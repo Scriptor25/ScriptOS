@@ -24,11 +24,6 @@ ASM_SRC = $(call rwildcard,$(SRC_DIR),*.s)
 CPP_SRC = $(call rwildcard,$(SRC_DIR),*.cpp)
 OBJS = $(patsubst $(SRC_DIR)/%.s,$(BIN_DIR)/%.s.o,$(ASM_SRC)) $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.cpp.o,$(CPP_SRC))
 
-CRTI_OBJ = $(BIN_DIR)/crti.o
-CRTBEGIN_OBJ = $(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
-CRTEND_OBJ = $(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
-CRTN_OBJ = $(BIN_DIR)/crtn.o
-
 .PHONY: build launch clean
 
 build: $(ISO)
@@ -41,14 +36,6 @@ debug: $(ISO)
 
 clean:
 	-rm -rf $(BIN_DIR)
-
-$(CRTI_OBJ): $(SRC_DIR)/crti.S
-	@ mkdir -p $(@D)
-	$(AS) -o $@ -I include $<
-
-$(CRTN_OBJ): $(SRC_DIR)/crtn.S
-	@ mkdir -p $(@D)
-	$(AS) -o $@ -I include $<
 
 $(BIN_DIR)/%.s.o: $(BIN_DIR)/%.s.pp
 	@ mkdir -p $(@D)
@@ -66,7 +53,7 @@ $(BIN_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
 	@ mkdir -p $(@D)
 	$(CC) $(CFLAGS) -o $@ -I include -c $<
 
-$(KERNEL_BIN): $(SRC_DIR)/linker.ld $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJS) $(CRTEND_OBJ) $(CRTN_OBJ)
+$(KERNEL_BIN): $(SRC_DIR)/linker.ld $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ -T $^
 	objcopy --only-keep-debug $(KERNEL_BIN) $(KERNEL_SYM)
 	objcopy --strip-debug $(KERNEL_BIN)

@@ -66,7 +66,7 @@ void *Framebuffer::ReadArray(u32 x, u32 y, u32 width, u32 height, void *dst)
 
 void Framebuffer::Clear(u32 value)
 {
-    memset(m_Base, value, m_Pitch * m_Height);
+    memset(m_Base, value, 4, m_Pitch * m_Height);
 }
 
 void Framebuffer::Fill(u32 x, u32 y, u32 width, u32 height, u32 value)
@@ -80,7 +80,7 @@ void Framebuffer::Fill(u32 x, u32 y, u32 width, u32 height, u32 value)
 
     auto pitch = width * m_BPP;
     for (u32 j = 0; j < height; ++j)
-        memset(m_Base + x * m_BPP + (j + y) * m_Pitch, value, pitch);
+        memset(m_Base + x * m_BPP + (j + y) * m_Pitch, value, 4, pitch);
 }
 
 u32 Framebuffer::Width() const

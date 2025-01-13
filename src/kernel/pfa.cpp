@@ -5,11 +5,10 @@
 #include <scriptos/print.hpp>
 #include <scriptos/util.hpp>
 
-PageFrameAllocator PageFrameAllocator::INSTANCE;
-
-PageFrameAllocator &PageFrameAllocator::Get()
+PageFrameAllocator &PageFrameAllocator::GetInstance()
 {
-    return INSTANCE;
+    static PageFrameAllocator instance;
+    return instance;
 }
 
 void PageFrameAllocator::Init(const MemoryMap &mmap)
@@ -81,27 +80,6 @@ void *PageFrameAllocator::RequestEmptyPage()
     auto address = RequestPage();
     memset(address, 0, PAGE_SIZE);
     return address;
-}
-
-void *PageFrameAllocator::RequestPages(usize count)
-{
-    auto map_count = m_PageMap.Size() * 8;
-    for (usize oi = 0; oi < map_count - count; ++oi)
-        if (!m_PageMap[oi])
-        {
-            usize ii;
-            for (ii = 0; (ii < count) && (oi + ii < map_count); ++ii)
-                if (m_PageMap[oi + ii])
-                    break;
-            if (ii < count)
-                continue;
-
-            auto address = (void *)(oi * PAGE_SIZE);
-            LockPages(address, count);
-            return address;
-        }
-
-    return nullptr;
 }
 
 const Bitmap &PageFrameAllocator::PageMap() const { return m_PageMap; }
