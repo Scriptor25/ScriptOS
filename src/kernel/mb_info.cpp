@@ -1,4 +1,4 @@
-#include <scriptos/mb_info.hpp>
+#include <scriptos/kernel/mb_info.hpp>
 
 multiboot_tag *MultibootInfo::operator[](u32 type) const
 {

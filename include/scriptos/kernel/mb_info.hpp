@@ -1,8 +1,8 @@
 #pragma once
 
-#include <scriptos/mmap.hpp>
-#include <scriptos/multiboot2.hpp>
-#include <scriptos/types.hpp>
+#include <scriptos/kernel/mmap.hpp>
+#include <scriptos/kernel/multiboot2.hpp>
+#include <scriptos/std/types.hpp>
 
 class MultibootInfo
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <scriptos/types.hpp>
+#include <scriptos/std/types.hpp>
 
 #define GDT_CODE_SEGMENT 0x08
 #define GDT_DATA_SEGMENT 0x10

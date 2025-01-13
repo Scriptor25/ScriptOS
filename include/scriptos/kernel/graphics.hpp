@@ -1,7 +1,7 @@
 #pragma once
 
-#include <scriptos/font.hpp>
-#include <scriptos/framebuffer.hpp>
+#include <scriptos/kernel/font.hpp>
+#include <scriptos/kernel/framebuffer.hpp>
 
 #define CHAR_W 8
 #define CHAR_H 8

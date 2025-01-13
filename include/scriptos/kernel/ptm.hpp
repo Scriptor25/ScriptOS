@@ -1,7 +1,7 @@
 #pragma once
 
-#include <scriptos/paging.hpp>
-#include <scriptos/types.hpp>
+#include <scriptos/kernel/paging.hpp>
+#include <scriptos/std/types.hpp>
 
 class PageTableManager
 {

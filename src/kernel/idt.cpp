@@ -1,8 +1,8 @@
-#include <scriptos/gdt.hpp>
-#include <scriptos/idt.hpp>
-#include <scriptos/interrupts.hpp>
-#include <scriptos/pfa.hpp>
-#include <scriptos/ps2.hpp>
+#include <scriptos/kernel/gdt.hpp>
+#include <scriptos/kernel/idt.hpp>
+#include <scriptos/kernel/interrupts.hpp>
+#include <scriptos/kernel/pfa.hpp>
+#include <scriptos/kernel/ps2.hpp>
 
 IDT_Entry::IDT_Entry(u32 offset, u16 selector, u8 attributes)
 {

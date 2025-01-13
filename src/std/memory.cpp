@@ -1,4 +1,4 @@
-#include <scriptos/memory.hpp>
+#include <scriptos/std/memory.hpp>
 
 void *memcpy(void *dst, const void *src, usize count)
 {

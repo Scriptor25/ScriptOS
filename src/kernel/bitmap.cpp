@@ -1,4 +1,4 @@
-#include <scriptos/bitmap.hpp>
+#include <scriptos/kernel/bitmap.hpp>
 
 Bitmap::Iter::Iter(const Bitmap &bitmap, usize index)
     : m_Bitmap(bitmap), m_Index(index)

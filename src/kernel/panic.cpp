@@ -1,7 +1,7 @@
-#include <scriptos/graphics.hpp>
-#include <scriptos/io.hpp>
-#include <scriptos/panic.hpp>
-#include <scriptos/print.hpp>
+#include <scriptos/kernel/graphics.hpp>
+#include <scriptos/kernel/io.hpp>
+#include <scriptos/kernel/panic.hpp>
+#include <scriptos/std/print.hpp>
 
 void Panic(cstr format, ...)
 {

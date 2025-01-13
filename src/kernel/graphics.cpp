@@ -1,4 +1,4 @@
-#include <scriptos/graphics.hpp>
+#include <scriptos/kernel/graphics.hpp>
 
 Graphics &Graphics::GetInstance()
 {

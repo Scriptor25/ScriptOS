@@ -1,4 +1,4 @@
-#include <scriptos/gdt.hpp>
+#include <scriptos/kernel/gdt.hpp>
 
 GDT_Entry::GDT_Entry(u32 base, u32 limit, u8 access, u8 flags)
 {

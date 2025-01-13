@@ -1,6 +1,6 @@
-#include <scriptos/memory.hpp>
-#include <scriptos/pfa.hpp>
-#include <scriptos/ptm.hpp>
+#include <scriptos/std/memory.hpp>
+#include <scriptos/kernel/pfa.hpp>
+#include <scriptos/kernel/ptm.hpp>
 
 struct page_index
 {

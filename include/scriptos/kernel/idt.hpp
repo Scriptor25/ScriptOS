@@ -1,6 +1,6 @@
 #pragma once
 
-#include <scriptos/types.hpp>
+#include <scriptos/std/types.hpp>
 
 enum IDT_Attributes
 {

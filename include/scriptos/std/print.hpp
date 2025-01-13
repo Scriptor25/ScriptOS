@@ -1,7 +1,7 @@
 #pragma once
 
-#include <scriptos/types.hpp>
-#include <scriptos/vararg.hpp>
+#include <scriptos/std/types.hpp>
+#include <scriptos/std/vararg.hpp>
 
 void putchar(int c);
 int print(cstr string);

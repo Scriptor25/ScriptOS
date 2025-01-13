@@ -1,7 +1,7 @@
-#include <scriptos/io.hpp>
-#include <scriptos/pic.hpp>
-#include <scriptos/print.hpp>
-#include <scriptos/ps2.hpp>
+#include <scriptos/kernel/io.hpp>
+#include <scriptos/kernel/pic.hpp>
+#include <scriptos/std/print.hpp>
+#include <scriptos/kernel/ps2.hpp>
 
 void PS2_Enable_Keyboard_Interrupt()
 {
@@ -118,10 +118,6 @@ u16 PS2_IdentifyKeyboard()
     return b1 << 8 | b0;
 }
 
-bool PS2_SetTypematicRateAndDelay(u8 rate, u8 delay)
-{
-}
-
 bool PS2_EnableScanning()
 {
     return PS2_Keyboard_Command(PS2_KEYBOARD_CMD_ENABLE_SCANNING) == PS2_KEYBOARD_RESPONSE_ACK;
@@ -130,44 +126,4 @@ bool PS2_EnableScanning()
 bool PS2_DisableScanning()
 {
     return PS2_Keyboard_Command(PS2_KEYBOARD_CMD_DISABLE_SCANNING) == PS2_KEYBOARD_RESPONSE_ACK;
-}
-
-bool PS2_SetDefaultParameters()
-{
-}
-
-bool PS2_SetAllKeys_Typematic_Autorepeat_Only()
-{
-}
-
-bool PS2_SetAllKeys_Make_Release()
-{
-}
-
-bool PS2_SetAllKeys_Make_Only()
-{
-}
-
-bool PS2_SetAllKeys_Typematic_Autorepeat_Make_Release()
-{
-}
-
-bool PS2_SetKey_Typematic_Autorelease_Only(u8 scancode)
-{
-}
-
-bool PS2_SetKey_Make_Release(u8 scancode)
-{
-}
-
-bool PS2_SetKey_Make_Only(u8 scancode)
-{
-}
-
-u8 PS2_Resend()
-{
-}
-
-u8 PS2_ResetAndSelfTest()
-{
 }

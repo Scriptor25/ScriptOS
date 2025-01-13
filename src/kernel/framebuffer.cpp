@@ -1,5 +1,5 @@
-#include <scriptos/framebuffer.hpp>
-#include <scriptos/memory.hpp>
+#include <scriptos/kernel/framebuffer.hpp>
+#include <scriptos/std/memory.hpp>
 
 void Framebuffer::Blit(Framebuffer &dst, const Framebuffer &src)
 {

@@ -1,9 +1,9 @@
-#include <scriptos/info.hpp>
-#include <scriptos/memory.hpp>
-#include <scriptos/paging.hpp>
-#include <scriptos/pfa.hpp>
-#include <scriptos/print.hpp>
-#include <scriptos/util.hpp>
+#include <scriptos/kernel/info.hpp>
+#include <scriptos/std/memory.hpp>
+#include <scriptos/kernel/paging.hpp>
+#include <scriptos/kernel/pfa.hpp>
+#include <scriptos/std/print.hpp>
+#include <scriptos/std/util.hpp>
 
 PageFrameAllocator &PageFrameAllocator::GetInstance()
 {

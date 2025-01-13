@@ -1,6 +1,6 @@
 #pragma once
 
-#include <scriptos/types.hpp>
+#include <scriptos/std/types.hpp>
 
 void *memcpy(void *dst, const void *src, usize count);
 void *memset(void *dst, int src, usize count);

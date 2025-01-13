@@ -1,6 +1,6 @@
 #pragma once
 
-#include <scriptos/types.hpp>
+#include <scriptos/std/types.hpp>
 
 #define KiB(BYTES) (BYTES / 1024)
 #define MiB(BYTES) (BYTES / (1024 * 1024))

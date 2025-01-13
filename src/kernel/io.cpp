@@ -1,4 +1,4 @@
-#include <scriptos/io.hpp>
+#include <scriptos/kernel/io.hpp>
 
 void outb(u16 port, u8 value)
 {

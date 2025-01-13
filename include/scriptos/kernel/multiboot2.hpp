@@ -66,7 +66,7 @@
 
 #ifndef ASM_FILE
 
-#include <scriptos/types.hpp>
+#include <scriptos/std/types.hpp>
 
 struct multiboot_header
 {

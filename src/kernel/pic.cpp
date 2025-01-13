@@ -1,5 +1,5 @@
-#include <scriptos/io.hpp>
-#include <scriptos/pic.hpp>
+#include <scriptos/kernel/io.hpp>
+#include <scriptos/kernel/pic.hpp>
 
 void RemapPIC()
 {

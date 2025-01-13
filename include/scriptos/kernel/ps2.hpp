@@ -1,7 +1,7 @@
 #pragma once
 
-#include <scriptos/interrupts.hpp>
-#include <scriptos/types.hpp>
+#include <scriptos/kernel/interrupts.hpp>
+#include <scriptos/std/types.hpp>
 
 #define PS2_IO_DATA 0x60
 #define PS2_IO_STATUS 0x64

@@ -1,18 +1,16 @@
-#include <scriptos/assert.hpp>
-#include <scriptos/gdt.hpp>
-#include <scriptos/graphics.hpp>
-#include <scriptos/idt.hpp>
-#include <scriptos/info.hpp>
-#include <scriptos/io.hpp>
-#include <scriptos/mb_info.hpp>
-#include <scriptos/memory.hpp>
-#include <scriptos/pfa.hpp>
-#include <scriptos/pic.hpp>
-#include <scriptos/print.hpp>
-#include <scriptos/ps2.hpp>
-#include <scriptos/ptm.hpp>
-#include <scriptos/types.hpp>
-#include <scriptos/util.hpp>
+#include <scriptos/kernel/gdt.hpp>
+#include <scriptos/kernel/graphics.hpp>
+#include <scriptos/kernel/idt.hpp>
+#include <scriptos/kernel/info.hpp>
+#include <scriptos/kernel/mb_info.hpp>
+#include <scriptos/std/memory.hpp>
+#include <scriptos/kernel/pfa.hpp>
+#include <scriptos/kernel/pic.hpp>
+#include <scriptos/std/print.hpp>
+#include <scriptos/kernel/ps2.hpp>
+#include <scriptos/kernel/ptm.hpp>
+#include <scriptos/std/types.hpp>
+#include <scriptos/std/util.hpp>
 
 static void setup_memory(const MultibootInfo &info)
 {
@@ -46,15 +44,7 @@ static void setup_graphics(const MultibootInfo &info)
     pfa.LockPages((void *)fb_addr, page_count);
     ptm.MapPages((void *)fb_addr, (void *)fb_addr, page_count);
 
-    auto bb_addr = pfa.RequestPage();
-    auto size = page_count * PAGE_SIZE;
-
-    for (usize i = PAGE_SIZE; i < size; i += PAGE_SIZE)
-    {
-        auto address = pfa.RequestPage();
-        ptm.MapPage((void *)((uptr)bb_addr + i), address);
-    }
-
+    auto bb_addr = malloc(pitch * height);
     graphics.Init((u8 *)fb_addr, (u8 *)bb_addr, width, height, pitch, bpp);
 
     graphics.Clear(0xff121212);
@@ -127,56 +117,6 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     }
 
     PS2_Enable_Keyboard_Interrupt();
-
-    auto test1 = (char *)malloc(13);
-    test1[0] = 'H';
-    test1[1] = 'e';
-    test1[2] = 'l';
-    test1[3] = 'l';
-    test1[4] = 'o';
-    test1[5] = ' ';
-    test1[6] = 'W';
-    test1[7] = 'o';
-    test1[8] = 'r';
-    test1[9] = 'l';
-    test1[10] = 'd';
-    test1[11] = '!';
-    test1[12] = '\x00';
-
-    auto test2 = (u32 *)malloc(20);
-    test2[0] = 0x123;
-    test2[1] = 0x456;
-    test2[2] = 0x789;
-    test2[3] = 0xabc;
-    test2[4] = 0xdef;
-
-    printf("%p: %s\n", test1, test1);
-    free(test1);
-
-    printf("%p: %x, %x, %x, %x, %x\n", test2, test2[0], test2[1], test2[2], test2[3], test2[4]);
-    free(test2);
-
-    auto test3 = (char *)malloc(120);
-    test3[0] = 'T';
-    test3[1] = 'h';
-    test3[2] = 'i';
-    test3[3] = 's';
-    test3[4] = ' ';
-    test3[5] = 'i';
-    test3[6] = 's';
-    test3[7] = ' ';
-    test3[8] = 'a';
-    test3[9] = ' ';
-    test3[10] = 'T';
-    test3[11] = 'e';
-    test3[12] = 's';
-    test3[13] = 't';
-    test3[14] = '!';
-    test3[15] = '\x00';
-
-    assert(test1 == test3);
-    printf("%p <-> %p: %s\n", test3, test1, test1);
-    free(test3);
 
     for (;;)
         Graphics::GetInstance().SwapBuffers();

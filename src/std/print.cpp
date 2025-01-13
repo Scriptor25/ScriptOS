@@ -1,7 +1,7 @@
-#include <scriptos/graphics.hpp>
-#include <scriptos/print.hpp>
-#include <scriptos/types.hpp>
-#include <scriptos/util.hpp>
+#include <scriptos/kernel/graphics.hpp>
+#include <scriptos/std/print.hpp>
+#include <scriptos/std/types.hpp>
+#include <scriptos/std/util.hpp>
 
 void putchar(int c)
 {

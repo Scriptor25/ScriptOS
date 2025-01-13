@@ -1,4 +1,4 @@
-#include <scriptos/mmap.hpp>
+#include <scriptos/kernel/mmap.hpp>
 
 MemoryMap::Iter::Iter(multiboot_mmap_entry *ptr, usize entry_size)
     : m_Ptr(ptr), m_EntrySize(entry_size)

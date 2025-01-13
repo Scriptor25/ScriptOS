@@ -1,5 +1,5 @@
 #pragma once
 
-#include <scriptos/types.hpp>
+#include <scriptos/std/types.hpp>
 
 void Panic(cstr format, ...);

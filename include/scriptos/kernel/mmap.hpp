@@ -1,7 +1,7 @@
 #pragma once
 
-#include <scriptos/multiboot2.hpp>
-#include <scriptos/types.hpp>
+#include <scriptos/kernel/multiboot2.hpp>
+#include <scriptos/std/types.hpp>
 
 class MemoryMap
 {

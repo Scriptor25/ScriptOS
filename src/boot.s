@@ -1,5 +1,5 @@
 #define ASM_FILE 1
-#include <scriptos/multiboot2.hpp>
+#include <scriptos/kernel/multiboot2.hpp>
 
 .set MAGIC,         MULTIBOOT2_HEADER_MAGIC
 .set ARCHITECTURE,  MULTIBOOT_ARCHITECTURE_I386

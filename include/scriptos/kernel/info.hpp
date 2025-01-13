@@ -1,6 +1,6 @@
 #pragma once
 
-#include <scriptos/types.hpp>
+#include <scriptos/std/types.hpp>
 
 extern u32 __kernel_start;
 extern u32 __text_start;

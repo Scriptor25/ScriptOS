@@ -1,9 +1,9 @@
-#include <scriptos/interrupts.hpp>
-#include <scriptos/io.hpp>
-#include <scriptos/panic.hpp>
-#include <scriptos/pic.hpp>
-#include <scriptos/print.hpp>
-#include <scriptos/ps2.hpp>
+#include <scriptos/kernel/interrupts.hpp>
+#include <scriptos/kernel/io.hpp>
+#include <scriptos/kernel/panic.hpp>
+#include <scriptos/kernel/pic.hpp>
+#include <scriptos/std/print.hpp>
+#include <scriptos/kernel/ps2.hpp>
 
 __attribute__((interrupt)) void DE_Handler(interrupt_frame *frame)
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <scriptos/types.hpp>
+#include <scriptos/std/types.hpp>
 
 #define assert(EXP) __assert(EXP, #EXP, __FILE__, __LINE__)
 

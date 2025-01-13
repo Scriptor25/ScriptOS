@@ -1,6 +1,6 @@
-#include <scriptos/font.hpp>
+#include <scriptos/kernel/font.hpp>
 #include <scriptos/font/font8x8.hpp>
-#include <scriptos/memory.hpp>
+#include <scriptos/std/memory.hpp>
 
 const u8 *Font_GetChar(int c)
 {

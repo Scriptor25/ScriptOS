@@ -1,6 +1,6 @@
 #pragma once
 
-#include <scriptos/types.hpp>
+#include <scriptos/std/types.hpp>
 
 #define NUM_ENTRIES 0x400
 #define PAGE_SIZE 0x1000

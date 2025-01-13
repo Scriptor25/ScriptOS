@@ -1,37 +1,36 @@
 #pragma once
 
 #include <scriptos/assert.hpp>
-#include <scriptos/memory.hpp>
-#include <scriptos/pfa.hpp>
-#include <scriptos/paging.hpp>
-#include <scriptos/types.hpp>
+#include <scriptos/std/memory.hpp>
+#include <scriptos/std/types.hpp>
+#include <scriptos/std/util.hpp>
 
 template <typename T>
-class Vec
+class vector
 {
 public:
-    Vec(usize size = 0, usize reserved = 10)
+    vector(usize size = 0, usize reserved = 10)
     {
         assert(size <= reserved);
 
         m_Size = size;
         m_Reserved = reserved;
-        m_Data = calloc(reserved, sizeof(T));
+        m_Data = (T *)calloc(reserved, sizeof(T));
     }
 
-    Vec(T *data, usize size)
-        : Vec(size, size)
+    vector(T *data, usize size)
+        : vector(size, size)
     {
         memcpy(m_Data, data, size);
     }
 
-    Vec(T *begin, T *end)
-        : Vec(begin, end - begin) {}
+    vector(T *begin, T *end)
+        : vector(begin, end - begin) {}
 
-    Vec(const Vec &other)
-        : Vec(other.m_Data, other.m_Size) {}
+    vector(const vector &other)
+        : vector(other.m_Data, other.m_Size) {}
 
-    Vec(Vec &&other)
+    vector(vector &&other)
     {
         m_Data = other.m_Data;
         m_Size = other.m_Size;
@@ -42,7 +41,7 @@ public:
         other.m_Reserved = 0;
     }
 
-    ~Vec()
+    ~vector()
     {
         free(m_Data);
         m_Data = nullptr;
@@ -50,7 +49,7 @@ public:
         m_Reserved = 0;
     }
 
-    Vec &operator=(const Vec &other)
+    vector &operator=(const vector &other)
     {
         m_Size = other.m_Size;
         m_Reserved = other.m_Reserved;
@@ -58,7 +57,7 @@ public:
         memcpy(m_Data, other.m_Data, m_Size);
     }
 
-    Vec &operator=(Vec &&other)
+    vector &operator=(vector &&other)
     {
         m_Data = other.m_Data;
         m_Size = other.m_Size;
@@ -71,12 +70,12 @@ public:
         return *this;
     }
 
-    T &At(usize index)
+    T &at(usize index)
     {
         return m_Data[index];
     }
 
-    const T &At(usize index) const
+    const T &at(usize index) const
     {
         return m_Data[index];
     }
@@ -91,22 +90,22 @@ public:
         return m_Data[index];
     }
 
-    T *Data()
+    T *data()
     {
         return m_Data;
     }
 
-    const T *Data() const
+    const T *data() const
     {
         return m_Data;
     }
 
-    usize Size() const
+    usize size() const
     {
         return m_Size;
     }
 
-    usize Reserved() const
+    usize reserved() const
     {
         return m_Reserved;
     }
@@ -129,6 +128,21 @@ public:
     const T *end() const
     {
         return m_Data + m_Size;
+    }
+
+    T &push_back(const T &e)
+    {
+        if (m_Size + 1 >= m_Reserved)
+        {
+            m_Reserved += m_Reserved;
+            m_Data = (T *)realloc(m_Data, m_Reserved * sizeof(T));
+        }
+        return m_Data[m_Size++] = e;
+    }
+
+    T pop_back()
+    {
+        return m_Data[--m_Size];
     }
 
 private:

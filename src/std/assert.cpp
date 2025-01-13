@@ -1,5 +1,5 @@
-#include <scriptos/assert.hpp>
-#include <scriptos/print.hpp>
+#include <scriptos/std/assert.hpp>
+#include <scriptos/std/print.hpp>
 
 void __assert(bool x, cstr exp, cstr file, usize line)
 {

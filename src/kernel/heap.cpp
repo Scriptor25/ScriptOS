@@ -1,7 +1,7 @@
-#include <scriptos/memory.hpp>
-#include <scriptos/pfa.hpp>
-#include <scriptos/ptm.hpp>
-#include <scriptos/util.hpp>
+#include <scriptos/std/memory.hpp>
+#include <scriptos/kernel/pfa.hpp>
+#include <scriptos/kernel/ptm.hpp>
+#include <scriptos/std/util.hpp>
 
 struct heap_header
 {
@@ -12,6 +12,22 @@ struct heap_header
 };
 
 static heap_header *heap_root = nullptr;
+
+static usize heap_size()
+{
+    usize size = 0;
+    for (auto ptr = heap_root; ptr; ptr = ptr->next)
+        size += ptr->length + sizeof(heap_header);
+    return size;
+}
+
+static heap_header *heap_end()
+{
+    for (auto ptr = heap_root; ptr; ptr = ptr->next)
+        if (!ptr->next)
+            return ptr;
+    return nullptr;
+}
 
 static void init_heap(usize size = 0x100000 /* default 1MiB heap */)
 {
@@ -31,6 +47,37 @@ static void init_heap(usize size = 0x100000 /* default 1MiB heap */)
     heap_root->next = nullptr;
 }
 
+static heap_header *expand_heap(usize size)
+{
+    auto &pfa = PageFrameAllocator::GetInstance();
+    auto &ptm = PageTableManager::GetKernelInstance();
+
+    auto aligned_heap_size = ceil_div(heap_size(), PAGE_SIZE) * PAGE_SIZE;
+    auto total_size = aligned_heap_size + size;
+    for (usize i = aligned_heap_size; i < total_size; i += PAGE_SIZE)
+    {
+        auto address = pfa.RequestPage();
+        ptm.MapPage((void *)((uptr)heap_root + i), address);
+    }
+
+    auto ptr = heap_end();
+    if (ptr->free)
+        ptr->length = ptr->length + size;
+    else
+    {
+        ptr->next = (heap_header *)((uptr)(ptr + 1) + ptr->length);
+
+        ptr->next->free = true;
+        ptr->next->length = size - sizeof(heap_header);
+        ptr->next->prev = ptr;
+        ptr->next->next = nullptr;
+
+        ptr = ptr->next;
+    }
+
+    return ptr;
+}
+
 void *malloc(usize count)
 {
     if (!heap_root)
@@ -41,7 +88,7 @@ void *malloc(usize count)
         if (ptr->free && ptr->length >= count)
             break;
     if (!ptr)
-        return nullptr;
+        ptr = expand_heap(count * 2);
 
     if (ptr->length - count <= sizeof(heap_header))
     {
