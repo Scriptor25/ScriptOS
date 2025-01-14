@@ -1,7 +1,7 @@
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/pic.hpp>
 
-void RemapPIC()
+void PIC_Remap()
 {
     auto a1 = inb(PIC1_DATA);
     io_wait();
@@ -31,15 +31,65 @@ void RemapPIC()
     outb(PIC1_DATA, a1);
     io_wait();
     outb(PIC2_DATA, a2);
+    io_wait();
 }
 
 void PIC_EndMaster()
 {
     outb(PIC1_COMMAND, PIC_EOI);
+    io_wait();
 }
 
 void PIC_EndSlave()
 {
     outb(PIC2_COMMAND, PIC_EOI);
+    io_wait();
     outb(PIC1_COMMAND, PIC_EOI);
+    io_wait();
+}
+
+void PIC_Clr_All()
+{
+    asm volatile("cli");
+
+    outb(PIC1_DATA, 0b11111111);
+    io_wait();
+    outb(PIC2_DATA, 0b11111111);
+    io_wait();
+
+    asm volatile("sti");
+}
+
+void PIC_Set_PS2_1()
+{
+    asm volatile("cli");
+
+    auto mask = inb(PIC1_DATA);
+    io_wait();
+
+    mask &= ~0b00000010;
+
+    outb(PIC1_DATA, mask);
+    io_wait();
+    outb(PIC2_DATA, 0b11111111);
+    io_wait();
+
+    asm volatile("sti");
+}
+
+void PIC_Clr_PS2_1()
+{
+    asm volatile("cli");
+
+    auto mask = inb(PIC1_DATA);
+    io_wait();
+
+    mask |= 0b00000010;
+
+    outb(PIC1_DATA, mask);
+    io_wait();
+    outb(PIC2_DATA, 0b11111111);
+    io_wait();
+
+    asm volatile("sti");
 }

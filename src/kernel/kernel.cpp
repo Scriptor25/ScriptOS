@@ -7,7 +7,6 @@
 #include <scriptos/kernel/pfa.hpp>
 #include <scriptos/kernel/pic.hpp>
 #include <scriptos/std/print.hpp>
-#include <scriptos/kernel/ps2.hpp>
 #include <scriptos/kernel/ptm.hpp>
 #include <scriptos/std/types.hpp>
 #include <scriptos/std/util.hpp>
@@ -89,7 +88,8 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 
     InitGDT();
     InitIDT();
-    RemapPIC();
+    PIC_Remap();
+    PIC_Clr_All();
 
     auto mmap = info.GetMMap();
     for (auto &entry : mmap)
@@ -116,8 +116,6 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 
         printf("base = %p%p, length = %#08x%08x, type = '%s'\n", entry.base_addr_hi, entry.base_addr_lo, entry.length_hi, entry.length_lo, type);
     }
-
-    PS2_Enable_Keyboard_Interrupt();
 
     draw_memory_diagram();
 

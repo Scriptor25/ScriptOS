@@ -3,7 +3,11 @@
 #include <scriptos/kernel/panic.hpp>
 #include <scriptos/kernel/pic.hpp>
 #include <scriptos/std/print.hpp>
-#include <scriptos/kernel/ps2.hpp>
+
+__attribute__((interrupt)) void Unhandled(interrupt_frame *frame)
+{
+    Panic("Unhandled Interrupt\n%04x:%p", frame->CS, frame->IP);
+}
 
 __attribute__((interrupt)) void DE_Handler(interrupt_frame *frame)
 {
@@ -138,12 +142,4 @@ __attribute__((interrupt)) void VC_Handler(interrupt_frame *frame, u32 code)
 __attribute__((interrupt)) void SX_Handler(interrupt_frame *frame, u32 code)
 {
     Panic("Security Exception\n%04x:%p\ncode=%u", frame->CS, frame->IP, code);
-}
-
-__attribute__((interrupt)) void PS2_Keyboard_Handler(interrupt_frame *)
-{
-    auto data = inb(PS2_IO_DATA);
-    printf("[%02X]", data);
-
-    PIC_EndMaster();
 }
