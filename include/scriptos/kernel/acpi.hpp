@@ -132,6 +132,3 @@ struct DSDT
 {
     SDT_Header Header;
 };
-
-void ACPI_Init(RSDP *rsdp);
-void ACPI_Enable();

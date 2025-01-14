@@ -54,31 +54,60 @@ static void setup_graphics(const MultibootInfo &info)
     graphics.Clear();
 }
 
-static void draw_memory_diagram()
-{
-    auto &graphics = Graphics::GetInstance();
-    auto &[px, py] = graphics.Pos();
+// static void print_memory_map(const MultibootInfo &info)
+// {
+//     auto mmap = info.GetMMap();
+//     for (auto &entry : mmap)
+//     {
+//         cstr type = nullptr;
+//         switch (entry.type)
+//         {
+//         case MULTIBOOT_MEMORY_AVAILABLE:
+//             type = "available";
+//             break;
+//         case MULTIBOOT_MEMORY_RESERVED:
+//             type = "reserved";
+//             break;
+//         case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE:
+//             type = "acpi reclaimable";
+//             break;
+//         case MULTIBOOT_MEMORY_NVS:
+//             type = "nvs";
+//             break;
+//         case MULTIBOOT_MEMORY_BADRAM:
+//             type = "badram";
+//             break;
+//         }
 
-    auto &pfa = PageFrameAllocator::GetInstance();
-    auto &page_map = pfa.PageMap();
+//         printf("base = %p%p, length = %#08x%08x, type = '%s'\n", entry.base_addr_hi, entry.base_addr_lo, entry.length_hi, entry.length_lo, type);
+//     }
+// }
 
-    auto w = graphics.Width();
+// static void draw_memory_diagram()
+// {
+//     auto &graphics = Graphics::GetInstance();
+//     auto &[px, py] = graphics.Pos();
 
-    for (auto [byte_, bit_, set_] : page_map)
-    {
-        auto x = px + byte_;
-        auto y = py + bit_;
-        auto color = set_ ? 0xffff0000 : 0xff00ff00;
+//     auto &pfa = PageFrameAllocator::GetInstance();
+//     auto &page_map = pfa.PageMap();
 
-        y += CHAR_H * (x / w);
-        x %= w;
+//     auto w = graphics.Width();
 
-        graphics.DrawPixel(x, y, color);
-    }
+//     for (auto [byte_, bit_, set_] : page_map)
+//     {
+//         auto x = px + byte_;
+//         auto y = py + bit_;
+//         auto color = set_ ? 0xffff0000 : 0xff00ff00;
 
-    auto s = page_map.Size();
-    py += CHAR_H * ceil_div(s, w);
-}
+//         y += CHAR_H * (x / w);
+//         x %= w;
+
+//         graphics.DrawPixel(x, y, color);
+//     }
+
+//     auto s = page_map.Size();
+//     py += CHAR_H * ceil_div(s, w);
+// }
 
 extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 {
@@ -92,32 +121,6 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     InitIDT();
     PIC_Remap();
     PIC_Clr_All();
-
-    auto mmap = info.GetMMap();
-    for (auto &entry : mmap)
-    {
-        cstr type = nullptr;
-        switch (entry.type)
-        {
-        case MULTIBOOT_MEMORY_AVAILABLE:
-            type = "available";
-            break;
-        case MULTIBOOT_MEMORY_RESERVED:
-            type = "reserved";
-            break;
-        case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE:
-            type = "acpi reclaimable";
-            break;
-        case MULTIBOOT_MEMORY_NVS:
-            type = "nvs";
-            break;
-        case MULTIBOOT_MEMORY_BADRAM:
-            type = "badram";
-            break;
-        }
-
-        printf("base = %p%p, length = %#08x%08x, type = '%s'\n", entry.base_addr_hi, entry.base_addr_lo, entry.length_hi, entry.length_lo, type);
-    }
 
     auto tag_old_acpi = (multiboot_tag_old_acpi *)info[MULTIBOOT_TAG_TYPE_ACPI_OLD];
     if (tag_old_acpi)

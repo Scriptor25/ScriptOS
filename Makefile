@@ -11,6 +11,8 @@ LDFLAGS = $(OPT) -ffreestanding -nostdlib -lgcc
 SRC_DIR = src
 BIN_DIR = bin
 
+INCLUDE = -I include -I depend/acpica/source/include
+
 OSNAME = scriptos
 KERNEL_BIN = $(BIN_DIR)/kernel.bin
 KERNEL_SYM = $(BIN_DIR)/kernel.sym
@@ -43,15 +45,15 @@ $(BIN_DIR)/%.s.o: $(BIN_DIR)/%.s.pp
 
 $(BIN_DIR)/%.s.pp: $(SRC_DIR)/%.s
 	@ mkdir -p $(@D)
-	$(PP) -o $@ -I include $<
+	$(PP) -o $@ $(INCLUDE) $<
 
 $(BIN_DIR)/kernel/interrupts.cpp.o: $(SRC_DIR)/kernel/interrupts.cpp
 	@ mkdir -p $(@D)
-	$(CC) $(CFLAGS) -mgeneral-regs-only -o $@ -I include -c $<
+	$(CC) $(CFLAGS) -mgeneral-regs-only -o $@ $(INCLUDE) -c $<
 
 $(BIN_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
 	@ mkdir -p $(@D)
-	$(CC) $(CFLAGS) -o $@ -I include -c $<
+	$(CC) $(CFLAGS) -o $@ $(INCLUDE) -c $<
 
 $(KERNEL_BIN): $(SRC_DIR)/linker.ld $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ -T $^

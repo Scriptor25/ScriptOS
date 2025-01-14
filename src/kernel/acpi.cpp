@@ -45,35 +45,3 @@ SDT_Header *RSDT::Find(cstr signature)
 
     return nullptr;
 }
-
-void ACPI_Init(RSDP *rsdp)
-{
-    if (!rsdp)
-    {
-        printf("rsdp must not be null");
-        return;
-    }
-
-    if (!rsdp->Validate())
-    {
-        printf("invalid rsdp");
-        return;
-    }
-
-    auto rsdt = (RSDT *)rsdp->RSDTAddress;
-    if (auto header = rsdt->Find("RSDT"); !header || !header->Validate())
-    {
-        printf("no rsdt header");
-        return;
-    }
-
-    auto facp = (FADT *)rsdt->Find("FACP");
-    facp->PM1aControlBlock;
-    facp->PM1bControlBlock;
-
-    auto dsdt = (DSDT *)facp->Dsdt;
-}
-
-void ACPI_Enable()
-{
-}
