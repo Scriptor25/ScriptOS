@@ -48,21 +48,21 @@ void PIC_EndSlave()
     io_wait();
 }
 
-void PIC_Clr_All()
+void PIC_Mask_All()
 {
-    asm volatile("cli");
+    cli();
 
     outb(PIC1_DATA, 0b11111111);
     io_wait();
     outb(PIC2_DATA, 0b11111111);
     io_wait();
 
-    asm volatile("sti");
+    sti();
 }
 
-void PIC_Set_PS2_1()
+void PIC_Enable_PS2_1()
 {
-    asm volatile("cli");
+    cli();
 
     auto mask = inb(PIC1_DATA);
     io_wait();
@@ -74,12 +74,12 @@ void PIC_Set_PS2_1()
     outb(PIC2_DATA, 0b11111111);
     io_wait();
 
-    asm volatile("sti");
+    sti();
 }
 
-void PIC_Clr_PS2_1()
+void PIC_Disable_PS2_1()
 {
-    asm volatile("cli");
+    cli();
 
     auto mask = inb(PIC1_DATA);
     io_wait();
@@ -91,5 +91,5 @@ void PIC_Clr_PS2_1()
     outb(PIC2_DATA, 0b11111111);
     io_wait();
 
-    asm volatile("sti");
+    sti();
 }

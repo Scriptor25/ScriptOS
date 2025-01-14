@@ -20,7 +20,7 @@ void Panic(cstr format, ...)
     putchar('\n');
 
     graphics.SwapBuffers();
-    asm volatile(
-        "cli;"
-        "jmp .;");
+
+    cli();
+    loop();
 }

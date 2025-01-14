@@ -1,6 +1,7 @@
 #include <scriptos/kernel/gdt.hpp>
 #include <scriptos/kernel/idt.hpp>
 #include <scriptos/kernel/interrupts.hpp>
+#include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/pfa.hpp>
 
 IDT_Entry::IDT_Entry(u32 offset, u16 selector, u8 attributes)
@@ -46,5 +47,5 @@ void InitIDT()
         if (!(idt.Ptr[i].Attributes & IDT_Attributes_Present))
             idt.Ptr[i] = {(uptr)Unhandled, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
 
-    asm volatile("lidt %0" : : "m"(idt));
+    lidt(idt);
 }

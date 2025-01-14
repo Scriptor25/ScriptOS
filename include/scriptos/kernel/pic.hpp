@@ -15,6 +15,6 @@ void PIC_Remap();
 void PIC_EndMaster();
 void PIC_EndSlave();
 
-void PIC_Clr_All();
-void PIC_Set_PS2_1();
-void PIC_Clr_PS2_1();
+void PIC_Mask_All();
+void PIC_Enable_PS2_1();
+void PIC_Disable_PS2_1();

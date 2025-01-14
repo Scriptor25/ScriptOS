@@ -16,8 +16,11 @@ void *memset(void *dst, int src, usize count)
     auto rem = count % sizeof(int);
     auto end = count - rem;
 
-    src &= 0xff;
-    src |= src << 8 | src << 16 | src << 24;
+    auto byte = src & 0xff;
+
+    src = 0;
+    for (usize i = 0; i < sizeof(int) * 8; i += 8)
+        src |= byte << i;
 
     for (usize i = 0; i < end; i += sizeof(int))
         *(int *)((uptr)dst + i) = src;

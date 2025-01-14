@@ -23,7 +23,7 @@ bool isxdigit(int c);
 int uitoa(str buf, unsigned value, unsigned base, bool upper);
 
 template <typename T, typename U>
-constexpr auto ceil_div(T divisor, U dividend)
+auto ceil_div(T divisor, U dividend)
 {
     return (divisor / dividend) + !!(divisor % dividend);
 }

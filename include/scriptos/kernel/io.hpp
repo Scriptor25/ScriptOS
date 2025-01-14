@@ -9,3 +9,9 @@ void outw(u16 port, u16 value);
 u8 inb(u16 port);
 
 void io_wait();
+
+void lidt(const struct IDT_Descriptor &idt);
+void cli();
+void sti();
+void invlpg(void *address);
+void loop();

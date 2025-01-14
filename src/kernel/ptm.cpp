@@ -1,6 +1,7 @@
-#include <scriptos/std/memory.hpp>
+#include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/pfa.hpp>
 #include <scriptos/kernel/ptm.hpp>
+#include <scriptos/std/memory.hpp>
 
 struct page_index
 {
@@ -49,11 +50,7 @@ void PageTableManager::MapPage(void *virtual_address, void *physical_address)
     pte.ReadWrite = true;
     pte.Address_31_12 = (uptr)physical_address >> 12;
 
-    asm volatile(
-        "invlpg (%0);"
-        :
-        : "r"(virtual_address)
-        : "memory");
+    invlpg(virtual_address);
 }
 
 void PageTableManager::MapPages(void *virtual_address, void *physical_address, usize count)
