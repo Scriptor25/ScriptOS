@@ -6,9 +6,9 @@
 void Panic(cstr format, ...)
 {
     auto &graphics = Graphics::GetInstance();
-    graphics.DrawColorTest();
+    graphics.SetFGColor(0xffffffff);
     graphics.Reset();
-    graphics.SetCharColor(0xffffffff);
+    graphics.ClearRainbow();
 
     print("Kernel Panic");
     putchar('\n');

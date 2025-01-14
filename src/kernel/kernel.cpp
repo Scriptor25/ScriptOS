@@ -47,9 +47,10 @@ static void setup_graphics(const MultibootInfo &info)
     auto bb_addr = malloc(pitch * height);
     graphics.Init((u8 *)fb_addr, (u8 *)bb_addr, width, height, pitch, bpp);
 
-    graphics.Clear(0xff121212);
+    graphics.SetBGColor(0xff121212);
+    graphics.SetFGColor(0xfffefefe);
     graphics.Reset();
-    graphics.SetCharColor(0xfffefefe);
+    graphics.Clear();
 }
 
 static void draw_memory_diagram()
@@ -117,6 +118,8 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     }
 
     PS2_Enable_Keyboard_Interrupt();
+
+    draw_memory_diagram();
 
     for (;;)
         Graphics::GetInstance().SwapBuffers();

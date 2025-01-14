@@ -1,6 +1,6 @@
-#include <scriptos/std/memory.hpp>
 #include <scriptos/kernel/pfa.hpp>
 #include <scriptos/kernel/ptm.hpp>
+#include <scriptos/std/memory.hpp>
 #include <scriptos/std/util.hpp>
 
 struct heap_header
@@ -23,10 +23,10 @@ static usize heap_size()
 
 static heap_header *heap_end()
 {
-    for (auto ptr = heap_root; ptr; ptr = ptr->next)
-        if (!ptr->next)
-            return ptr;
-    return nullptr;
+    heap_header *ptr;
+    for (ptr = heap_root; ptr->next; ptr = ptr->next)
+        ;
+    return ptr;
 }
 
 static void init_heap(usize size = 0x100000 /* default 1MiB heap */)
@@ -65,14 +65,15 @@ static heap_header *expand_heap(usize size)
         ptr->length = ptr->length + size;
     else
     {
-        ptr->next = (heap_header *)((uptr)(ptr + 1) + ptr->length);
+        auto new_ptr = (heap_header *)((uptr)(ptr + 1) + ptr->length);
 
-        ptr->next->free = true;
-        ptr->next->length = size - sizeof(heap_header);
-        ptr->next->prev = ptr;
-        ptr->next->next = nullptr;
+        new_ptr->free = true;
+        new_ptr->length = size - sizeof(heap_header);
+        new_ptr->prev = ptr;
+        new_ptr->next = nullptr;
 
-        ptr = ptr->next;
+        ptr->next = new_ptr;
+        ptr = new_ptr;
     }
 
     return ptr;
@@ -84,11 +85,10 @@ void *malloc(usize count)
         init_heap();
 
     heap_header *ptr;
-    for (ptr = heap_root; ptr; ptr = ptr->next)
-        if (ptr->free && ptr->length >= count)
-            break;
+    for (ptr = heap_root; ptr && !(ptr->free && ptr->length >= count); ptr = ptr->next)
+        ;
     if (!ptr)
-        ptr = expand_heap(count * 2);
+        ptr = expand_heap(count);
 
     if (ptr->length - count <= sizeof(heap_header))
     {

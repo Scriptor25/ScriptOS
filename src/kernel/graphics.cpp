@@ -44,11 +44,11 @@ void Graphics::SwapBuffers()
     Framebuffer::Blit(m_FrontBuffer, m_BackBuffer);
 }
 
-void Graphics::Clear(u32 color)
+void Graphics::Clear()
 {
     m_Dirty = true;
 
-    m_BackBuffer.Clear(color);
+    m_BackBuffer.Clear(m_BGColor);
 }
 
 void Graphics::DrawPixel(usize x, usize y, u32 color)
@@ -58,7 +58,7 @@ void Graphics::DrawPixel(usize x, usize y, u32 color)
     m_BackBuffer.Write(x, y, color);
 }
 
-void Graphics::DrawChar(int c, usize x, usize y, u32 color)
+void Graphics::DrawChar(int c, usize x, usize y)
 {
     auto bmp = Font_GetChar(c);
     if (!bmp)
@@ -69,17 +69,17 @@ void Graphics::DrawChar(int c, usize x, usize y, u32 color)
     for (u8 j = 0; j < 8; ++j)
         for (u8 i = 0; i < 8; ++i)
             if (Font_GetBit(bmp, i, j))
-                m_BackBuffer.Write(x + i, y + j, color);
+                m_BackBuffer.Write(x + i, y + j, m_FGColor);
 }
 
-void Graphics::DrawRect(usize x1, usize y1, usize x2, usize y2, u32 color)
+void Graphics::DrawRect(usize x1, usize y1, usize x2, usize y2)
 {
     m_Dirty = true;
 
-    m_BackBuffer.Fill(x1, y1, x2 - x1 + 1, y2 - y1 + 1, color);
+    m_BackBuffer.Fill(x1, y1, x2 - x1 + 1, y2 - y1 + 1, m_FGColor);
 }
 
-void Graphics::DrawColorTest(usize offset, usize scale)
+void Graphics::ClearRainbow(usize offset, usize scale)
 {
     m_Dirty = true;
 
@@ -126,7 +126,7 @@ void Graphics::PutChar(int c)
         return;
     }
 
-    DrawChar(c, m_Pos.x, m_Pos.y, m_CharColor);
+    DrawChar(c, m_Pos.x, m_Pos.y);
 
     if ((m_Pos.x += CHAR_W) >= fbw)
     {
@@ -136,7 +136,12 @@ void Graphics::PutChar(int c)
     }
 }
 
-void Graphics::SetCharColor(u32 color)
+void Graphics::SetFGColor(u32 color)
 {
-    m_CharColor = color;
+    m_FGColor = color;
+}
+
+void Graphics::SetBGColor(u32 color)
+{
+    m_BGColor = color;
 }
