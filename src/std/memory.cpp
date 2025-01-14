@@ -32,3 +32,15 @@ void *memset(void *dst, int src, usize size, usize count)
         *(int *)((uptr)dst + i) = src;
     return dst;
 }
+
+int memcmp(const void *ptr1, const void *ptr2, usize count)
+{
+    for (usize i = 0; i < count; ++i)
+    {
+        auto diff = ((u8 *)ptr1)[i] - ((u8 *)ptr2)[i];
+        if (diff)
+            return diff;
+    }
+
+    return 0;
+}

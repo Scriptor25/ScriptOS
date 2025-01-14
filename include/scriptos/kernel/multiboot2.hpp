@@ -88,7 +88,7 @@ struct multiboot_header_tag_information_request
     u16 type;
     u16 flags;
     u32 size;
-    u32 requests[];
+    u32 requests[0];
 };
 
 struct multiboot_header_tag_address
@@ -174,7 +174,7 @@ struct multiboot_tag_string
     u32 type;
     u32 size;
 
-    char string[];
+    char string[0];
 };
 
 struct multiboot_tag_module
@@ -184,7 +184,7 @@ struct multiboot_tag_module
 
     u32 mod_start;
     u32 mod_end;
-    char string[];
+    char string[0];
 };
 
 struct multiboot_tag_basic_meminfo
@@ -213,7 +213,7 @@ struct multiboot_tag_mmap
 
     u32 entry_size;
     u32 entry_version;
-    multiboot_mmap_entry entries[];
+    multiboot_mmap_entry entries[0];
 };
 
 struct multiboot_tag_vbe
@@ -272,7 +272,7 @@ struct multiboot_tag_elf_sections
     u16 entsize;
     u16 shndx;
     u16 reserved;
-    char sections[];
+    char sections[0];
 };
 
 struct multiboot_tag_apm
@@ -316,7 +316,7 @@ struct multiboot_tag_smbios
     u8 major;
     u8 minor;
     u8 reserved[6];
-    u8 tables[];
+    u8 tables[0];
 };
 
 struct multiboot_tag_old_acpi
@@ -324,7 +324,7 @@ struct multiboot_tag_old_acpi
     u32 type;
     u32 size;
 
-    u8 rsdp[];
+    u8 rsdp[0];
 };
 
 struct multiboot_tag_new_acpi
@@ -332,7 +332,7 @@ struct multiboot_tag_new_acpi
     u32 type;
     u32 size;
 
-    u8 rsdp[];
+    u8 rsdp[0];
 };
 
 struct multiboot_tag_network
@@ -340,7 +340,7 @@ struct multiboot_tag_network
     u32 type;
     u32 size;
 
-    u8 dhcpack[];
+    cstr dhcpack;
 };
 
 struct multiboot_tag_efi_mmap
@@ -350,7 +350,7 @@ struct multiboot_tag_efi_mmap
 
     u32 descr_size;
     u32 descr_vers;
-    u8 efi_mmap[];
+    u8 efi_mmap[0];
 };
 
 struct multiboot_tag_efi32_ih

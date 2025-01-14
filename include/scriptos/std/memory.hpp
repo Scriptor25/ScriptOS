@@ -6,6 +6,8 @@ void *memcpy(void *dst, const void *src, usize count);
 void *memset(void *dst, int src, usize count);
 void *memset(void *dst, int src, usize size, usize count);
 
+int memcmp(const void *ptr1, const void *ptr2, usize count);
+
 void *malloc(usize count);
 void free(void *address);
 

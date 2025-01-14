@@ -1,13 +1,15 @@
+#include <scriptos/kernel/acpi.hpp>
 #include <scriptos/kernel/gdt.hpp>
 #include <scriptos/kernel/graphics.hpp>
 #include <scriptos/kernel/idt.hpp>
 #include <scriptos/kernel/info.hpp>
+#include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/mb_info.hpp>
-#include <scriptos/std/memory.hpp>
 #include <scriptos/kernel/pfa.hpp>
 #include <scriptos/kernel/pic.hpp>
-#include <scriptos/std/print.hpp>
 #include <scriptos/kernel/ptm.hpp>
+#include <scriptos/std/memory.hpp>
+#include <scriptos/std/print.hpp>
 #include <scriptos/std/types.hpp>
 #include <scriptos/std/util.hpp>
 
@@ -117,7 +119,27 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
         printf("base = %p%p, length = %#08x%08x, type = '%s'\n", entry.base_addr_hi, entry.base_addr_lo, entry.length_hi, entry.length_lo, type);
     }
 
-    draw_memory_diagram();
+    auto tag_old_acpi = (multiboot_tag_old_acpi *)info[MULTIBOOT_TAG_TYPE_ACPI_OLD];
+    if (tag_old_acpi)
+    {
+        auto rsdp = (RSDP *)tag_old_acpi->rsdp;
+        auto valid = rsdp->Validate();
+
+        printf("rsdp at %p - %s\n", rsdp, valid ? "valid" : "invalid");
+
+        if (valid)
+        {
+            printf("signature = %.8s\n", rsdp->Signature);
+            printf("oemid = %.6s\n", rsdp->OEMID);
+        }
+    }
+
+    auto tag_new_acpi = (multiboot_tag_new_acpi *)info[MULTIBOOT_TAG_TYPE_ACPI_NEW];
+    if (tag_new_acpi)
+    {
+        auto xsdp = (XSDP *)tag_new_acpi->rsdp;
+        printf("xsdp at %p - %s\n", xsdp, xsdp->Validate() ? "valid" : "invalid");
+    }
 
     for (;;)
         Graphics::GetInstance().SwapBuffers();

@@ -1,0 +1,3 @@
+[submodule "depend/acpica"]
+	path = depend/acpica
+	url = https://github.com/acpica/acpica.git
