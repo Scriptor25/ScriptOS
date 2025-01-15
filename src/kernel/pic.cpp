@@ -1,7 +1,7 @@
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/pic.hpp>
 
-void PIC_Remap()
+void PIC_Remap(u8 offset_1, u8 offset_2)
 {
     auto a1 = inb(PIC1_DATA);
     io_wait();
@@ -13,9 +13,9 @@ void PIC_Remap()
     outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
     io_wait();
 
-    outb(PIC1_DATA, 0x20);
+    outb(PIC1_DATA, offset_1);
     io_wait();
-    outb(PIC2_DATA, 0x28);
+    outb(PIC2_DATA, offset_2);
     io_wait();
 
     outb(PIC1_DATA, 0x04);
@@ -29,67 +29,46 @@ void PIC_Remap()
     io_wait();
 
     outb(PIC1_DATA, a1);
-    io_wait();
     outb(PIC2_DATA, a2);
-    io_wait();
 }
 
-void PIC_EndMaster()
+void PIC_Send_EOI(u8 irq)
 {
+    if (irq >= 8)
+        outb(PIC2_COMMAND, PIC_EOI);
     outb(PIC1_COMMAND, PIC_EOI);
-    io_wait();
 }
 
-void PIC_EndSlave()
+void PIC_Disable()
 {
-    outb(PIC2_COMMAND, PIC_EOI);
-    io_wait();
-    outb(PIC1_COMMAND, PIC_EOI);
-    io_wait();
-}
-
-void PIC_Mask_All()
-{
-    cli();
-
     outb(PIC1_DATA, 0b11111111);
-    io_wait();
     outb(PIC2_DATA, 0b11111111);
-    io_wait();
-
-    sti();
 }
 
-void PIC_Enable_PS2_1()
+void PIC_Clr_Mask(u8 irq)
 {
-    cli();
+    u16 port;
+    if (irq < 8)
+        port = PIC1_DATA;
+    else
+    {
+        port = PIC2_DATA;
+        irq -= 8;
+    }
 
-    auto mask = inb(PIC1_DATA);
-    io_wait();
-
-    mask &= ~0b00000010;
-
-    outb(PIC1_DATA, mask);
-    io_wait();
-    outb(PIC2_DATA, 0b11111111);
-    io_wait();
-
-    sti();
+    outb(port, inb(port) & ~(1 << irq));
 }
 
-void PIC_Disable_PS2_1()
+void PIC_Set_Mask(u8 irq)
 {
-    cli();
+    u16 port;
+    if (irq < 8)
+        port = PIC1_DATA;
+    else
+    {
+        port = PIC2_DATA;
+        irq -= 8;
+    }
 
-    auto mask = inb(PIC1_DATA);
-    io_wait();
-
-    mask |= 0b00000010;
-
-    outb(PIC1_DATA, mask);
-    io_wait();
-    outb(PIC2_DATA, 0b11111111);
-    io_wait();
-
-    sti();
+    outb(port, inb(port) | (1 << irq));
 }

@@ -11,10 +11,28 @@
 
 #define PIC_EOI 0x20
 
-void PIC_Remap();
-void PIC_EndMaster();
-void PIC_EndSlave();
+#define PIC1_OFFSET 0x20
+#define PIC2_OFFSET 0x28
 
-void PIC_Mask_All();
-void PIC_Enable_PS2_1();
-void PIC_Disable_PS2_1();
+#define PIC_IRQ0 (PIC1_OFFSET + 0)
+#define PIC_IRQ1 (PIC1_OFFSET + 1)
+#define PIC_IRQ2 (PIC1_OFFSET + 2)
+#define PIC_IRQ3 (PIC1_OFFSET + 3)
+#define PIC_IRQ4 (PIC1_OFFSET + 4)
+#define PIC_IRQ5 (PIC1_OFFSET + 5)
+#define PIC_IRQ6 (PIC1_OFFSET + 6)
+#define PIC_IRQ7 (PIC1_OFFSET + 7)
+#define PIC_IRQ8 (PIC2_OFFSET + 0)
+#define PIC_IRQ9 (PIC2_OFFSET + 1)
+#define PIC_IRQ10 (PIC2_OFFSET + 2)
+#define PIC_IRQ11 (PIC2_OFFSET + 3)
+#define PIC_IRQ12 (PIC2_OFFSET + 4)
+#define PIC_IRQ13 (PIC2_OFFSET + 5)
+#define PIC_IRQ14 (PIC2_OFFSET + 6)
+#define PIC_IRQ15 (PIC2_OFFSET + 7)
+
+void PIC_Remap(u8 offset_1, u8 offset_2);
+void PIC_Send_EOI(u8 irq);
+void PIC_Disable();
+void PIC_Clr_Mask(u8 irq);
+void PIC_Set_Mask(u8 irq);

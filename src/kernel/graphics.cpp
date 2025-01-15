@@ -68,8 +68,13 @@ void Graphics::DrawChar(int c, usize x, usize y)
 
     for (u8 j = 0; j < 8; ++j)
         for (u8 i = 0; i < 8; ++i)
+        {
+            auto color = m_BGColor;
             if (Font_GetBit(bmp, i, j))
-                m_BackBuffer.Write(x + i, y + j, m_FGColor);
+                color = m_FGColor;
+            if ((color >> 24) & 0xff)
+                m_BackBuffer.Write(x + i, y + j, color);
+        }
 }
 
 void Graphics::DrawRect(usize x1, usize y1, usize x2, usize y2)

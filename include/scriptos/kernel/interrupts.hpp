@@ -9,7 +9,7 @@ struct interrupt_frame
     u32 Flags;
 };
 
-__attribute__((interrupt)) void Unhandled(interrupt_frame *frame);
+extern u32 Timer;
 
 __attribute__((interrupt)) void DE_Handler(interrupt_frame *frame);
 __attribute__((interrupt)) void DB_Handler(interrupt_frame *frame);
@@ -33,3 +33,5 @@ __attribute__((interrupt)) void CP_Handler(interrupt_frame *frame, u32 code);
 __attribute__((interrupt)) void HV_Handler(interrupt_frame *frame);
 __attribute__((interrupt)) void VC_Handler(interrupt_frame *frame, u32 code);
 __attribute__((interrupt)) void SX_Handler(interrupt_frame *frame, u32 code);
+
+__attribute__((interrupt)) void PIT_Handler(interrupt_frame *frame);

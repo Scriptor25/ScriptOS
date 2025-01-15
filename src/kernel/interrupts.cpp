@@ -4,11 +4,6 @@
 #include <scriptos/kernel/pic.hpp>
 #include <scriptos/std/print.hpp>
 
-__attribute__((interrupt)) void Unhandled(interrupt_frame *frame)
-{
-    Panic("Unhandled Interrupt\n%04x:%p", frame->CS, frame->IP);
-}
-
 __attribute__((interrupt)) void DE_Handler(interrupt_frame *frame)
 {
     Panic("Division Error\n%04x:%p", frame->CS, frame->IP);
@@ -142,4 +137,20 @@ __attribute__((interrupt)) void VC_Handler(interrupt_frame *frame, u32 code)
 __attribute__((interrupt)) void SX_Handler(interrupt_frame *frame, u32 code)
 {
     Panic("Security Exception\n%04x:%p\ncode=%u", frame->CS, frame->IP, code);
+}
+
+u32 Timer;
+
+__attribute__((interrupt)) void PIT_Handler(interrupt_frame *)
+{
+    static u16 counter;
+    counter++;
+
+    if (counter >= 1000)
+    {
+        counter = 0;
+        Timer++;
+    }
+
+    PIC_Send_EOI(0);
 }

@@ -2,10 +2,12 @@
 #include <scriptos/kernel/graphics.hpp>
 #include <scriptos/kernel/idt.hpp>
 #include <scriptos/kernel/info.hpp>
+#include <scriptos/kernel/interrupts.hpp>
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/mb_info.hpp>
 #include <scriptos/kernel/pfa.hpp>
 #include <scriptos/kernel/pic.hpp>
+#include <scriptos/kernel/pit.hpp>
 #include <scriptos/kernel/ptm.hpp>
 #include <scriptos/std/memory.hpp>
 #include <scriptos/std/print.hpp>
@@ -64,11 +66,19 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     InitGDT();
     InitIDT();
 
-    PIC_Remap();
-    PIC_Mask_All();
+    cli();
+    PIC_Remap(PIC1_OFFSET, PIC2_OFFSET);
+    PIC_Disable();
+    PIC_Clr_Mask(0);
 
-    print("Hello World!");
+    PIT_Write_C0_w(1193); // 1000Hz
+    sti();
+
+    print("Hello World!\n");
 
     for (;;)
+    {
+        printf("\r%-8u", Timer);
         Graphics::GetInstance().SwapBuffers();
+    }
 }

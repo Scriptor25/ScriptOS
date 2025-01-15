@@ -3,6 +3,7 @@
 #include <scriptos/kernel/interrupts.hpp>
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/pfa.hpp>
+#include <scriptos/kernel/pic.hpp>
 
 IDT_Entry::IDT_Entry(u32 offset, u16 selector, u8 attributes)
 {
@@ -43,9 +44,7 @@ void InitIDT()
     idt.Ptr[0x1d] = {(uptr)VC_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
     idt.Ptr[0x1e] = {(uptr)SX_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
 
-    for (usize i = 0; i < idt.Limit; i++)
-        if (!(idt.Ptr[i].Attributes & IDT_Attributes_Present))
-            idt.Ptr[i] = {(uptr)Unhandled, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[PIC_IRQ0] = {(uptr)PIT_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
 
     lidt(idt);
 }
