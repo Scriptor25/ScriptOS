@@ -10,9 +10,7 @@ void Panic(cstr format, ...)
     graphics.Reset();
     graphics.ClearRainbow();
 
-    print("Kernel Panic");
-    putchar('\n');
-    putchar('\n');
+    print("Kernel Panic\n\n");
     va_list ap;
     va_start(ap, format);
     vprintf(format, ap);

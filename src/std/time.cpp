@@ -2,5 +2,6 @@
 
 void sleep(u32 millis)
 {
+    (void)millis;
     // TODO: use pit to sleep <millis>
 }

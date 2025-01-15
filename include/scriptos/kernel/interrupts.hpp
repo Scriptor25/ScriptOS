@@ -9,8 +9,6 @@ struct interrupt_frame
     u32 Flags;
 };
 
-extern u32 Timer;
-
 __attribute__((interrupt)) void DE_Handler(interrupt_frame *frame);
 __attribute__((interrupt)) void DB_Handler(interrupt_frame *frame);
 __attribute__((interrupt)) void BP_Handler(interrupt_frame *frame);

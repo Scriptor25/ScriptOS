@@ -23,17 +23,17 @@ auto ceil_div(T divisor, U dividend)
     return (divisor / dividend) + !!(divisor % dividend);
 }
 
-inline constexpr unsigned long long int operator"" KiB(unsigned long long int value)
+inline constexpr unsigned long long int operator""_KiB(unsigned long long int value)
 {
     return value * 1024;
 }
 
-inline constexpr unsigned long long int operator"" MiB(unsigned long long int value)
+inline constexpr unsigned long long int operator""_MiB(unsigned long long int value)
 {
     return value * 1024 * 1024;
 }
 
-inline constexpr unsigned long long int operator"" GiB(unsigned long long int value)
+inline constexpr unsigned long long int operator""_GiB(unsigned long long int value)
 {
     return value * 1024 * 1024 * 1024;
 }

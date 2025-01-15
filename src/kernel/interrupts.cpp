@@ -139,17 +139,15 @@ __attribute__((interrupt)) void SX_Handler(interrupt_frame *frame, u32 code)
     Panic("Security Exception\n%04x:%p\ncode=%u", frame->CS, frame->IP, code);
 }
 
-u32 Timer;
-
 __attribute__((interrupt)) void PIT_Handler(interrupt_frame *)
 {
     static u16 counter;
-    counter++;
+    static u32 timer;
 
-    if (counter >= 1000)
+    if (++counter >= 1000)
     {
         counter = 0;
-        Timer++;
+        printf("\rUptime: %us", timer++);
     }
 
     PIC_Send_EOI(0);

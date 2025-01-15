@@ -25,14 +25,14 @@ struct PageDirectoryEntry_4MiB
     bool PageSize : 1;
     /* global bit */
     bool Global : 1;
-    /* ignored */
-    u8 _Ignored : 3;
+    /* reserved */
+    u8 reserved1 : 3;
     /* page attribute bit */
     bool PageAttribute : 1;
     /* address [39:32] */
     u32 Address_39_32 : 8;
     /* reserved */
-    bool _Reserved : 1;
+    bool reserved2 : 1;
     /* address [31:22] */
     u32 Address_31_22 : 10;
 };
@@ -53,12 +53,12 @@ union PageDirectoryEntry
         bool CacheDisable : 1;
         /* accessed bit */
         bool Accessed : 1;
-        /* ignored */
-        u8 _Ignored_0 : 1;
+        /* reserved */
+        u8 reserved1 : 1;
         /* page size bit (= 0) */
         bool PageSize : 1;
-        /* ignored */
-        u8 _Ignored_1 : 4;
+        /* reserved */
+        u8 reserved2 : 4;
         /* address [31:12] */
         u32 Address_31_12 : 20;
     };
@@ -88,8 +88,8 @@ union PageTableEntry
         bool PageAttribute : 1;
         /* global bit */
         bool Global : 1;
-        /* ignored */
-        u8 _Ignored : 3;
+        /* reserved */
+        u8 reserved1 : 3;
         /* address [31:12] */
         u32 Address_31_12 : 20;
     };
