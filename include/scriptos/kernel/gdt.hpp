@@ -4,6 +4,9 @@
 
 #define GDT_CODE_SEGMENT 0x08
 #define GDT_DATA_SEGMENT 0x10
+#define GDT_USER_CODE_SEGMENT 0x18
+#define GDT_USER_DATA_SEGMENT 0x20
+#define GDT_TASK_STATE_SEGMENT 0x28
 
 enum GDT_Access
 {
@@ -13,7 +16,7 @@ enum GDT_Access
     GDT_Access_Code_Conforming = 0b00000100,
     GDT_Access_Data_Direction_Down = 0b00000100,
 
-    GDT_Access_Task_Segment = 0b00000000,
+    GDT_Access_Task_Segment = 0b00001000,
     GDT_Access_Data_Segment = 0b00010000,
     GDT_Access_Code_Segment = 0b00011000,
 

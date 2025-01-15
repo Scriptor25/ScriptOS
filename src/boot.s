@@ -56,7 +56,7 @@ multiboot_header_end:
 
 multiboot_entry:
         /* setup stack */
-        mov $(stack + STACK_SIZE), %esp
+        mov $stack_top, %esp
 
         /* reset eflags */
         push $0
@@ -75,4 +75,10 @@ multiboot_entry:
         hlt
         jmp .loop
 
-.comm stack, STACK_SIZE
+.section .bss
+stack_bottom:
+.skip STACK_SIZE
+stack_top:
+
+.section .tss
+.skip STACK_SIZE

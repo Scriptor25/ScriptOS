@@ -2,11 +2,6 @@
 
 #include <scriptos/std/types.hpp>
 
-#define KiB(BYTES) (BYTES / 1024)
-#define MiB(BYTES) (BYTES / (1024 * 1024))
-#define GiB(BYTES) (BYTES / (1024 * 1024 * 1024))
-#define TiB(BYTES) (BYTES / (1024 * 1024 * 1024 * 1024))
-
 bool isalnum(int c);
 bool isalpha(int c);
 bool isblank(int c);
@@ -26,4 +21,19 @@ template <typename T, typename U>
 auto ceil_div(T divisor, U dividend)
 {
     return (divisor / dividend) + !!(divisor % dividend);
+}
+
+inline constexpr unsigned long long int operator"" KiB(unsigned long long int value)
+{
+    return value * 1024;
+}
+
+inline constexpr unsigned long long int operator"" MiB(unsigned long long int value)
+{
+    return value * 1024 * 1024;
+}
+
+inline constexpr unsigned long long int operator"" GiB(unsigned long long int value)
+{
+    return value * 1024 * 1024 * 1024;
 }

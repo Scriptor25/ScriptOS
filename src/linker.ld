@@ -32,8 +32,11 @@ SECTIONS
         __bss_start = .;
         *(COMMON)
         *(.bss)
+        __tss_start = .;
+        *(.tss)
+        __tss_end = .;
         __bss_end = .;
-    }
+    } 
 
     __kernel_end = .;
 }

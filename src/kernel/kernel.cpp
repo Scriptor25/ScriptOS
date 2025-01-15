@@ -70,7 +70,6 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     PIC_Remap(PIC1_OFFSET, PIC2_OFFSET);
     PIC_Disable();
     PIC_Clr_Mask(0);
-
     PIT_Write_C0_w(1193); // 1000Hz
     sti();
 
