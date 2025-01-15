@@ -141,13 +141,13 @@ __attribute__((interrupt)) void SX_Handler(interrupt_frame *frame, u32 code)
 
 __attribute__((interrupt)) void PIT_Handler(interrupt_frame *)
 {
-    static u16 counter;
-    static u32 timer;
+    static u16 counter = 1000;
+    static u32 timer = 0;
 
     if (++counter >= 1000)
     {
         counter = 0;
-        printf("\rUptime: %us", timer++);
+        printf("\rUptime: %us", ++timer);
     }
 
     PIC_Send_EOI(0);
