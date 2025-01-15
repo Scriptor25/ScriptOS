@@ -11,7 +11,7 @@ LDFLAGS = $(OPT) -ffreestanding -nostdlib -lgcc
 SRC_DIR = src
 BIN_DIR = bin
 
-INCLUDE = -I include -I depend/acpica/source/include
+INCLUDE = -I include
 
 OSNAME = scriptos
 KERNEL_BIN = $(BIN_DIR)/kernel.bin
