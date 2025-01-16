@@ -10,6 +10,9 @@ SECTIONS
     {
         __text_start = .;
         *(.text)
+        __user_text_start = .;
+        *(.user_text)
+        __user_text_end = .;
         __text_end = .;
     }
 
@@ -32,9 +35,6 @@ SECTIONS
         __bss_start = .;
         *(COMMON)
         *(.bss)
-        __tss_start = .;
-        *(.tss)
-        __tss_end = .;
         __bss_end = .;
     } 
 

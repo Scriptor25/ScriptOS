@@ -3,16 +3,16 @@ LoadGDT:
     push %ebp
     mov %esp, %ebp
 
-    mov 8(%ebp), %eax
+    mov 0x08(%ebp), %eax
     lgdt (%eax)
 
-    mov 12(%ebp), %eax
+    mov 0x0c(%ebp), %eax
     push %eax
     push $.reload_cs
     ljmp *(%esp)
 
 .reload_cs:
-    mov 16(%ebp), %eax
+    mov 0x10(%ebp), %eax
     mov %ax, %ds
     mov %ax, %es
     mov %ax, %fs

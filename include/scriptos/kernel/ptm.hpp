@@ -10,8 +10,8 @@ public:
 
     void Init(PageDirectoryEntry *page_directory);
 
-    void MapPage(void *virtual_address, void *physical_address);
-    void MapPages(void *virtual_address, void *physical_address, usize count);
+    void MapPage(void *virtual_address, void *physical_address, bool user = false);
+    void MapPages(void *virtual_address, void *physical_address, usize count, bool user = false);
 
     void SetupPaging();
 

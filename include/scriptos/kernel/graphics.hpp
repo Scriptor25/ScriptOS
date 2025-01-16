@@ -4,7 +4,7 @@
 #include <scriptos/kernel/framebuffer.hpp>
 
 #define CHAR_W 8
-#define CHAR_H 8
+#define CHAR_H 12
 
 template <typename T>
 struct Point

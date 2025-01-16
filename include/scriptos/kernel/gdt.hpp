@@ -57,4 +57,6 @@ struct GDT_Descriptor
     GDT_Entry *Ptr;
 } __attribute__((packed));
 
-void InitGDT();
+extern "C" void LoadGDT(GDT_Descriptor *descriptor, u16 code_segment, u16 data_segment);
+
+void InitGDT(void *kernel_stack);

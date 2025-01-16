@@ -56,11 +56,6 @@ static void setup_graphics(const MultibootInfo &info)
     graphics.Clear();
 }
 
-extern "C" void user_main()
-{
-    print("Hello from User!\n");
-}
-
 extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 {
     if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || ((uptr)&info & 7))
@@ -69,16 +64,26 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     setup_memory(info);
     setup_graphics(info);
 
-    InitGDT();
+    void *kernel_stack;
+    asm volatile("mov %%esp, %0" : "=r"(kernel_stack) :);
+
+    InitGDT(kernel_stack);
     InitIDT();
 
-    cli();
+    CLI();
     PIC_Remap(PIC1_OFFSET, PIC2_OFFSET);
     PIC_Disable();
     PIC_Clr_Mask(0);
     PIT_Write_C0_w(1193); // 1000Hz
-    sti();
+    STI();
 
-    for (;;)
-        Graphics::GetInstance().SwapBuffers();
+    Graphics::GetInstance().SwapBuffers();
+
+    auto user_stack = PageFrameAllocator::GetInstance().RequestPage();
+    PageTableManager::GetKernelInstance().MapPage((void *)0xC0000000, user_stack, true);
+
+    auto page_count = ceil_div((uptr)USER_TEXT_END - (uptr)USER_TEXT_START, PAGE_SIZE);
+    PageTableManager::GetKernelInstance().MapPages(USER_TEXT_START, USER_TEXT_START, page_count, true);
+
+    jump_user_main((void *)(0xC0000000 + PAGE_SIZE));
 }

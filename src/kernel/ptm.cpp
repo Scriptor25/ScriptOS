@@ -26,12 +26,13 @@ void PageTableManager::Init(PageDirectoryEntry *page_directory)
     m_PageDirectory = page_directory;
 }
 
-void PageTableManager::MapPage(void *virtual_address, void *physical_address)
+void PageTableManager::MapPage(void *virtual_address, void *physical_address, bool user)
 {
     page_index index((uptr)virtual_address);
     PageTableEntry *pt;
 
     auto &pde = m_PageDirectory[index.pdi];
+    pde.UserSupervisor = user;
     if (!pde.Present)
     {
         pt = (PageTableEntry *)PageFrameAllocator::GetInstance().RequestEmptyPage();
@@ -39,7 +40,6 @@ void PageTableManager::MapPage(void *virtual_address, void *physical_address)
         pde.Present = true;
         pde.ReadWrite = true;
         pde.Address_31_12 = (uptr)pt >> 12;
-        pde.UserSupervisor = true; // TODO: only map for user if is userspace
     }
     else
     {
@@ -47,19 +47,19 @@ void PageTableManager::MapPage(void *virtual_address, void *physical_address)
     }
 
     auto &pte = pt[index.pti];
+    pte.UserSupervisor = user;
     pte.Present = true;
     pte.ReadWrite = true;
     pte.Address_31_12 = (uptr)physical_address >> 12;
-    pte.UserSupervisor = true; // TODO: only map for user if is userspace
 
     invlpg(virtual_address);
 }
 
-void PageTableManager::MapPages(void *virtual_address, void *physical_address, usize count)
+void PageTableManager::MapPages(void *virtual_address, void *physical_address, usize count, bool user)
 {
     auto size = count * PAGE_SIZE;
     for (usize i = 0; i < size; i += PAGE_SIZE)
-        MapPage((void *)((uptr)virtual_address + i), (void *)((uptr)physical_address + i));
+        MapPage((void *)((uptr)virtual_address + i), (void *)((uptr)physical_address + i), user);
 }
 
 void PageTableManager::SetupPaging()

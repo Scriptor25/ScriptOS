@@ -7,6 +7,7 @@ void Panic(cstr format, ...)
 {
     auto &graphics = Graphics::GetInstance();
     graphics.SetFGColor(0xffffffff);
+    graphics.SetBGColor(0x00000000);
     graphics.Reset();
     graphics.ClearRainbow();
 
@@ -19,6 +20,6 @@ void Panic(cstr format, ...)
 
     graphics.SwapBuffers();
 
-    cli();
-    loop();
+    CLI();
+    LOOP();
 }

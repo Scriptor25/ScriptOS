@@ -1,3 +1,4 @@
+#include <scriptos/kernel/graphics.hpp>
 #include <scriptos/kernel/interrupts.hpp>
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/panic.hpp>
@@ -91,7 +92,10 @@ __attribute__((interrupt)) void PF_Handler(interrupt_frame *frame, u32 code)
     auto ss = (code >> 6) & 0b1;
     auto sgx = (code >> 15) & 0b1;
 
-    Panic("Page Fault\n%04x:%p\np=%u, w=%u, u=%u, r=%u, i=%u, pk=%u, ss=%u, sgx=%u", frame->CS, frame->IP, p, w, u, r, i, pk, ss, sgx);
+    void *addr;
+    asm volatile("mov %%cr2, %0" : "=r"(addr) :);
+
+    Panic("Page Fault\n%04x:%p\np=%u, w=%u, u=%u, r=%u, i=%u, pk=%u, ss=%u, sgx=%u\nvirtual address = %p", frame->CS, frame->IP, p, w, u, r, i, pk, ss, sgx, addr);
 }
 
 __attribute__((interrupt)) void MF_Handler(interrupt_frame *frame)
@@ -141,14 +145,31 @@ __attribute__((interrupt)) void SX_Handler(interrupt_frame *frame, u32 code)
 
 __attribute__((interrupt)) void PIT_Handler(interrupt_frame *)
 {
-    static u16 counter = 1000;
+    static u16 counter = 0;
     static u32 timer = 0;
 
-    if (++counter >= 1000)
+    counter++;
+
+    if (counter >= 1000)
     {
         counter = 0;
         printf("\rUptime: %us", ++timer);
     }
 
+    if (counter % 20)
+        Graphics::GetInstance().SwapBuffers();
+
     PIC_Send_EOI(0);
+}
+
+__attribute__((interrupt)) void SYS_Handler(interrupt_frame *frame)
+{
+    auto sp = ((u32 *)(uptr)frame->ESP);
+
+    switch (sp[0])
+    {
+    case 0x10:
+        print((cstr)(uptr)sp[1]);
+        break;
+    }
 }

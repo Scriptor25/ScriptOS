@@ -46,5 +46,7 @@ void InitIDT()
 
     idt.Ptr[PIC_IRQ0] = {(uptr)PIT_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
 
+    idt.Ptr[0x80] = {(uptr)SYS_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring3 | IDT_Attributes_32Bit_Interrupt_Gate};
+
     lidt(idt);
 }
