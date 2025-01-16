@@ -16,17 +16,24 @@ int print(cstr string)
     return p - string;
 }
 
-int wprint(const int *string)
+int wprint(cwstr string)
 {
-    int *p;
-    for (p = (int *)string; *p; ++p)
+    wstr p;
+    for (p = (wstr)string; *p; ++p)
         putchar(*p);
     return p - string;
 }
 
-int printn(cstr string, int num)
+int printn(cstr string, usize num)
 {
-    for (int n = 0; n < num && string[n]; ++n)
+    for (usize n = 0; n < num && string[n]; ++n)
+        putchar(string[n]);
+    return num;
+}
+
+int wprintn(cwstr string, usize num)
+{
+    for (usize n = 0; n < num && string[n]; ++n)
         putchar(string[n]);
     return num;
 }
@@ -35,7 +42,16 @@ int printf(cstr format, ...)
 {
     va_list ap;
     va_start(ap, format);
-    int num = vprintf(format, ap);
+    auto num = vprintf(format, ap);
+    va_end(ap);
+    return num;
+}
+
+int wprintf(cwstr format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    auto num = wvprintf(format, ap);
     va_end(ap);
     return num;
 }
@@ -137,7 +153,8 @@ static print_int_t print_int(va_list ap, int flags, int width, int precision, bo
     return {ap, num};
 }
 
-int vprintf(cstr format, va_list ap)
+template <typename T>
+static int tvprintf(const T *format, va_list ap)
 {
     int num = 0;
 
@@ -152,7 +169,7 @@ int vprintf(cstr format, va_list ap)
 
     int flags = 0, width = 0, precision = 0;
 
-    auto p = (str)format;
+    auto p = (T *)format;
 
     while (*p)
     {
@@ -258,7 +275,7 @@ int vprintf(cstr format, va_list ap)
             case 'i':
             case 'I':
             {
-                print_int_t result = print_int(ap, flags, width, precision, true, 10, false);
+                auto result = print_int(ap, flags, width, precision, true, 10, false);
                 ap = result.ap;
                 num += result.num;
                 break;
@@ -266,7 +283,7 @@ int vprintf(cstr format, va_list ap)
             case 'u':
             case 'U':
             {
-                print_int_t result = print_int(ap, flags, width, precision, false, 10, false);
+                auto result = print_int(ap, flags, width, precision, false, 10, false);
                 ap = result.ap;
                 num += result.num;
                 break;
@@ -274,21 +291,21 @@ int vprintf(cstr format, va_list ap)
             case 'o':
             case 'O':
             {
-                print_int_t result = print_int(ap, flags, width, precision, false, 8, false);
+                auto result = print_int(ap, flags, width, precision, false, 8, false);
                 ap = result.ap;
                 num += result.num;
                 break;
             }
             case 'x':
             {
-                print_int_t result = print_int(ap, flags, width, precision, false, 16, false);
+                auto result = print_int(ap, flags, width, precision, false, 16, false);
                 ap = result.ap;
                 num += result.num;
                 break;
             }
             case 'X':
             {
-                print_int_t result = print_int(ap, flags, width, precision, false, 16, true);
+                auto result = print_int(ap, flags, width, precision, false, 16, true);
                 ap = result.ap;
                 num += result.num;
                 break;
@@ -296,7 +313,7 @@ int vprintf(cstr format, va_list ap)
             case 'b':
             case 'B':
             {
-                print_int_t result = print_int(ap, flags, width, precision, false, 2, false);
+                auto result = print_int(ap, flags, width, precision, false, 2, false);
                 ap = result.ap;
                 num += result.num;
                 break;
@@ -312,6 +329,13 @@ int vprintf(cstr format, va_list ap)
                     num += print(va_arg(ap, cstr));
                 else
                     num += printn(va_arg(ap, cstr), precision);
+                break;
+            case 'w':
+            case 'W':
+                if (precision < 0)
+                    num += wprint(va_arg(ap, cwstr));
+                else
+                    num += wprintn(va_arg(ap, cwstr), precision);
                 break;
             case 'p':
             case 'P':
@@ -340,4 +364,14 @@ int vprintf(cstr format, va_list ap)
     }
 
     return num;
+}
+
+int vprintf(cstr format, va_list ap)
+{
+    return tvprintf(format, ap);
+}
+
+int wvprintf(cwstr format, va_list ap)
+{
+    return tvprintf(format, ap);
 }

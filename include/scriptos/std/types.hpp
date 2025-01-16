@@ -15,6 +15,8 @@ typedef long double f128;
 
 typedef char *str;
 typedef const char *cstr;
+typedef wchar_t *wstr;
+typedef const wchar_t *cwstr;
 
 typedef decltype(nullptr) nullptr_t;
 

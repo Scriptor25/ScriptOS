@@ -9,6 +9,7 @@
 #include <scriptos/kernel/pic.hpp>
 #include <scriptos/kernel/pit.hpp>
 #include <scriptos/kernel/ptm.hpp>
+#include <scriptos/kernel/user.hpp>
 #include <scriptos/std/memory.hpp>
 #include <scriptos/std/print.hpp>
 #include <scriptos/std/types.hpp>
@@ -55,34 +56,9 @@ static void setup_graphics(const MultibootInfo &info)
     graphics.Clear();
 }
 
-static void user_main()
+extern "C" void user_main()
 {
-    loop();
-}
-
-static void jump_userland()
-{
-    // jump into userland
-    asm volatile(
-        // flush tss
-        "mov $((5 * 8) | 0), %%ax;"
-        "ltr %%ax;"
-
-        // reload data segment
-        "mov $((4 * 8) | 3), %%ax;"
-        "mov %%ax, %%ds;"
-        "mov %%ax, %%es;"
-        "mov %%ax, %%fs;"
-        "mov %%ax, %%gs;"
-
-        // jump to user code segment
-        "mov %%esp, %%eax;"
-        "push $((4 * 8) | 3);"
-        "push %%eax;"
-        "pushf;"
-        "push $((3 * 8) | 3);"
-        "push %0;"
-        "iret" : : "i"(user_main));
+    print("Hello from User!\n");
 }
 
 extern "C" void kernel_main(u32 magic, const MultibootInfo &info)

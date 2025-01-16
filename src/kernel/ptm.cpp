@@ -39,6 +39,7 @@ void PageTableManager::MapPage(void *virtual_address, void *physical_address)
         pde.Present = true;
         pde.ReadWrite = true;
         pde.Address_31_12 = (uptr)pt >> 12;
+        pde.UserSupervisor = true; // TODO: only map for user if is userspace
     }
     else
     {
@@ -49,6 +50,7 @@ void PageTableManager::MapPage(void *virtual_address, void *physical_address)
     pte.Present = true;
     pte.ReadWrite = true;
     pte.Address_31_12 = (uptr)physical_address >> 12;
+    pte.UserSupervisor = true; // TODO: only map for user if is userspace
 
     invlpg(virtual_address);
 }
