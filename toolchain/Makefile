@@ -24,9 +24,9 @@ GCC_SRC_DIR = $(SRC_DIR)/$(GCC_NAME)
 PREFIX = /usr/local
 TARGET = i686-elf
 
-.PHONY: all binutils gcc build unpack clean test
+.PHONY: all binutils gcc build unpack cleanbuild clean test
 
-all: clean build test
+all: cleanbuild build test clean
 
 $(BINUTILS_SRC_FILE):
 	@ echo ======== Downloading - Binutils ========
@@ -67,6 +67,10 @@ gcc: $(GCC_SRC_DIR)
 build: binutils gcc
 
 unpack: $(BINUTILS_SRC_DIR) $(GCC_SRC_DIR)
+
+cleanbuild:
+	@ echo ======== Cleaning - Build Files ========
+	@ rm -rf $(TMP_DIR)/build
 
 clean:
 	@ echo ======== Cleaning ======================
