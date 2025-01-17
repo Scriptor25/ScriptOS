@@ -9,7 +9,7 @@ template <typename T>
 class vector
 {
 public:
-    vector(size size = 0, size reserved = 10)
+    vector(usize size = 0, usize reserved = 10)
     {
         assert(size <= reserved);
 
@@ -18,7 +18,7 @@ public:
         m_Data = (T *)calloc(reserved, sizeof(T));
     }
 
-    vector(T *data, size size)
+    vector(T *data, usize size)
         : vector(size, size)
     {
         memcpy(m_Data, data, size);
@@ -31,11 +31,8 @@ public:
         : vector(other.m_Data, other.m_Size) {}
 
     vector(vector &&other)
+        : m_Data(other.m_Data), m_Size(other.m_Size), m_Reserved(other.m_Reserved)
     {
-        m_Data = other.m_Data;
-        m_Size = other.m_Size;
-        m_Reserved = other.m_Reserved;
-
         other.m_Data = nullptr;
         other.m_Size = 0;
         other.m_Reserved = 0;
@@ -70,22 +67,22 @@ public:
         return *this;
     }
 
-    T &at(size index)
+    T &at(usize index)
     {
         return m_Data[index];
     }
 
-    const T &at(size index) const
+    const T &at(usize index) const
     {
         return m_Data[index];
     }
 
-    T &operator[](size index)
+    T &operator[](usize index)
     {
         return m_Data[index];
     }
 
-    const T &operator[](size index) const
+    const T &operator[](usize index) const
     {
         return m_Data[index];
     }
@@ -100,12 +97,12 @@ public:
         return m_Data;
     }
 
-    size size() const
+    usize size() const
     {
         return m_Size;
     }
 
-    size reserved() const
+    usize reserved() const
     {
         return m_Reserved;
     }
@@ -147,6 +144,9 @@ public:
 
 private:
     T *m_Data;
-    size m_Size;
-    size m_Reserved;
+    usize m_Size;
+    usize m_Reserved;
 };
+
+using string = vector<char>;
+using wstring = vector<wchar_t>;

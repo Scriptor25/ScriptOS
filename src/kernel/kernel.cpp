@@ -15,6 +15,7 @@
 #include <scriptos/std/print.hpp>
 #include <scriptos/std/types.hpp>
 #include <scriptos/std/util.hpp>
+#include <scriptos/stl/view.hpp>
 
 static void setup_memory(const MultibootInfo &info)
 {
@@ -59,7 +60,8 @@ static void setup_graphics(const MultibootInfo &info)
 
 static void exec(cstr cmd)
 {
-    (void)cmd;
+    string_view v(cmd, cmd + strlen(cmd));
+    (void)v;
 }
 
 extern "C" void kernel_main(u32 magic, const MultibootInfo &info)

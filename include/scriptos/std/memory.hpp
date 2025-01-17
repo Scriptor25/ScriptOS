@@ -8,6 +8,9 @@ void *memset(void *dst, int src, usize size, usize count);
 
 int memcmp(const void *ptr1, const void *ptr2, usize count);
 
+int strlen(cstr string);
+int strlen(cwstr string);
+
 void *malloc(usize count);
 void free(void *address);
 

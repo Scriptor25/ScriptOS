@@ -47,3 +47,19 @@ int memcmp(const void *ptr1, const void *ptr2, usize count)
 
     return 0;
 }
+
+int strlen(cstr string)
+{
+    int i = 0;
+    for (auto p = (str)string; *p; ++p, ++i)
+        ;
+    return i;
+}
+
+int strlen(cwstr string)
+{
+    int i = 0;
+    for (auto p = (wstr)string; *p; ++p, ++i)
+        ;
+    return i;
+}

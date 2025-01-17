@@ -8,12 +8,17 @@ class view
 {
 public:
     view()
-        : view(nullptr, nullptr)
+        : m_Begin(nullptr), m_End(nullptr)
     {
     }
 
     view(const T *begin, const T *end)
         : m_Begin(begin), m_End(end)
+    {
+    }
+
+    view(const T *begin, usize count)
+        : m_Begin(begin), m_End(begin + count)
     {
     }
 
@@ -29,21 +34,27 @@ public:
         v.m_End = nullptr;
     }
 
+    ~view()
+    {
+        m_Begin = nullptr;
+        m_End = nullptr;
+    }
+
     const T *begin() const { return m_Begin; }
     const T *end() const { return m_End; }
 
-    const T &at(size index) const
+    const T &at(usize index) const
     {
         assert(index < m_End - m_Begin);
         return m_Begin[index];
     }
 
-    size size() const { return m_End - m_Begin; }
+    usize size() const { return m_End - m_Begin; }
 
 private:
     const T *m_Begin;
     const T *m_End;
 };
 
-using strview = view<char>;
-using strview = view<wchar_t>;
+using string_view = view<char>;
+using wstring_view = view<wchar_t>;
