@@ -9,6 +9,7 @@
 #include <scriptos/kernel/pic.hpp>
 #include <scriptos/kernel/pit.hpp>
 #include <scriptos/kernel/ptm.hpp>
+#include <scriptos/kernel/serial.hpp>
 #include <scriptos/kernel/user.hpp>
 #include <scriptos/std/memory.hpp>
 #include <scriptos/std/print.hpp>
@@ -56,62 +57,6 @@ static void setup_graphics(const MultibootInfo &info)
     graphics.Clear();
 }
 
-#define SERIAL_PORT_COM1 0x3f8 // COM1
-
-static int Serial_Init()
-{
-    out<u8>(SERIAL_PORT_COM1 + 1, 0x00); // Disable all interrupts
-    out<u8>(SERIAL_PORT_COM1 + 3, 0x80); // Enable DLAB (set baud rate divisor)
-    out<u8>(SERIAL_PORT_COM1 + 0, 0x03); // Set divisor to 3 (lo byte) 38400 baud
-    out<u8>(SERIAL_PORT_COM1 + 1, 0x00); //                  (hi byte)
-    out<u8>(SERIAL_PORT_COM1 + 3, 0x03); // 8 bits, no parity, one stop bit
-    out<u8>(SERIAL_PORT_COM1 + 2, 0xC7); // Enable FIFO, clear them, with 14-byte threshold
-    out<u8>(SERIAL_PORT_COM1 + 4, 0x0B); // IRQs enabled, RTS/DSR set
-    out<u8>(SERIAL_PORT_COM1 + 4, 0x1E); // Set in loopback mode, test the serial chip
-    out<u8>(SERIAL_PORT_COM1 + 0, 0xAE); // Test serial chip (send byte 0xAE and check if serial returns same byte)
-
-    // Check if serial is faulty (i.e: not same byte as sent)
-    if (in<u8>(SERIAL_PORT_COM1 + 0) != 0xAE)
-        return 1;
-
-    // If serial is not faulty set it in normal operation mode
-    // (not-loopback with IRQs enabled and OUT#1 and OUT#2 bits enabled)
-    out<u8>(SERIAL_PORT_COM1 + 4, 0x0F);
-    return 0;
-}
-
-static int Serial_Received()
-{
-    return in<u8>(SERIAL_PORT_COM1 + 5) & 1;
-}
-
-static char Serial_Read()
-{
-    while (Serial_Received() == 0)
-        ;
-
-    return in<u8>(SERIAL_PORT_COM1);
-}
-
-static int Serial_Transmit_Empty()
-{
-    return in<u8>(SERIAL_PORT_COM1 + 5) & 0x20;
-}
-
-static void Serial_Write(char a)
-{
-    while (Serial_Transmit_Empty() == 0)
-        ;
-
-    out<u8>(SERIAL_PORT_COM1, a);
-}
-
-static void Serial_Write(cstr string)
-{
-    for (auto p = (str)string; *p; ++p)
-        Serial_Write(*p);
-}
-
 static void exec(cstr cmd)
 {
     (void)cmd;
@@ -140,10 +85,8 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 
     // auto user_stack = PageFrameAllocator::GetInstance().RequestPage();
     // PageTableManager::GetKernelInstance().MapPage((void *)0xC0000000, user_stack, true);
-
     // auto page_count = ceil_div((uptr)USER_TEXT_END - (uptr)USER_TEXT_START, PAGE_SIZE);
     // PageTableManager::GetKernelInstance().MapPages(USER_TEXT_START, USER_TEXT_START, page_count, true);
-
     // jump_user_main((void *)(0xC0000000 + PAGE_SIZE));
 
     auto error = Serial_Init();
