@@ -30,25 +30,25 @@ all: clean build test
 
 $(BINUTILS_SRC_FILE):
 	@ echo ======== Downloading - Binutils ========
-	mkdir -p $(SRC_DIR)
-	curl $(BINUTILS_URL) --output $(BINUTILS_SRC_FILE) --silent
+	@ mkdir -p $(SRC_DIR)
+	@ curl $(BINUTILS_URL) --output $(BINUTILS_SRC_FILE) --silent
 
 $(GCC_SRC_FILE):
 	@ echo ======== Downloading - GCC =============
-	mkdir -p $(SRC_DIR)
-	curl $(GCC_URL) --output $(GCC_SRC_FILE) --silent
+	@ mkdir -p $(SRC_DIR)
+	@ curl $(GCC_URL) --output $(GCC_SRC_FILE) --silent
 
 $(BINUTILS_SRC_DIR): $(BINUTILS_SRC_FILE)
 	@ echo ======== Unpacking - Binutils ==========
-	tar -xzf $(BINUTILS_SRC_FILE) -C $(SRC_DIR)
+	@ tar -xzf $(BINUTILS_SRC_FILE) -C $(SRC_DIR)
 
 $(GCC_SRC_DIR): $(GCC_SRC_FILE)
 	@ echo ======== Unpacking - GCC ===============
-	tar -xzf $(GCC_SRC_FILE) -C $(SRC_DIR)
+	@ tar -xzf $(GCC_SRC_FILE) -C $(SRC_DIR)
 
 binutils: $(BINUTILS_SRC_DIR)
 	@ echo ======== Building - Binutils ===========
-	(mkdir -p $(BINUTILS_BUILD);\
+	@ (mkdir -p $(BINUTILS_BUILD);\
 	cd $(BINUTILS_BUILD);\
 	$(BINUTILS_SRC_DIR)/configure --target=$(TARGET) --prefix=$(PREFIX) --with-sysroot --disable-nls --disable-werror;\
 	make -j 8;\
@@ -56,7 +56,7 @@ binutils: $(BINUTILS_SRC_DIR)
 
 gcc: $(GCC_SRC_DIR)
 	@ echo ======== Building - GCC ================
-	(mkdir -p $(GCC_BUILD);\
+	@ (mkdir -p $(GCC_BUILD);\
 	cd $(GCC_BUILD);\
 	$(GCC_SRC_DIR)/configure --target=$(TARGET) --prefix=$(PREFIX) --disable-nls --enable-languages=c,c++ --without-headers;\
 	make -j 8 all-gcc;\
@@ -70,7 +70,7 @@ unpack: $(BINUTILS_SRC_DIR) $(GCC_SRC_DIR)
 
 clean:
 	@ echo ======== Cleaning ======================
-	rm -rf $(TMP_DIR)
+	@ rm -rf $(TMP_DIR)
 
 test:
-	$(TARGET)-gcc --version
+	@ $(TARGET)-gcc --version
