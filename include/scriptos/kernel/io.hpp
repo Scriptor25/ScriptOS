@@ -8,6 +8,7 @@
 #define POP(X) asm volatile("pop %0" : "=r"(X))
 
 #define LOOP() asm volatile("jmp .")
+#define HLT() asm volatile("hlt")
 
 #define CLI() asm volatile("cli")
 #define STI() asm volatile("sti")

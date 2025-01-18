@@ -82,15 +82,20 @@ public:
         return m_Begin[index];
     }
 
-    operator auto() const
+    bool operator==(const view &other) const
     {
-        return m_Begin;
+        if (this == &other)
+            return true;
+        if (m_Begin == other.m_Begin && m_End == other.m_End)
+            return true;
+        if (size() != other.size())
+            return false;
+        return !memcmp(m_Begin, other.m_Begin, size());
     }
 
-    usize size() const
-    {
-        return (usize)(m_End - m_Begin);
-    }
+    const T *data() const { return m_Begin; }
+
+    usize size() const { return (usize)(m_End - m_Begin); }
 
     vector<view> split(const T &value) const
     {

@@ -66,15 +66,26 @@ static void exec(cstr cmd)
         arg = arg.trim();
     auto command = args.pop_front();
 
-    Serial_Write("\r\n'");
-    Serial_Write(command, command.size());
+    if (command == "print")
+    {
+        for (auto &arg : args)
+        {
+            printn(arg.data(), arg.size());
+            putchar(' ');
+        }
+        putchar('\n');
+        return;
+    }
+
+    Serial_Write(command.data(), command.size());
     Serial_Write('\'');
     for (auto &arg : args)
     {
         Serial_Write(" '");
-        Serial_Write(arg, arg.size());
+        Serial_Write(arg.data(), arg.size());
         Serial_Write('\'');
     }
+    Serial_Write("\r\n");
 }
 
 extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
@@ -100,8 +111,10 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 
     // auto user_stack = PageFrameAllocator::GetInstance().RequestPage();
     // PageTableManager::GetKernelInstance().MapPage((void *)0xC0000000, user_stack, true);
+
     // auto page_count = ceil_div((uptr)USER_TEXT_END - (uptr)USER_TEXT_START, PAGE_SIZE);
     // PageTableManager::GetKernelInstance().MapPages(USER_TEXT_START, USER_TEXT_START, page_count, true);
+
     // jump_user_main((void *)(0xC0000000 + PAGE_SIZE));
 
     auto error = Serial_Init();
@@ -111,7 +124,8 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
         LOOP();
     }
 
-    Serial_Write("Hello Serial Terminal!\r\n> ");
+    Serial_Write("Hello Serial Terminal!\r\n");
+    Serial_Write("> ");
 
     char buffer[0x100];
     usize index = 0;
@@ -131,9 +145,10 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
             break;
         case 0x0d:
             buffer[index++] = 0;
-            exec(buffer);
             index = 0;
-            Serial_Write("\r\n> ");
+            Serial_Write("\r\n");
+            exec(buffer);
+            Serial_Write("> ");
             break;
         default:
             if (c >= 0x20)

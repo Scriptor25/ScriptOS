@@ -3,7 +3,7 @@
 #include <scriptos/kernel/panic.hpp>
 #include <scriptos/std/print.hpp>
 
-void Panic(cstr format, ...)
+__attribute__((noreturn)) void Panic(cstr format, ...)
 {
     auto &graphics = Graphics::GetInstance();
     graphics.SetFGColor(0xffffffff);
@@ -21,5 +21,7 @@ void Panic(cstr format, ...)
     graphics.SwapBuffers();
 
     CLI();
-    LOOP();
+    HLT();
+    for (;;)
+        ;
 }

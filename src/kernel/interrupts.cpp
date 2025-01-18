@@ -93,7 +93,7 @@ __attribute__((interrupt)) void PF_Handler(interrupt_frame *frame, u32 code)
     auto sgx = (code >> 15) & 0b1;
 
     void *addr;
-    asm volatile("mov %%cr2, %0" : "=r"(addr) :);
+    asm volatile("mov %%cr2, %0" : "=g"(addr));
 
     Panic("Page Fault\n%04x:%p\np=%u, w=%u, u=%u, r=%u, i=%u, pk=%u, ss=%u, sgx=%u\nvirtual address = %p", frame->CS, frame->IP, p, w, u, r, i, pk, ss, sgx, addr);
 }
@@ -156,7 +156,7 @@ __attribute__((interrupt)) void PIT_Handler(interrupt_frame *)
         printf("\rUptime: %us", ++timer);
     }
 
-    if (counter % 20)
+    if (counter % 20) // 50 Hz
         Graphics::GetInstance().SwapBuffers();
 
     PIC_Send_EOI(0);
@@ -164,12 +164,47 @@ __attribute__((interrupt)) void PIT_Handler(interrupt_frame *)
 
 __attribute__((interrupt)) void SYS_Handler(interrupt_frame *frame)
 {
-    auto sp = (u32 *)(uptr)frame->ESP;
+    auto ap = (va_list)frame->ESP;
 
-    switch (sp[0])
+    auto id = va_arg(ap, u32);
+    switch (id)
     {
-    case 0x10:
-        print((cstr)(uptr)sp[1]);
+    case 0b10000:
+        print(va_arg(ap, cstr));
         break;
+    case 0b10001:
+        wprint(va_arg(ap, cwstr));
+        break;
+    case 0b10010:
+    {
+        auto string = va_arg(ap, cstr);
+        auto count = va_arg(ap, usize);
+        printn(string, count);
+        break;
+    }
+    case 0b10011:
+    {
+        auto string = va_arg(ap, cwstr);
+        auto count = va_arg(ap, usize);
+        wprintn(string, count);
+        break;
+    }
+    case 0b10100:
+    {
+        auto string = va_arg(ap, cstr);
+        auto args = va_arg(ap, va_list);
+        vprintf(string, args);
+        break;
+    }
+    case 0b10101:
+    {
+        auto string = va_arg(ap, cwstr);
+        auto args = va_arg(ap, va_list);
+        wvprintf(string, args);
+        break;
+    }
+
+    default:
+        Panic("System Call\n%04x:%p\nid=%u", frame->CS, frame->IP, id);
     }
 }

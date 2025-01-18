@@ -2,6 +2,8 @@
 
 #include <scriptos/std/types.hpp>
 
+#define NORET __attribute__((noreturn))
+
 bool isalnum(int c);
 bool isalpha(int c);
 bool isblank(int c);

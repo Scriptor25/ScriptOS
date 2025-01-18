@@ -2,4 +2,4 @@
 
 #include <scriptos/std/types.hpp>
 
-void Panic(cstr format, ...);
+__attribute__((noreturn)) void Panic(cstr format, ...);

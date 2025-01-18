@@ -6,8 +6,8 @@
 void putchar(int c);
 int print(cstr string);
 int wprint(cwstr string);
-int printn(cstr string, usize num);
-int wprintn(cwstr string, usize num);
+int printn(cstr string, usize count);
+int wprintn(cwstr string, usize count);
 int printf(cstr format, ...);
 int wprintf(cwstr format, ...);
 int vprintf(cstr format, va_list ap);

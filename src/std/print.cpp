@@ -30,42 +30,42 @@ int wprint(cwstr string)
     return p - string;
 }
 
-int printn(cstr string, usize num)
+int printn(cstr string, usize count)
 {
     if (!string)
         return print("(null)");
 
-    for (usize n = 0; n < num && string[n]; ++n)
+    for (usize n = 0; n < count && string[n]; ++n)
         putchar(string[n]);
-    return num;
+    return count;
 }
 
-int wprintn(cwstr string, usize num)
+int wprintn(cwstr string, usize count)
 {
     if (!string)
         return wprint(L"(null)");
 
-    for (usize n = 0; n < num && string[n]; ++n)
+    for (usize n = 0; n < count && string[n]; ++n)
         putchar(string[n]);
-    return num;
+    return count;
 }
 
 int printf(cstr format, ...)
 {
     va_list ap;
     va_start(ap, format);
-    auto num = vprintf(format, ap);
+    auto count = vprintf(format, ap);
     va_end(ap);
-    return num;
+    return count;
 }
 
 int wprintf(cwstr format, ...)
 {
     va_list ap;
     va_start(ap, format);
-    auto num = wvprintf(format, ap);
+    auto count = wvprintf(format, ap);
     va_end(ap);
-    return num;
+    return count;
 }
 
 enum FLAG
@@ -81,7 +81,7 @@ enum FLAG
 typedef struct print_int
 {
     va_list ap;
-    int num;
+    int count;
 } print_int_t;
 
 static print_int_t print_int(va_list ap, int flags, int width, int precision, bool is_signed, int base, bool uppercase)
@@ -90,7 +90,7 @@ static print_int_t print_int(va_list ap, int flags, int width, int precision, bo
 
     char buf[256];
 
-    int num = 0;
+    int count = 0;
 
     auto left_justify = flags & flag_left_justify;
     auto force_sign = flags & flag_force_sign;
@@ -110,7 +110,7 @@ static print_int_t print_int(va_list ap, int flags, int width, int precision, bo
         for (int x = len; x < width; ++x)
         {
             putchar(' ');
-            num++;
+            count++;
         }
 
     if (prefix)
@@ -119,13 +119,13 @@ static print_int_t print_int(va_list ap, int flags, int width, int precision, bo
         {
         case 8:
             putchar('0');
-            num++;
+            count++;
             break;
         case 16:
             if (uppercase)
-                num += print("0X");
+                count += print("0X");
             else
-                num += print("0x");
+                count += print("0x");
             break;
         }
     }
@@ -134,41 +134,41 @@ static print_int_t print_int(va_list ap, int flags, int width, int precision, bo
         for (int x = len; x < width; ++x)
         {
             putchar('0');
-            num++;
+            count++;
         }
 
     if (has_sign)
     {
         putchar('-');
-        num++;
+        count++;
     }
     else if (is_signed && force_sign)
     {
         putchar('+');
-        num++;
+        count++;
     }
     else if (blank_space)
     {
         putchar(' ');
-        num++;
+        count++;
     }
 
-    num += printn(buf, len);
+    count += printn(buf, len);
 
     if (left_justify)
         for (int x = len; x < width; ++x)
         {
             putchar(' ');
-            num++;
+            count++;
         }
 
-    return {ap, num};
+    return {ap, count};
 }
 
 template <typename T>
 static int tvprintf(const T *format, va_list ap)
 {
-    int num = 0;
+    int count = 0;
 
     enum STATE
     {
@@ -191,7 +191,7 @@ static int tvprintf(const T *format, va_list ap)
             if (*p != '%')
             {
                 putchar(*p++);
-                num++;
+                count++;
                 break;
             }
             state = state_flags;
@@ -289,7 +289,7 @@ static int tvprintf(const T *format, va_list ap)
             {
                 auto result = print_int(ap, flags, width, precision, true, 10, false);
                 ap = result.ap;
-                num += result.num;
+                count += result.count;
                 break;
             }
             case 'u':
@@ -297,7 +297,7 @@ static int tvprintf(const T *format, va_list ap)
             {
                 auto result = print_int(ap, flags, width, precision, false, 10, false);
                 ap = result.ap;
-                num += result.num;
+                count += result.count;
                 break;
             }
             case 'o':
@@ -305,21 +305,21 @@ static int tvprintf(const T *format, va_list ap)
             {
                 auto result = print_int(ap, flags, width, precision, false, 8, false);
                 ap = result.ap;
-                num += result.num;
+                count += result.count;
                 break;
             }
             case 'x':
             {
                 auto result = print_int(ap, flags, width, precision, false, 16, false);
                 ap = result.ap;
-                num += result.num;
+                count += result.count;
                 break;
             }
             case 'X':
             {
                 auto result = print_int(ap, flags, width, precision, false, 16, true);
                 ap = result.ap;
-                num += result.num;
+                count += result.count;
                 break;
             }
             case 'b':
@@ -327,27 +327,27 @@ static int tvprintf(const T *format, va_list ap)
             {
                 auto result = print_int(ap, flags, width, precision, false, 2, false);
                 ap = result.ap;
-                num += result.num;
+                count += result.count;
                 break;
             }
             case 'c':
             case 'C':
                 putchar(va_arg(ap, int));
-                num++;
+                count++;
                 break;
             case 's':
             case 'S':
                 if (precision < 0)
-                    num += print(va_arg(ap, cstr));
+                    count += print(va_arg(ap, cstr));
                 else
-                    num += printn(va_arg(ap, cstr), precision);
+                    count += printn(va_arg(ap, cstr), precision);
                 break;
             case 'w':
             case 'W':
                 if (precision < 0)
-                    num += wprint(va_arg(ap, cwstr));
+                    count += wprint(va_arg(ap, cwstr));
                 else
-                    num += wprintn(va_arg(ap, cwstr), precision);
+                    count += wprintn(va_arg(ap, cwstr), precision);
                 break;
             case 'p':
             case 'P':
@@ -359,12 +359,12 @@ static int tvprintf(const T *format, va_list ap)
                     putchar('0');
                 printn(buf, len);
 
-                num += 16;
+                count += 16;
                 break;
             }
             case '%':
                 putchar('%');
-                num++;
+                count++;
                 break;
             default:
                 break;
@@ -375,7 +375,7 @@ static int tvprintf(const T *format, va_list ap)
         }
     }
 
-    return num;
+    return count;
 }
 
 int vprintf(cstr format, va_list ap)

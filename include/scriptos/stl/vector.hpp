@@ -108,16 +108,6 @@ public:
         return m_Data[index];
     }
 
-    operator auto()
-    {
-        return m_Data;
-    }
-
-    operator auto() const
-    {
-        return m_Data;
-    }
-
     T *data()
     {
         return m_Data;
