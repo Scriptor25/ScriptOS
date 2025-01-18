@@ -51,6 +51,8 @@ void Serial_Write(char a)
 
 void Serial_Write(cstr string)
 {
+    if (!string)
+        return Serial_Write("(null)");
     for (auto p = (str)string; *p; ++p)
         Serial_Write(*p);
 }

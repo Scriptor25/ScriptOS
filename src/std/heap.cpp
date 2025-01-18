@@ -89,6 +89,8 @@ void *malloc(usize count)
         ;
     if (!ptr)
         ptr = expand_heap(count);
+    if (!ptr)
+        return nullptr;
 
     if (ptr->length - count <= sizeof(heap_header))
     {
@@ -113,6 +115,9 @@ void *malloc(usize count)
 
 void free(void *address)
 {
+    if (!address)
+        return;
+
     auto ptr = (heap_header *)address - 1;
     ptr->free = true;
 
@@ -147,7 +152,8 @@ void *realloc(void *address, usize count)
         return new_address;
 
     auto ptr = (heap_header *)address - 1;
-    memcpy(new_address, address, ptr->length);
+    if (new_address)
+        memcpy(new_address, address, ptr->length);
     free(address);
 
     return new_address;
@@ -156,6 +162,7 @@ void *realloc(void *address, usize count)
 void *calloc(usize count, usize size)
 {
     auto address = malloc(count * size);
-    memset(address, 0, count * size);
+    if (address)
+        memset(address, 0, count * size);
     return address;
 }

@@ -18,9 +18,15 @@ bool isxdigit(int c);
 int uitoa(str buf, unsigned value, unsigned base, bool upper);
 
 template <typename T, typename U>
-auto ceil_div(T divisor, U dividend)
+auto ceil_div(const T &divisor, const U &dividend)
 {
     return (divisor / dividend) + !!(divisor % dividend);
+}
+
+template <typename T, typename U>
+auto max(const T &lhs, const U &rhs)
+{
+    return lhs > rhs ? lhs : rhs;
 }
 
 inline constexpr unsigned long long int operator""_KiB(unsigned long long int value)

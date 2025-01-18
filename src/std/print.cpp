@@ -10,6 +10,9 @@ void putchar(int c)
 
 int print(cstr string)
 {
+    if (!string)
+        return print("(null)");
+
     str p;
     for (p = (str)string; *p; ++p)
         putchar(*p);
@@ -18,6 +21,9 @@ int print(cstr string)
 
 int wprint(cwstr string)
 {
+    if (!string)
+        return wprint(L"(null)");
+
     wstr p;
     for (p = (wstr)string; *p; ++p)
         putchar(*p);
@@ -26,6 +32,9 @@ int wprint(cwstr string)
 
 int printn(cstr string, usize num)
 {
+    if (!string)
+        return print("(null)");
+
     for (usize n = 0; n < num && string[n]; ++n)
         putchar(string[n]);
     return num;
@@ -33,6 +42,9 @@ int printn(cstr string, usize num)
 
 int wprintn(cwstr string, usize num)
 {
+    if (!string)
+        return wprint(L"(null)");
+
     for (usize n = 0; n < num && string[n]; ++n)
         putchar(string[n]);
     return num;

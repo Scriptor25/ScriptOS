@@ -9,26 +9,41 @@ template <typename T>
 class vector
 {
 public:
+    using ElementType = T;
+
     vector(usize size = 0, usize reserved = 10)
+        : m_Size(size), m_Reserved(max(size, reserved))
     {
-        assert(size <= reserved);
-
-        m_Size = size;
-        m_Reserved = reserved;
-        m_Data = (T *)calloc(reserved, sizeof(T));
+        m_Data = (T *)calloc(m_Reserved, sizeof(T));
     }
 
-    vector(T *data, usize size)
-        : vector(size, size)
+    vector(const T *data, usize size)
+        : m_Size(size), m_Reserved(size)
     {
-        memcpy(m_Data, data, size);
+        m_Data = (T *)malloc(m_Reserved * sizeof(T));
+        memcpy(m_Data, data, m_Size);
     }
 
-    vector(T *begin, T *end)
-        : vector(begin, end - begin) {}
+    vector(const T *data)
+        : m_Size(strlen(data)), m_Reserved(m_Size)
+    {
+        m_Data = (T *)malloc(m_Reserved * sizeof(T));
+        memcpy(m_Data, data, m_Size);
+    }
+
+    vector(const T *begin, const T *end)
+        : m_Size(end - begin), m_Reserved(end - begin)
+    {
+        m_Data = (T *)malloc(m_Reserved * sizeof(T));
+        memcpy(m_Data, begin, m_Size);
+    }
 
     vector(const vector &other)
-        : vector(other.m_Data, other.m_Size) {}
+        : m_Size(other.m_Size), m_Reserved(other.m_Reserved)
+    {
+        m_Data = (T *)malloc(m_Reserved * sizeof(T));
+        memcpy(m_Data, other.m_Data, m_Size);
+    }
 
     vector(vector &&other)
         : m_Data(other.m_Data), m_Size(other.m_Size), m_Reserved(other.m_Reserved)
@@ -50,8 +65,10 @@ public:
     {
         m_Size = other.m_Size;
         m_Reserved = other.m_Reserved;
-        m_Data = realloc(m_Data, m_Reserved * sizeof(T));
+        m_Data = (T *)realloc(m_Data, m_Reserved * sizeof(T));
         memcpy(m_Data, other.m_Data, m_Size);
+
+        return *this;
     }
 
     vector &operator=(vector &&other)
@@ -69,22 +86,36 @@ public:
 
     T &at(usize index)
     {
+        assert(index < m_Size);
         return m_Data[index];
     }
 
     const T &at(usize index) const
     {
+        assert(index < m_Size);
         return m_Data[index];
     }
 
     T &operator[](usize index)
     {
+        assert(index < m_Size);
         return m_Data[index];
     }
 
     const T &operator[](usize index) const
     {
+        assert(index < m_Size);
         return m_Data[index];
+    }
+
+    operator auto()
+    {
+        return m_Data;
+    }
+
+    operator auto() const
+    {
+        return m_Data;
     }
 
     T *data()
@@ -127,6 +158,23 @@ public:
         return m_Data + m_Size;
     }
 
+    template <typename... Args>
+    T &emplace_back(Args... args)
+    {
+        T e(args...);
+        return push_back(e);
+    }
+
+    T &push_back(T &&e)
+    {
+        if (m_Size + 1 >= m_Reserved)
+        {
+            m_Reserved += m_Reserved;
+            m_Data = (T *)realloc(m_Data, m_Reserved * sizeof(T));
+        }
+        return m_Data[m_Size++] = e;
+    }
+
     T &push_back(const T &e)
     {
         if (m_Size + 1 >= m_Reserved)
@@ -140,6 +188,26 @@ public:
     T pop_back()
     {
         return m_Data[--m_Size];
+    }
+
+    vector<vector> split(const T &value) const
+    {
+        vector<vector> elements;
+
+        usize begin = 0;
+
+        for (usize i = 0; i < m_Size; ++i)
+            if (at(i) == value)
+            {
+                if (i - begin)
+                    elements.emplace_back(m_Data + begin, m_Data + i);
+                begin = i + 1;
+            }
+
+        if (begin < m_Size)
+            elements.emplace_back(m_Data + begin, m_Data + m_Size);
+
+        return elements;
     }
 
 private:

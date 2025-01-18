@@ -60,8 +60,14 @@ static void setup_graphics(const MultibootInfo &info)
 
 static void exec(cstr cmd)
 {
-    string_view v(cmd, cmd + strlen(cmd));
-    (void)v;
+    string v = cmd;
+    auto args = v.split(',');
+
+    for (auto &arg : args)
+    {
+        Serial_Write("\r\n");
+        Serial_Write(arg);
+    }
 }
 
 extern "C" void kernel_main(u32 magic, const MultibootInfo &info)

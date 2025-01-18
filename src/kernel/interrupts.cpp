@@ -164,7 +164,7 @@ __attribute__((interrupt)) void PIT_Handler(interrupt_frame *)
 
 __attribute__((interrupt)) void SYS_Handler(interrupt_frame *frame)
 {
-    auto sp = ((u32 *)(uptr)frame->ESP);
+    auto sp = (u32 *)(uptr)frame->ESP;
 
     switch (sp[0])
     {
