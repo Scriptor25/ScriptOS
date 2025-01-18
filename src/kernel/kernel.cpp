@@ -77,6 +77,7 @@ static void exec(cstr cmd)
         return;
     }
 
+    Serial_Write('\'');
     Serial_Write(command.data(), command.size());
     Serial_Write('\'');
     for (auto &arg : args)
