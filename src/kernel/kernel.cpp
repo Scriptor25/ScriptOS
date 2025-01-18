@@ -5,6 +5,7 @@
 #include <scriptos/kernel/interrupts.hpp>
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/mb_info.hpp>
+#include <scriptos/kernel/panic.hpp>
 #include <scriptos/kernel/pfa.hpp>
 #include <scriptos/kernel/pic.hpp>
 #include <scriptos/kernel/pit.hpp>
@@ -15,7 +16,7 @@
 #include <scriptos/std/print.hpp>
 #include <scriptos/std/types.hpp>
 #include <scriptos/std/util.hpp>
-#include <scriptos/stl/view.hpp>
+#include <scriptos/stl/string.hpp>
 
 static void setup_memory(const MultibootInfo &info)
 {
@@ -58,7 +59,7 @@ static void setup_graphics(const MultibootInfo &info)
     graphics.Clear();
 }
 
-static void exec(cstr cmd)
+static void exec(const string &cmd)
 {
     string_view v = cmd;
     auto args = v.split(',');
@@ -76,10 +77,27 @@ static void exec(cstr cmd)
         putchar('\n');
         return;
     }
+    if (command == "panic")
+    {
+        string message;
+        bool first = true;
+        for (auto &arg : args)
+        {
+            if (first)
+                first = false;
+            else
+                message += " ";
+            message += arg;
+        }
+        Panic("%.*s", message.size(), message.data());
+    }
 
+    Serial_Write("undefined command ");
     Serial_Write('\'');
     Serial_Write(command.data(), command.size());
     Serial_Write('\'');
+    if (!args.empty())
+        Serial_Write(", args");
     for (auto &arg : args)
     {
         Serial_Write(" '");
@@ -121,40 +139,36 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     auto error = Serial_Init();
     if (error)
     {
-        printf("failed to init serial\n");
         LOOP();
     }
 
     Serial_Write("Hello Serial Terminal!\r\n");
     Serial_Write("> ");
 
-    char buffer[0x100];
-    usize index = 0;
-
+    string buffer;
     while (true)
     {
         auto c = Serial_Read();
         switch (c)
         {
         case 0x08:
-            if (index == 0)
+            if (buffer.empty())
                 break;
-            index--;
+            buffer.pop_back();
             Serial_Write(0x08);
             Serial_Write(' ');
             Serial_Write(0x08);
             break;
         case 0x0d:
-            buffer[index++] = 0;
-            index = 0;
             Serial_Write("\r\n");
             exec(buffer);
+            buffer.clear();
             Serial_Write("> ");
             break;
         default:
             if (c >= 0x20)
             {
-                buffer[index++] = c;
+                buffer.push_back(c);
                 Serial_Write(c);
             }
             break;

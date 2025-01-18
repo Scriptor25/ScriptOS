@@ -6,6 +6,9 @@
 #include <scriptos/std/util.hpp>
 
 template <typename T>
+class view;
+
+template <typename T>
 class vector
 {
 public:
@@ -19,13 +22,6 @@ public:
 
     vector(const T *data, usize size)
         : m_Size(size), m_Reserved(size)
-    {
-        m_Data = (T *)malloc(m_Reserved * sizeof(T));
-        memcpy(m_Data, data, m_Size * sizeof(T));
-    }
-
-    vector(const T *data)
-        : m_Size(strlen(data)), m_Reserved(m_Size)
     {
         m_Data = (T *)malloc(m_Reserved * sizeof(T));
         memcpy(m_Data, data, m_Size * sizeof(T));
@@ -84,6 +80,30 @@ public:
         return *this;
     }
 
+    vector &operator+=(const vector &other)
+    {
+        return *this += view(other);
+    }
+
+    vector &operator+=(const view<T> &other)
+    {
+        other.size();
+
+        auto start = m_Size;
+        m_Size += other.size();
+        if (m_Reserved < m_Size)
+        {
+            do
+            {
+                m_Reserved += m_Reserved;
+            } while (m_Reserved < m_Size);
+            m_Data = (T *)realloc(m_Data, m_Reserved * sizeof(T));
+        }
+
+        memcpy(m_Data + start, other.data(), other.size());
+        return *this;
+    }
+
     T &at(usize index)
     {
         assert(index < m_Size);
@@ -128,6 +148,8 @@ public:
         return m_Reserved;
     }
 
+    bool empty() const { return m_Size == 0; }
+
     T *begin()
     {
         return m_Data;
@@ -157,7 +179,7 @@ public:
 
     T &push_back(T &&e)
     {
-        if (m_Size + 1 >= m_Reserved)
+        if (m_Reserved <= m_Size)
         {
             m_Reserved += m_Reserved;
             m_Data = (T *)realloc(m_Data, m_Reserved * sizeof(T));
@@ -167,7 +189,7 @@ public:
 
     T &push_back(const T &e)
     {
-        if (m_Size + 1 >= m_Reserved)
+        if (m_Reserved <= m_Size)
         {
             m_Reserved += m_Reserved;
             m_Data = (T *)realloc(m_Data, m_Reserved * sizeof(T));
@@ -191,36 +213,10 @@ public:
         return m_Data[--m_Size];
     }
 
-    vector<vector> split(const T &value) const
+    vector &clear()
     {
-        vector<vector> elements;
-        usize begin = 0;
-
-        for (usize i = 0; i < m_Size; ++i)
-            if (at(i) == value)
-            {
-                if (i - begin)
-                    elements.emplace_back(m_Data + begin, m_Data + i);
-                begin = i + 1;
-            }
-
-        if (begin < m_Size)
-            elements.emplace_back(m_Data + begin, m_Data + m_Size);
-
-        return elements;
-    }
-
-    vector trim() const
-    {
-        auto b = begin();
-        for (; b < end() && isspace(*b); ++b)
-            ;
-
-        auto e = end() - 1;
-        for (; e >= begin() && isspace(*e); --e)
-            ;
-
-        return vector(b, e + 1);
+        m_Size = 0;
+        return *this;
     }
 
 private:
@@ -228,6 +224,3 @@ private:
     usize m_Size;
     usize m_Reserved;
 };
-
-using string = vector<char>;
-using wstring = vector<wchar_t>;

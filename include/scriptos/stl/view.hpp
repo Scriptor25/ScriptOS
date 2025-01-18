@@ -2,7 +2,6 @@
 
 #include <scriptos/std/assert.hpp>
 #include <scriptos/std/types.hpp>
-#include <scriptos/stl/vector.hpp>
 
 template <typename T>
 class view
@@ -17,6 +16,11 @@ public:
 
     view(const T *ptr)
         : m_Begin(ptr), m_End(ptr + strlen(ptr))
+    {
+    }
+
+    view(const vector<T> &vec)
+        : m_Begin(vec.begin()), m_End(vec.end())
     {
     }
 
@@ -97,43 +101,7 @@ public:
 
     usize size() const { return (usize)(m_End - m_Begin); }
 
-    vector<view> split(const T &value) const
-    {
-        vector<view> elements;
-        usize begin = 0;
-
-        auto count = size();
-        for (usize i = 0; i < count; ++i)
-            if (at(i) == value)
-            {
-                if (i - begin)
-                    elements.emplace_back(m_Begin + begin, m_Begin + i);
-                begin = i + 1;
-            }
-
-        if (begin < count)
-            elements.emplace_back(m_Begin + begin, m_End);
-
-        return elements;
-    }
-
-    view trim() const
-    {
-        auto b = begin();
-        for (; b < end() && isspace(*b); ++b)
-            ;
-
-        auto e = end() - 1;
-        for (; e >= begin() && isspace(*e); --e)
-            ;
-
-        return view(b, e + 1);
-    }
-
 private:
     const T *m_Begin;
     const T *m_End;
 };
-
-using string_view = view<char>;
-using wstring_view = view<wchar_t>;
