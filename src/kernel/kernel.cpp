@@ -60,13 +60,20 @@ static void setup_graphics(const MultibootInfo &info)
 
 static void exec(cstr cmd)
 {
-    string v = cmd;
+    string_view v = cmd;
     auto args = v.split(',');
+    for (auto &arg : args)
+        arg = arg.trim();
+    auto command = args.pop_front();
 
+    Serial_Write("\r\n'");
+    Serial_Write(command, command.size());
+    Serial_Write('\'');
     for (auto &arg : args)
     {
-        Serial_Write("\r\n");
-        Serial_Write(arg);
+        Serial_Write(" '");
+        Serial_Write(arg, arg.size());
+        Serial_Write('\'');
     }
 }
 
@@ -79,7 +86,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     setup_graphics(info);
 
     void *kernel_stack;
-    asm volatile("mov %%esp, %0" : "=r"(kernel_stack) :);
+    asm volatile("mov %%esp, %0" : "=g"(kernel_stack));
 
     InitGDT(kernel_stack);
     InitIDT();

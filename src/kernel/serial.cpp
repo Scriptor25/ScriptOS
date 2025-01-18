@@ -3,22 +3,19 @@
 
 int Serial_Init()
 {
-    out<u8>(SERIAL_PORT_COM1 + 1, 0x00); // Disable all interrupts
-    out<u8>(SERIAL_PORT_COM1 + 3, 0x80); // Enable DLAB (set baud rate divisor)
-    out<u8>(SERIAL_PORT_COM1 + 0, 0x03); // Set divisor to 3 (lo byte) 38400 baud
-    out<u8>(SERIAL_PORT_COM1 + 1, 0x00); //                  (hi byte)
-    out<u8>(SERIAL_PORT_COM1 + 3, 0x03); // 8 bits, no parity, one stop bit
-    out<u8>(SERIAL_PORT_COM1 + 2, 0xC7); // Enable FIFO, clear them, with 14-byte threshold
-    out<u8>(SERIAL_PORT_COM1 + 4, 0x0B); // IRQs enabled, RTS/DSR set
-    out<u8>(SERIAL_PORT_COM1 + 4, 0x1E); // Set in loopback mode, test the serial chip
-    out<u8>(SERIAL_PORT_COM1 + 0, 0xAE); // Test serial chip (send byte 0xAE and check if serial returns same byte)
+    out<u8>(SERIAL_PORT_COM1 + 1, 0x00);
+    out<u8>(SERIAL_PORT_COM1 + 3, 0x80);
+    out<u8>(SERIAL_PORT_COM1 + 0, 0x03);
+    out<u8>(SERIAL_PORT_COM1 + 1, 0x00);
+    out<u8>(SERIAL_PORT_COM1 + 3, 0x03);
+    out<u8>(SERIAL_PORT_COM1 + 2, 0xC7);
+    out<u8>(SERIAL_PORT_COM1 + 4, 0x0B);
+    out<u8>(SERIAL_PORT_COM1 + 4, 0x1E);
+    out<u8>(SERIAL_PORT_COM1 + 0, 0xAE);
 
-    // Check if serial is faulty (i.e: not same byte as sent)
     if (in<u8>(SERIAL_PORT_COM1 + 0) != 0xAE)
         return 1;
 
-    // If serial is not faulty set it in normal operation mode
-    // (not-loopback with IRQs enabled and OUT#1 and OUT#2 bits enabled)
     out<u8>(SERIAL_PORT_COM1 + 4, 0x0F);
     return 0;
 }
@@ -55,4 +52,12 @@ void Serial_Write(cstr string)
         return Serial_Write("(null)");
     for (auto p = (str)string; *p; ++p)
         Serial_Write(*p);
+}
+
+void Serial_Write(cstr string, usize count)
+{
+    if (!string)
+        return Serial_Write("(null)");
+    for (usize i = 0; i < count && string[i]; ++i)
+        Serial_Write(string[i]);
 }

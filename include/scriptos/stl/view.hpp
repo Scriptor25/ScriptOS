@@ -72,13 +72,13 @@ public:
 
     const T &at(usize index) const
     {
-        assert(index < m_End - m_Begin);
+        assert(index < (usize)(m_End - m_Begin));
         return m_Begin[index];
     }
 
     const T &operator[](usize index) const
     {
-        assert(index < m_End - m_Begin);
+        assert(index < (usize)(m_End - m_Begin));
         return m_Begin[index];
     }
 
@@ -89,16 +89,16 @@ public:
 
     usize size() const
     {
-        return m_End - m_Begin;
+        return (usize)(m_End - m_Begin);
     }
 
     vector<view> split(const T &value) const
     {
         vector<view> elements;
-
         usize begin = 0;
 
-        for (usize i = 0; i < size(); ++i)
+        auto count = size();
+        for (usize i = 0; i < count; ++i)
             if (at(i) == value)
             {
                 if (i - begin)
@@ -106,10 +106,23 @@ public:
                 begin = i + 1;
             }
 
-        if (begin < size())
+        if (begin < count)
             elements.emplace_back(m_Begin + begin, m_End);
 
         return elements;
+    }
+
+    view trim() const
+    {
+        auto b = begin();
+        for (; b < end() && isspace(*b); ++b)
+            ;
+
+        auto e = end() - 1;
+        for (; e >= begin() && isspace(*e); --e)
+            ;
+
+        return view(b, e + 1);
     }
 
 private:

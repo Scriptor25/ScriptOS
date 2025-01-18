@@ -10,3 +10,4 @@ char Serial_Read();
 int Serial_Transmit_Empty();
 void Serial_Write(char a);
 void Serial_Write(cstr string);
+void Serial_Write(cstr string, usize count);

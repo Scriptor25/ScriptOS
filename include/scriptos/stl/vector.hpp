@@ -21,28 +21,28 @@ public:
         : m_Size(size), m_Reserved(size)
     {
         m_Data = (T *)malloc(m_Reserved * sizeof(T));
-        memcpy(m_Data, data, m_Size);
+        memcpy(m_Data, data, m_Size * sizeof(T));
     }
 
     vector(const T *data)
         : m_Size(strlen(data)), m_Reserved(m_Size)
     {
         m_Data = (T *)malloc(m_Reserved * sizeof(T));
-        memcpy(m_Data, data, m_Size);
+        memcpy(m_Data, data, m_Size * sizeof(T));
     }
 
     vector(const T *begin, const T *end)
         : m_Size(end - begin), m_Reserved(end - begin)
     {
         m_Data = (T *)malloc(m_Reserved * sizeof(T));
-        memcpy(m_Data, begin, m_Size);
+        memcpy(m_Data, begin, m_Size * sizeof(T));
     }
 
     vector(const vector &other)
         : m_Size(other.m_Size), m_Reserved(other.m_Reserved)
     {
         m_Data = (T *)malloc(m_Reserved * sizeof(T));
-        memcpy(m_Data, other.m_Data, m_Size);
+        memcpy(m_Data, other.m_Data, m_Size * sizeof(T));
     }
 
     vector(vector &&other)
@@ -66,7 +66,7 @@ public:
         m_Size = other.m_Size;
         m_Reserved = other.m_Reserved;
         m_Data = (T *)realloc(m_Data, m_Reserved * sizeof(T));
-        memcpy(m_Data, other.m_Data, m_Size);
+        memcpy(m_Data, other.m_Data, m_Size * sizeof(T));
 
         return *this;
     }
@@ -185,6 +185,17 @@ public:
         return m_Data[m_Size++] = e;
     }
 
+    T pop_front()
+    {
+        auto element = m_Data[0];
+        m_Size--;
+        auto buffer = (T *)malloc(m_Reserved * sizeof(T));
+        memcpy(buffer, m_Data + 1, m_Size * sizeof(T));
+        free(m_Data);
+        m_Data = buffer;
+        return element;
+    }
+
     T pop_back()
     {
         return m_Data[--m_Size];
@@ -193,7 +204,6 @@ public:
     vector<vector> split(const T &value) const
     {
         vector<vector> elements;
-
         usize begin = 0;
 
         for (usize i = 0; i < m_Size; ++i)
@@ -208,6 +218,19 @@ public:
             elements.emplace_back(m_Data + begin, m_Data + m_Size);
 
         return elements;
+    }
+
+    vector trim() const
+    {
+        auto b = begin();
+        for (; b < end() && isspace(*b); ++b)
+            ;
+
+        auto e = end() - 1;
+        for (; e >= begin() && isspace(*e); --e)
+            ;
+
+        return vector(b, e + 1);
     }
 
 private:
