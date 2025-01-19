@@ -6,6 +6,8 @@ WARNING: this project is still work in process, and will be aproximatly for the 
 
 With ScriptOS I try to make my own fully custom x86 compatible Unix-like operating system.
 
+A large part of the system is written in modern C++ (sorry [Linus](https://github.com/torvalds)), but things like the "bootloader" and some others you just simply cannot do in higher level languages are written in assembler.
+
 ## Features
 
 Here some goals / features the OS supports / will support:
