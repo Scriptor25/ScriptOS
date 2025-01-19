@@ -1,6 +1,6 @@
-# ScriptOS - WIP
+![ScriptOS Logo](./logo/repository-banner.png)
 
-![ScriptOS Logo](./logo/scriptos.svg)
+# ScriptOS - WIP
 
 WARNING: this project is still work in process, and will be aproximatly for the next 20 years or so.
 
