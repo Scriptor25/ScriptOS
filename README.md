@@ -1,5 +1,7 @@
 # ScriptOS - WIP
 
+![ScriptOS Logo](./scriptos.svg)
+
 WARNING: this project is still work in process, and will be aproximatly for the next 20 years or so.
 
 ## About

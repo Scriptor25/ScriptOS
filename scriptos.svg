@@ -1,0 +1,18 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+    width="119.125" height="119.125" viewBox="0,0,119.125,119.125">
+    <g transform="translate(-180.4375,-120.4375)">
+        <g data-paper-data="{&quot;isPaintingLayer&quot;:true}" fill="none" fill-rule="nonzero"
+            stroke="#ffffff" stroke-width="6" stroke-linejoin="miter" stroke-miterlimit="10"
+            stroke-dasharray="" stroke-dashoffset="0" style="mix-blend-mode: normal">
+            <path
+                d="M183.4375,180c0,-31.23861 25.3239,-56.5625 56.5625,-56.5625c31.23861,0 56.5625,25.3239 56.5625,56.5625c0,31.23861 -25.3239,56.5625 -56.5625,56.5625c-31.23861,0 -56.5625,-25.3239 -56.5625,-56.5625z"
+                stroke-linecap="butt" />
+            <path d="M287.59788,149.90448h-65.10024v30.09552h35.00472v30.2571h-63.87195"
+                stroke-linecap="round" />
+            <path d="M242.17353,194.64524h-55.73922" stroke-linecap="round" />
+            <path d="M235.70924,164.39726h58.17857" stroke-linecap="round" />
+            <path d="M207.65669,182.81438v-48.05526" stroke-linecap="round" />
+            <path d="M272.29955,177.8137v46.71361" stroke-linecap="round" />
+        </g>
+    </g>
+</svg>
