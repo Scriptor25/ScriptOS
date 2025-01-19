@@ -1,3 +1,5 @@
+rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+
 TARGET = i686-elf
 AS = $(TARGET)-as
 CC = $(TARGET)-g++
@@ -20,11 +22,13 @@ KERNEL_SYM = $(BIN_DIR)/kernel.sym
 ISO_DIR = $(BIN_DIR)/iso
 ISO = $(BIN_DIR)/$(OSNAME).iso
 
-rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
-
 ASM_SRC = $(call rwildcard,$(SRC_DIR),*.s)
 CPP_SRC = $(call rwildcard,$(SRC_DIR),*.cpp)
-OBJS = $(patsubst $(SRC_DIR)/%.s,$(BIN_DIR)/%.s.o,$(ASM_SRC)) $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.cpp.o,$(CPP_SRC))
+
+ASM_OBJ = $(patsubst $(SRC_DIR)/%.s,$(BIN_DIR)/%.s.o,$(ASM_SRC))
+CPP_OBJ = $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.cpp.o,$(CPP_SRC))
+
+OBJS = $(ASM_OBJ) $(CPP_OBJ)
 
 .PHONY: build launch clean
 
@@ -39,13 +43,13 @@ debug: $(ISO)
 clean:
 	-rm -rf $(BIN_DIR)
 
-$(BIN_DIR)/%.s.o: $(BIN_DIR)/%.s.pp
-	@ mkdir -p $(@D)
-	$(AS) -o $@ $<
-
 $(BIN_DIR)/%.s.pp: $(SRC_DIR)/%.s
 	@ mkdir -p $(@D)
 	$(PP) -o $@ $(INCLUDE) $<
+
+$(BIN_DIR)/%.s.o: $(BIN_DIR)/%.s.pp
+	@ mkdir -p $(@D)
+	$(AS) -o $@ $<
 
 $(BIN_DIR)/kernel/interrupts.cpp.o: $(SRC_DIR)/kernel/interrupts.cpp
 	@ mkdir -p $(@D)
