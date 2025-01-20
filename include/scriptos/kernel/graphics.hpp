@@ -12,6 +12,19 @@ struct Point
     T x, y;
 };
 
+struct Color
+{
+    Color(u32 color);
+    Color(f32 a, f32 r, f32 g, f32 b);
+
+    Color operator*(f32 other) const;
+    Color operator+(const Color &other) const;
+
+    operator u32() const;
+
+    f32 fa, fr, fg, fb;
+};
+
 class Graphics
 {
 public:
@@ -33,6 +46,8 @@ public:
     void DrawChar(int c, usize x, usize y);
     void DrawRect(usize x1, usize y1, usize x2, usize y2);
 
+    void DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y2, f32 u2, f32 v2, usize width, usize height, const u32 *data);
+
     void ClearRainbow(usize offset = 0, usize scale = 1);
 
     void Reset();
@@ -40,6 +55,8 @@ public:
 
     void SetFGColor(u32 color);
     void SetBGColor(u32 color);
+
+    u32 Blend(u32 src, u32 dst);
 
 private:
     bool m_Dirty;

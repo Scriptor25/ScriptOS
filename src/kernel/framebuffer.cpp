@@ -1,14 +1,12 @@
 #include <scriptos/kernel/framebuffer.hpp>
+#include <scriptos/std/assert.hpp>
 #include <scriptos/std/memory.hpp>
 
 void Framebuffer::Blit(Framebuffer &dst, const Framebuffer &src)
 {
-    if (&dst == &src)
+    if (&dst == &src || dst.m_Base == src.m_Base)
         return;
-    if (dst.m_Base == src.m_Base)
-        return;
-    if (dst.m_Pitch * dst.m_Height != src.m_Pitch * src.m_Height)
-        return;
+    assert(dst.m_Pitch * dst.m_Height == src.m_Pitch * src.m_Height);
     memcpy(dst.m_Base, src.m_Base, dst.m_Pitch * dst.m_Height);
 }
 
@@ -39,7 +37,7 @@ void Framebuffer::WriteArray(u32 x, u32 y, u32 width, u32 height, const void *sr
 
     auto pitch = width * m_BPP;
     for (u32 j = 0; j < height; ++j)
-        memcpy(m_Base + x * m_BPP + (j + y) * m_Pitch, (u8 *)src + y * pitch, pitch);
+        memcpy(m_Base + x * m_BPP + (j + y) * m_Pitch, (u8 *)src + j * pitch, pitch);
 }
 
 u32 Framebuffer::Read(u32 x, u32 y)

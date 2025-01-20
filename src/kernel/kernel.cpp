@@ -128,6 +128,28 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     PIT_Write_C0_w(1193); // 1000Hz
     STI();
 
+    {
+        auto &graphics = Graphics::GetInstance();
+        {
+            u32 data[]{
+                0xffff0000,
+            };
+            graphics.DrawTexture(50, 50, 0.f, 0.f, 150, 150, 1.f, 1.f, 1, 1, data);
+        }
+        {
+            u32 data[]{
+                0x9900ff00,
+            };
+            graphics.DrawTexture(80, 60, 0.f, 0.f, 180, 160, 1.f, 1.f, 1, 1, data);
+        }
+        {
+            u32 data[]{
+                0x770000ff,
+            };
+            graphics.DrawTexture(110, 70, 0.f, 0.f, 210, 170, 1.f, 1.f, 1, 1, data);
+        }
+    }
+
     // auto user_stack = PageFrameAllocator::GetInstance().RequestPage();
     // PageTableManager::GetKernelInstance().MapPage((void *)0xC0000000, user_stack, true);
 
