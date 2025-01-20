@@ -5,6 +5,8 @@
 
 __attribute__((noreturn)) void Panic(cstr format, ...)
 {
+    CLI();
+
     auto &graphics = Graphics::GetInstance();
     graphics.SetFGColor(0xffffffff);
     graphics.SetBGColor(0x00000000);
@@ -20,7 +22,6 @@ __attribute__((noreturn)) void Panic(cstr format, ...)
 
     graphics.SwapBuffers();
 
-    CLI();
     HLT();
     for (;;)
         ;
