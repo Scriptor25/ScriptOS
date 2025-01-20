@@ -61,8 +61,7 @@ static void setup_graphics(const MultibootInfo &info)
 
 static void exec(const string &cmd)
 {
-    string_view v = cmd;
-    auto args = v.split(',');
+    auto args = string_view(cmd).split(',');
     for (auto &arg : args)
         arg = arg.trim();
     auto command = args.pop_front();
@@ -86,7 +85,7 @@ static void exec(const string &cmd)
             if (first)
                 first = false;
             else
-                message += " ";
+                message += ' ';
             message += arg;
         }
         Panic("%.*s", message.size(), message.data());

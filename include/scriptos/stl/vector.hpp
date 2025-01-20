@@ -81,6 +81,12 @@ public:
         return *this;
     }
 
+    vector &operator+=(const T &other)
+    {
+        push_back(other);
+        return *this;
+    }
+
     vector &operator+=(const vector &other)
     {
         return *this += view(other);
