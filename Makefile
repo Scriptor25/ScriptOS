@@ -30,7 +30,12 @@ CPP_OBJ = $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.cpp.o,$(CPP_SRC))
 
 OBJS = $(ASM_OBJ) $(CPP_OBJ)
 
-.PHONY: build launch clean
+.PHONY: all clean build launch debug
+
+all: clean build launch
+
+clean:
+	-rm -rf $(BIN_DIR)
 
 build: $(ISO)
 
@@ -40,23 +45,20 @@ launch: $(ISO)
 debug: $(ISO)
 	$(QEMU) -cdrom $(ISO) -s
 
-clean:
-	-rm -rf $(BIN_DIR)
-
 $(BIN_DIR)/%.s.pp: $(SRC_DIR)/%.s
-	@ mkdir -p $(@D)
+	mkdir -p $(@D)
 	$(PP) -o $@ $(INCLUDE) $<
 
 $(BIN_DIR)/%.s.o: $(BIN_DIR)/%.s.pp
-	@ mkdir -p $(@D)
+	mkdir -p $(@D)
 	$(AS) -o $@ $<
 
 $(BIN_DIR)/kernel/interrupts.cpp.o: $(SRC_DIR)/kernel/interrupts.cpp
-	@ mkdir -p $(@D)
+	mkdir -p $(@D)
 	$(CC) $(CFLAGS) -mgeneral-regs-only -o $@ $(INCLUDE) -c $<
 
 $(BIN_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
-	@ mkdir -p $(@D)
+	mkdir -p $(@D)
 	$(CC) $(CFLAGS) -o $@ $(INCLUDE) -c $<
 
 $(KERNEL_BIN): $(SRC_DIR)/linker.ld $(OBJS)
@@ -66,7 +68,7 @@ $(KERNEL_BIN): $(SRC_DIR)/linker.ld $(OBJS)
 	grub-file --is-x86-multiboot2 $(KERNEL_BIN)
 
 $(ISO): $(KERNEL_BIN) $(SRC_DIR)/grub.cfg
-	@ mkdir -p $(ISO_DIR)/boot/grub
+	mkdir -p $(ISO_DIR)/boot/grub
 	cp $(KERNEL_BIN) $(ISO_DIR)/boot/kernel.bin
 	cp $(SRC_DIR)/grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
 	grub-mkrescue -o $(ISO) $(ISO_DIR)
