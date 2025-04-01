@@ -1,8 +1,9 @@
 #pragma once
 
 #include <scriptos/std/types.hpp>
+#include <scriptos/std/util.hpp>
 
 /**
  * Make the kernel completely panic
  */
-__attribute__((noreturn)) void Panic(cstr format, ...);
+NORET void Panic(cstr format, ...);

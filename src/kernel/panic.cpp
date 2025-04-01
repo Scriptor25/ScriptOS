@@ -3,7 +3,7 @@
 #include <scriptos/kernel/panic.hpp>
 #include <scriptos/std/print.hpp>
 
-__attribute__((noreturn)) void Panic(cstr format, ...)
+NORET void Panic(cstr format, ...)
 {
     CLI();
 

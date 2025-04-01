@@ -4,48 +4,49 @@
 #include <scriptos/kernel/panic.hpp>
 #include <scriptos/kernel/pic.hpp>
 #include <scriptos/std/print.hpp>
+#include <scriptos/std/util.hpp>
 
-__attribute__((interrupt)) void DE_Handler(interrupt_frame *frame)
+INTER void DE_Handler(interrupt_frame *frame)
 {
     Panic("Division Error\n%04x:%p", frame->CS, frame->IP);
 }
 
-__attribute__((interrupt)) void DB_Handler(interrupt_frame *frame)
+INTER void DB_Handler(interrupt_frame *frame)
 {
     Panic("Debug\n%04x:%p", frame->CS, frame->IP);
 }
 
-__attribute__((interrupt)) void BP_Handler(interrupt_frame *frame)
+INTER void BP_Handler(interrupt_frame *frame)
 {
     Panic("Breakpoint\n%04x:%p", frame->CS, frame->IP);
 }
 
-__attribute__((interrupt)) void OF_Handler(interrupt_frame *frame)
+INTER void OF_Handler(interrupt_frame *frame)
 {
     Panic("Overflow\n%04x:%p", frame->CS, frame->IP);
 }
 
-__attribute__((interrupt)) void BR_Handler(interrupt_frame *frame)
+INTER void BR_Handler(interrupt_frame *frame)
 {
     Panic("Bound Range Exceeded\n%04x:%p", frame->CS, frame->IP);
 }
 
-__attribute__((interrupt)) void UD_Handler(interrupt_frame *frame)
+INTER void UD_Handler(interrupt_frame *frame)
 {
     Panic("Invalid Opcode\n%04x:%p", frame->CS, frame->IP);
 }
 
-__attribute__((interrupt)) void NM_Handler(interrupt_frame *frame)
+INTER void NM_Handler(interrupt_frame *frame)
 {
     Panic("Device Not Available\n%04x:%p", frame->CS, frame->IP);
 }
 
-__attribute__((interrupt)) void DF_Handler(interrupt_frame *frame, u32 code)
+INTER void DF_Handler(interrupt_frame *frame, u32 code)
 {
     Panic("Double Fault\n%04x:%p\ncode=%u", frame->CS, frame->IP, code);
 }
 
-__attribute__((interrupt)) void TS_Handler(interrupt_frame *frame, u32 code)
+INTER void TS_Handler(interrupt_frame *frame, u32 code)
 {
     auto e = code & 0b1;
     auto tbl = (code >> 1) & 0b11;
@@ -54,7 +55,7 @@ __attribute__((interrupt)) void TS_Handler(interrupt_frame *frame, u32 code)
     Panic("Invalid TSS\n%04x:%p\nexternal=%u, table=%u, index=%04x", frame->CS, frame->IP, e, tbl, index);
 }
 
-__attribute__((interrupt)) void NP_Handler(interrupt_frame *frame, u32 code)
+INTER void NP_Handler(interrupt_frame *frame, u32 code)
 {
     auto e = code & 0b1;
     auto tbl = (code >> 1) & 0b11;
@@ -63,7 +64,7 @@ __attribute__((interrupt)) void NP_Handler(interrupt_frame *frame, u32 code)
     Panic("Segment Not Present\n%04x:%p\nexternal=%u, table=%u, index=%04x", frame->CS, frame->IP, e, tbl, index);
 }
 
-__attribute__((interrupt)) void SS_Handler(interrupt_frame *frame, u32 code)
+INTER void SS_Handler(interrupt_frame *frame, u32 code)
 {
     auto e = code & 0b1;
     auto tbl = (code >> 1) & 0b11;
@@ -72,7 +73,7 @@ __attribute__((interrupt)) void SS_Handler(interrupt_frame *frame, u32 code)
     Panic("Stack-Segment Fault\n%04x:%p\nexternal=%u, table=%u, index=%04x", frame->CS, frame->IP, e, tbl, index);
 }
 
-__attribute__((interrupt)) void GP_Handler(interrupt_frame *frame, u32 code)
+INTER void GP_Handler(interrupt_frame *frame, u32 code)
 {
     auto e = code & 0b1;
     auto tbl = (code >> 1) & 0b11;
@@ -81,7 +82,7 @@ __attribute__((interrupt)) void GP_Handler(interrupt_frame *frame, u32 code)
     Panic("General Protection Fault\n%04x:%p\nexternal=%u, table=%u, index=%04x", frame->CS, frame->IP, e, tbl, index);
 }
 
-__attribute__((interrupt)) void PF_Handler(interrupt_frame *frame, u32 code)
+INTER void PF_Handler(interrupt_frame *frame, u32 code)
 {
     auto p = code & 0b1;
     auto w = (code >> 1) & 0b1;
@@ -98,52 +99,52 @@ __attribute__((interrupt)) void PF_Handler(interrupt_frame *frame, u32 code)
     Panic("Page Fault\n%04x:%p\np=%u, w=%u, u=%u, r=%u, i=%u, pk=%u, ss=%u, sgx=%u\nvirtual address = %p", frame->CS, frame->IP, p, w, u, r, i, pk, ss, sgx, addr);
 }
 
-__attribute__((interrupt)) void MF_Handler(interrupt_frame *frame)
+INTER void MF_Handler(interrupt_frame *frame)
 {
     Panic("x87 Floating-Point Exception\n%04x:%p", frame->CS, frame->IP);
 }
 
-__attribute__((interrupt)) void AC_Handler(interrupt_frame *frame, u32 code)
+INTER void AC_Handler(interrupt_frame *frame, u32 code)
 {
     Panic("Alignment Check\n%04x:%p\ncode=%u", frame->CS, frame->IP, code);
 }
 
-__attribute__((interrupt)) void MC_Handler(interrupt_frame *frame)
+INTER void MC_Handler(interrupt_frame *frame)
 {
     Panic("Machine Check\n%04x:%p", frame->CS, frame->IP);
 }
 
-__attribute__((interrupt)) void XM_XF_Handler(interrupt_frame *frame)
+INTER void XM_XF_Handler(interrupt_frame *frame)
 {
     Panic("SIMD Floating-Point Exception\n%04x:%p", frame->CS, frame->IP);
 }
 
-__attribute__((interrupt)) void VE_Handler(interrupt_frame *frame)
+INTER void VE_Handler(interrupt_frame *frame)
 {
     Panic("Virtualization Exception\n%04x:%p", frame->CS, frame->IP);
 }
 
-__attribute__((interrupt)) void CP_Handler(interrupt_frame *frame, u32 code)
+INTER void CP_Handler(interrupt_frame *frame, u32 code)
 {
     Panic("Control Protection Exception\n%04x:%p\ncode=%u", frame->CS, frame->IP, code);
 }
 
-__attribute__((interrupt)) void HV_Handler(interrupt_frame *frame)
+INTER void HV_Handler(interrupt_frame *frame)
 {
     Panic("Hypervisor Injection Exception\n%04x:%p", frame->CS, frame->IP);
 }
 
-__attribute__((interrupt)) void VC_Handler(interrupt_frame *frame, u32 code)
+INTER void VC_Handler(interrupt_frame *frame, u32 code)
 {
     Panic("VMM Communication Exception\n%04x:%p\ncode=%u", frame->CS, frame->IP, code);
 }
 
-__attribute__((interrupt)) void SX_Handler(interrupt_frame *frame, u32 code)
+INTER void SX_Handler(interrupt_frame *frame, u32 code)
 {
     Panic("Security Exception\n%04x:%p\ncode=%u", frame->CS, frame->IP, code);
 }
 
-__attribute__((interrupt)) void PIT_Handler(interrupt_frame *)
+INTER void PIT_Handler(interrupt_frame *)
 {
     static u16 counter = 0;
     static u32 timer = 0;
@@ -162,9 +163,9 @@ __attribute__((interrupt)) void PIT_Handler(interrupt_frame *)
     PIC_Send_EOI(0);
 }
 
-__attribute__((interrupt)) void SYS_Handler(interrupt_frame *frame)
+INTER void SYS_Handler(interrupt_frame *frame)
 {
-    auto ap = (va_list)frame->ESP;
+    auto ap = reinterpret_cast<va_list>(frame->ESP);
 
     auto id = va_arg(ap, u32);
     switch (id)

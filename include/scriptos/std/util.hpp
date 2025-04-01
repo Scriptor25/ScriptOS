@@ -3,6 +3,7 @@
 #include <scriptos/std/types.hpp>
 
 #define NORET __attribute__((noreturn))
+#define INTER __attribute__((interrupt))
 
 bool isalnum(int c);
 bool isalpha(int c);

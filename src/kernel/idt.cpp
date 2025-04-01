@@ -19,34 +19,34 @@ static IDT_Descriptor idt;
 void InitIDT()
 {
     idt.Limit = 0x800;
-    idt.Ptr = (IDT_Entry *)PageFrameAllocator::GetInstance().RequestEmptyPage();
+    idt.Ptr = reinterpret_cast<IDT_Entry *>(PageFrameAllocator::GetInstance().RequestEmptyPage());
 
-    idt.Ptr[0x00] = {(uptr)DE_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x01] = {(uptr)DB_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Trap_Gate};
-    idt.Ptr[0x03] = {(uptr)BP_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Trap_Gate};
-    idt.Ptr[0x04] = {(uptr)OF_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Trap_Gate};
-    idt.Ptr[0x05] = {(uptr)BR_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x06] = {(uptr)UD_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x07] = {(uptr)NM_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x08] = {(uptr)DF_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x0a] = {(uptr)TS_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x0b] = {(uptr)NP_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x0c] = {(uptr)SS_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x0d] = {(uptr)GP_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x0e] = {(uptr)PF_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x10] = {(uptr)MF_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x11] = {(uptr)AC_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x12] = {(uptr)MC_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x13] = {(uptr)XM_XF_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x14] = {(uptr)VE_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x15] = {(uptr)CP_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x1c] = {(uptr)HV_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x1d] = {(uptr)VC_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
-    idt.Ptr[0x1e] = {(uptr)SX_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x00] = {reinterpret_cast<uptr>(DE_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x01] = {reinterpret_cast<uptr>(DB_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Trap_Gate};
+    idt.Ptr[0x03] = {reinterpret_cast<uptr>(BP_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Trap_Gate};
+    idt.Ptr[0x04] = {reinterpret_cast<uptr>(OF_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Trap_Gate};
+    idt.Ptr[0x05] = {reinterpret_cast<uptr>(BR_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x06] = {reinterpret_cast<uptr>(UD_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x07] = {reinterpret_cast<uptr>(NM_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x08] = {reinterpret_cast<uptr>(DF_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x0a] = {reinterpret_cast<uptr>(TS_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x0b] = {reinterpret_cast<uptr>(NP_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x0c] = {reinterpret_cast<uptr>(SS_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x0d] = {reinterpret_cast<uptr>(GP_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x0e] = {reinterpret_cast<uptr>(PF_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x10] = {reinterpret_cast<uptr>(MF_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x11] = {reinterpret_cast<uptr>(AC_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x12] = {reinterpret_cast<uptr>(MC_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x13] = {reinterpret_cast<uptr>(XM_XF_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x14] = {reinterpret_cast<uptr>(VE_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x15] = {reinterpret_cast<uptr>(CP_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x1c] = {reinterpret_cast<uptr>(HV_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x1d] = {reinterpret_cast<uptr>(VC_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x1e] = {reinterpret_cast<uptr>(SX_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
 
-    idt.Ptr[PIC_IRQ0] = {(uptr)PIT_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[PIC_IRQ0] = {reinterpret_cast<uptr>(PIT_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring0 | IDT_Attributes_32Bit_Interrupt_Gate};
 
-    idt.Ptr[0x80] = {(uptr)SYS_Handler, GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring3 | IDT_Attributes_32Bit_Interrupt_Gate};
+    idt.Ptr[0x80] = {reinterpret_cast<uptr>(SYS_Handler), GDT_CODE_SEGMENT, IDT_Attributes_Present | IDT_Attributes_Ring3 | IDT_Attributes_32Bit_Interrupt_Gate};
 
     lidt(idt);
 }
