@@ -33,17 +33,17 @@ void PIT_Write_C2_b(u8 data)
 
 u16 PIT_Read_C0_w()
 {
-    return (u16)in<u8>(PIT_Port_C0_Data) | (u16)in<u8>(PIT_Port_C0_Data) << 8;
+    return static_cast<u16>(in<u8>(PIT_Port_C0_Data)) | static_cast<u16>(in<u8>(PIT_Port_C0_Data)) << 8;
 }
 
 u16 PIT_Read_C1_w()
 {
-    return (u16)in<u8>(PIT_Port_C1_Data) | (u16)in<u8>(PIT_Port_C1_Data) << 8;
+    return static_cast<u16>(in<u8>(PIT_Port_C1_Data)) | static_cast<u16>(in<u8>(PIT_Port_C1_Data)) << 8;
 }
 
 u16 PIT_Read_C2_w()
 {
-    return (u16)in<u8>(PIT_Port_C2_Data) | (u16)in<u8>(PIT_Port_C2_Data) << 8;
+    return static_cast<u16>(in<u8>(PIT_Port_C2_Data)) | static_cast<u16>(in<u8>(PIT_Port_C2_Data)) << 8;
 }
 
 void PIT_Write_C0_w(u16 data)

@@ -2,12 +2,30 @@
 
 #include <scriptos/std/types.hpp>
 
+/**
+ * Interrupt frame information structure
+ */
 struct interrupt_frame
 {
+    /**
+     * Instruction Pointer
+     */
     void *IP;
+    /**
+     * Code Segment
+     */
     u32 CS;
+    /**
+     * Flags
+     */
     u32 EFLAGS;
+    /**
+     * Stack Pointer
+     */
     u32 ESP;
+    /**
+     * Stack Segment
+     */
     u32 SS;
 };
 

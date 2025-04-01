@@ -16,6 +16,6 @@ multiboot_tag *MultibootInfo::operator[](u32 type) const
 
 MemoryMap MultibootInfo::GetMMap() const
 {
-    auto &tag = *(multiboot_tag_mmap *)((*this)[MULTIBOOT_TAG_TYPE_MMAP]);
-    return MemoryMap(tag.entries, (multiboot_mmap_entry *)((uptr)&tag + tag.size), tag.entry_size);
+    auto &tag = *reinterpret_cast<multiboot_tag_mmap *>((*this)[MULTIBOOT_TAG_TYPE_MMAP]);
+    return MemoryMap(tag.entries, reinterpret_cast<multiboot_mmap_entry *>(reinterpret_cast<uptr>(&tag) + tag.size), tag.entry_size);
 }

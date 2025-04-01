@@ -1,44 +1,44 @@
 #include <scriptos/kernel/graphics.hpp>
 
 Color::Color(u32 color)
-    : fa((f32)((color >> 24) & 0xff) / 255.f),
-      fr((f32)((color >> 16) & 0xff) / 255.f),
-      fg((f32)((color >> 8) & 0xff) / 255.f),
-      fb((f32)(color & 0xff) / 255.f)
+    : a((f32)((color >> 24) & 0xff) / 255.f),
+      r((f32)((color >> 16) & 0xff) / 255.f),
+      g((f32)((color >> 8) & 0xff) / 255.f),
+      b((f32)(color & 0xff) / 255.f)
 {
 }
 
 Color::Color(f32 a, f32 r, f32 g, f32 b)
-    : fa(a), fr(r), fg(g), fb(b)
+    : a(a), r(r), g(g), b(b)
 {
 }
 
 Color Color::operator*(f32 other) const
 {
     return {
-        fa * other,
-        fr * other,
-        fg * other,
-        fb * other,
+        a * other,
+        r * other,
+        g * other,
+        b * other,
     };
 }
 
 Color Color::operator+(const Color &other) const
 {
     return {
-        fa + other.fa,
-        fr + other.fr,
-        fg + other.fg,
-        fb + other.fb,
+        a + other.a,
+        r + other.r,
+        g + other.g,
+        b + other.b,
     };
 }
 
 Color::operator u32() const
 {
-    auto ia = (u32)(fa * 255.999f);
-    auto ir = (u32)(fr * 255.999f);
-    auto ig = (u32)(fg * 255.999f);
-    auto ib = (u32)(fb * 255.999f);
+    auto ia = static_cast<u32>(a * 255.999f);
+    auto ir = static_cast<u32>(r * 255.999f);
+    auto ig = static_cast<u32>(g * 255.999f);
+    auto ib = static_cast<u32>(b * 255.999f);
 
     return (ia & 0xff) << 24 | (ir & 0xff) << 16 | (ig & 0xff) << 8 | (ib & 0xff);
 }
@@ -221,8 +221,8 @@ u32 Graphics::Blend(u32 src, u32 dst)
     Color src_color(src);
     Color dst_color(dst);
 
-    auto src_factor = src_color.fa;
-    auto dst_factor = 1.f - src_color.fa;
+    auto src_factor = src_color.a;
+    auto dst_factor = 1.f - src_color.a;
 
     return src_color * src_factor + dst_color * dst_factor;
 }

@@ -9,7 +9,7 @@ multiboot_mmap_entry &MemoryMap::Iter::operator*() const { return *m_Ptr; }
 
 MemoryMap::Iter &MemoryMap::Iter::operator++()
 {
-    m_Ptr = (multiboot_mmap_entry *)((u8 *)m_Ptr + m_EntrySize);
+    m_Ptr = reinterpret_cast<multiboot_mmap_entry *>(reinterpret_cast<u8 *>(m_Ptr) + m_EntrySize);
     return *this;
 }
 

@@ -2,6 +2,9 @@
 
 #include <scriptos/std/types.hpp>
 
+/**
+ * Interrupt Descriptor Table - Attributes Enum
+ */
 enum IDT_Attributes
 {
     IDT_Attributes_Present = 0b10000000,
@@ -18,6 +21,9 @@ enum IDT_Attributes
     IDT_Attributes_32Bit_Trap_Gate = 0b1111,
 };
 
+/**
+ * Interrupt Descriptor Table - Entry
+ */
 struct IDT_Entry
 {
     IDT_Entry(u32 offset, u16 selector, u8 attributes);
@@ -29,10 +35,16 @@ struct IDT_Entry
     u16 OffsetHi;
 };
 
+/**
+ * Interrupt Descriptor Table - Descriptor
+ */
 struct IDT_Descriptor
 {
     u16 Limit;
     IDT_Entry *Ptr;
 } __attribute__((packed));
 
+/**
+ * Initialize the kernel IDT
+ */
 void InitIDT();

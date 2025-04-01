@@ -26,9 +26,9 @@ static void setup_memory(const MultibootInfo &info)
     auto mmap = info.GetMMap();
 
     pfa.Init(mmap);
-    pfa.LockPages(KERNEL_START, ceil_div((uptr)KERNEL_END - (uptr)KERNEL_START, PAGE_SIZE));
+    pfa.LockPages(KERNEL_START, ceil_div(KERNEL_SIZE, PAGE_SIZE));
 
-    ptm.Init((PageDirectoryEntry *)pfa.RequestEmptyPage());
+    ptm.Init(reinterpret_cast<PageDirectoryEntry *>(pfa.RequestEmptyPage()));
     ptm.MapPages(nullptr, nullptr, ceil_div(mmap.Size(), PAGE_SIZE));
     ptm.SetupPaging();
 }
@@ -39,7 +39,7 @@ static void setup_graphics(const MultibootInfo &info)
     auto &ptm = PageTableManager::GetKernelInstance();
     auto &graphics = Graphics::GetInstance();
 
-    auto &tag = *(multiboot_tag_framebuffer *)info[MULTIBOOT_TAG_TYPE_FRAMEBUFFER];
+    auto &tag = *reinterpret_cast<multiboot_tag_framebuffer *>(info[MULTIBOOT_TAG_TYPE_FRAMEBUFFER]);
     auto fb_addr = tag.framebuffer_addr_lo;
     auto width = tag.framebuffer_width;
     auto height = tag.framebuffer_height;
@@ -47,11 +47,11 @@ static void setup_graphics(const MultibootInfo &info)
     auto bpp = tag.framebuffer_bpp;
 
     auto page_count = ceil_div(pitch * height, PAGE_SIZE);
-    pfa.LockPages((void *)fb_addr, page_count);
-    ptm.MapPages((void *)fb_addr, (void *)fb_addr, page_count);
+    pfa.LockPages(reinterpret_cast<void *>(fb_addr), page_count);
+    ptm.MapPages(reinterpret_cast<void *>(fb_addr), reinterpret_cast<void *>(fb_addr), page_count);
 
     auto bb_addr = malloc(pitch * height);
-    graphics.Init((u8 *)fb_addr, (u8 *)bb_addr, width, height, pitch, bpp);
+    graphics.Init(reinterpret_cast<u8 *>(fb_addr), reinterpret_cast<u8 *>(bb_addr), width, height, pitch, bpp);
 
     graphics.SetBGColor(0xff121212);
     graphics.SetFGColor(0xfffefefe);
@@ -108,12 +108,15 @@ static void exec(const string &cmd)
 
 extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 {
-    if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || ((uptr)&info & 7))
+    if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || (reinterpret_cast<uptr>(&info) & 7))
         return;
 
     setup_memory(info);
     setup_graphics(info);
 
+    /**
+     * Get the current kernel stack address, used to initialize the GDT
+     */
     void *kernel_stack;
     asm volatile("mov %%esp, %0" : "=g"(kernel_stack));
 
@@ -159,9 +162,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 
     auto error = Serial_Init();
     if (error)
-    {
         LOOP();
-    }
 
     Serial_Write("Hello Serial Terminal!\r\n");
     Serial_Write("> ");

@@ -2,14 +2,20 @@
 
 #include <scriptos/std/types.hpp>
 
+/**
+ * Immutable structure representation of a bit inside the bitmap
+ */
 struct BitEntry
 {
     u32 ByteIndex;
     u32 BitIndex;
 
-    bool Active;
+    bool Set;
 };
 
+/**
+ * A bitmap, storing bits as a row-column addressable map
+ */
 class Bitmap
 {
 public:

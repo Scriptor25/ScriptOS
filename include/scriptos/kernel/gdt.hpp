@@ -8,6 +8,9 @@
 #define GDT_USER_DATA_SEGMENT 0x20
 #define GDT_TASK_STATE_SEGMENT 0x28
 
+/**
+ * Global Descriptor Table - Access Enum
+ */
 enum GDT_Access
 {
     GDT_Access_Code_Readable = 0b00000010,
@@ -28,6 +31,9 @@ enum GDT_Access
     GDT_Access_Present = 0b10000000,
 };
 
+/**
+ * Global Descriptor Table - Flags Enum
+ */
 enum GDT_Flags
 {
     GDT_Flags_64Bit = 0b0010,
@@ -38,6 +44,9 @@ enum GDT_Flags
     GDT_Flags_Granularity_4K = 0b1000,
 };
 
+/**
+ * Global Descriptor Table - Entry
+ */
 struct GDT_Entry
 {
     GDT_Entry() = default;
@@ -51,12 +60,21 @@ struct GDT_Entry
     u8 BaseHi;
 } __attribute__((packed));
 
+/**
+ * Global Descriptor Table - Descriptor
+ */
 struct GDT_Descriptor
 {
     u16 Size;
     GDT_Entry *Ptr;
 } __attribute__((packed));
 
+/**
+ * Load a GDT from a descriptor
+ */
 extern "C" void LoadGDT(GDT_Descriptor *descriptor, u16 code_segment, u16 data_segment);
 
+/**
+ * Initialize the kernel GDT
+ */
 void InitGDT(void *kernel_stack);

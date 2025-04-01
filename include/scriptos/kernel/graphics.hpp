@@ -22,15 +22,38 @@ struct Color
 
     operator u32() const;
 
-    f32 fa, fr, fg, fb;
+    union
+    {
+        struct
+        {
+            f32 a;
+            f32 r;
+            f32 g;
+            f32 b;
+        };
+        struct
+        {
+            f32 w;
+            f32 x;
+            f32 y;
+            f32 z;
+        };
+        f32 argb[4];
+        f32 wxyz[4];
+        f32 e[4];
+    };
 };
 
 class Graphics
 {
 public:
+    /**
+     * Get the kernel graphics instance
+     */
     static Graphics &GetInstance();
 
     void Init(u8 *fb_addr, u8 *bb_addr, u32 width, u32 height, u32 pitch, u8 bpp);
+
     u32 Width() const;
     u32 Height() const;
 

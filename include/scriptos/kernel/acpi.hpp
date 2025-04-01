@@ -4,6 +4,9 @@
 
 struct RSDP
 {
+    /**
+     * Validate this RSDP
+     */
     bool Validate();
 
     char Signature[8];
@@ -15,6 +18,9 @@ struct RSDP
 
 struct XSDP
 {
+    /**
+     * Validate this XSDP
+     */
     bool Validate();
 
     char Signature[8];
@@ -32,6 +38,9 @@ struct XSDP
 
 struct SDT_Header
 {
+    /**
+     * Validate this SDT header
+     */
     bool Validate();
 
     char Signature[4];
@@ -45,8 +54,14 @@ struct SDT_Header
     u32 CreatorRevision;
 };
 
+/**
+ * RSD table
+ */
 struct RSDT
 {
+    /**
+     * Find a SDT header in this RSD table
+     */
     SDT_Header *Find(cstr signature);
 
     SDT_Header Header;
@@ -63,6 +78,9 @@ struct GenericAddressStructure
     u32 Address_Hi;
 };
 
+/**
+ * FAD table
+ */
 struct FADT
 {
     SDT_Header Header;
@@ -128,6 +146,9 @@ struct FADT
     GenericAddressStructure X_GPE1Block;
 };
 
+/**
+ * DSD table
+ */
 struct DSDT
 {
     SDT_Header Header;

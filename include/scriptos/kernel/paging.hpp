@@ -7,33 +7,33 @@
 
 struct PageDirectoryEntry_4MiB
 {
-    /* present bit */
+    /** present bit */
     bool Present : 1;
-    /* read/write bit */
+    /** read/write bit */
     bool ReadWrite : 1;
-    /* user/supervisor bit */
+    /** user/supervisor bit */
     bool UserSupervisor : 1;
-    /* write-through bit */
+    /** write-through bit */
     bool WriteThrough : 1;
-    /* cache disable bit */
+    /** cache disable bit */
     bool CacheDisable : 1;
-    /* accessed bit */
+    /** accessed bit */
     bool Accessed : 1;
-    /* dirty bit */
+    /** dirty bit */
     bool Dirty : 1;
-    /* page size bit (= 1) */
+    /** page size bit (= 1) */
     bool PageSize : 1;
-    /* global bit */
+    /** global bit */
     bool Global : 1;
-    /* reserved */
+    /** reserved */
     u8 reserved1 : 3;
-    /* page attribute bit */
+    /** page attribute bit */
     bool PageAttribute : 1;
-    /* address [39:32] */
+    /** address [39:32] */
     u32 Address_39_32 : 8;
-    /* reserved */
+    /** reserved */
     bool reserved2 : 1;
-    /* address [31:22] */
+    /** address [31:22] */
     u32 Address_31_22 : 10;
 };
 
@@ -41,25 +41,25 @@ union PageDirectoryEntry
 {
     struct
     {
-        /* present bit */
+        /** present bit */
         bool Present : 1;
-        /* read/write bit */
+        /** read/write bit */
         bool ReadWrite : 1;
-        /* user/supervisor bit */
+        /** user/supervisor bit */
         bool UserSupervisor : 1;
-        /* write-through bit */
+        /** write-through bit */
         bool WriteThrough : 1;
-        /* cache disable bit */
+        /** cache disable bit */
         bool CacheDisable : 1;
-        /* accessed bit */
+        /** accessed bit */
         bool Accessed : 1;
-        /* reserved */
+        /** reserved */
         u8 reserved1 : 1;
-        /* page size bit (= 0) */
+        /** page size bit (= 0) */
         bool PageSize : 1;
-        /* reserved */
+        /** reserved */
         u8 reserved2 : 4;
-        /* address [31:12] */
+        /** address [31:12] */
         u32 Address_31_12 : 20;
     };
 
@@ -70,27 +70,27 @@ union PageTableEntry
 {
     struct
     {
-        /* present bit */
+        /** present bit */
         bool Present : 1;
-        /* read/write bit */
+        /** read/write bit */
         bool ReadWrite : 1;
-        /* user/supervisor bit */
+        /** user/supervisor bit */
         bool UserSupervisor : 1;
-        /* write-through bit */
+        /** write-through bit */
         bool WriteThrough : 1;
-        /* cache disable bit */
+        /** cache disable bit */
         bool CacheDisable : 1;
-        /* accessed bit */
+        /** accessed bit */
         bool Accessed : 1;
-        /* dirty bit */
+        /** dirty bit */
         bool Dirty : 1;
-        /* page attribute bit */
+        /** page attribute bit */
         bool PageAttribute : 1;
-        /* global bit */
+        /** global bit */
         bool Global : 1;
-        /* reserved */
+        /** reserved */
         u8 reserved1 : 3;
-        /* address [31:12] */
+        /** address [31:12] */
         u32 Address_31_12 : 20;
     };
 

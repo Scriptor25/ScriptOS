@@ -3,6 +3,9 @@
 #include <scriptos/kernel/multiboot2.hpp>
 #include <scriptos/std/types.hpp>
 
+/**
+ * Multiboot memory map structure wrapper
+ */
 class MemoryMap
 {
 public:

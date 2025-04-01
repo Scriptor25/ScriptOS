@@ -4,6 +4,9 @@
 #include <scriptos/kernel/multiboot2.hpp>
 #include <scriptos/std/types.hpp>
 
+/**
+ * Multiboot info structure wrapper
+ */
 class MultibootInfo
 {
 public:
