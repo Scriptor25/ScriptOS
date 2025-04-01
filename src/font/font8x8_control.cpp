@@ -1,28 +1,6 @@
-#pragma once
+#include <scriptos/font/font8x8.hpp>
 
-/**
- * 8x8 monochrome bitmap fonts for rendering
- * Author: Daniel Hepper <daniel@hepper.net>
- *
- * License: Public Domain
- *
- * Based on:
- * // Summary: font8x8.h
- * // 8x8 monochrome bitmap fonts for rendering
- * //
- * // Author:
- * //     Marcel Sondaar
- * //     International Business Machines (public domain VGA fonts)
- * //
- * // License:
- * //     Public Domain
- *
- * Fetched from: http://dimensionalrift.homelinux.net/combuster/mos3/?p=viewsource&file=/modules/gfx/font8_8.asm
- **/
-
-// Constant: font8x8_0080
-// Contains an 8x8 font map for unicode points U+0080 - U+009F (C1/C2 control)
-u8 font8x8_control[32][8] = {
+u8 font8x8::control[32][8] = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // U+0080
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // U+0081
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // U+0082

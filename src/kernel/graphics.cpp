@@ -1,7 +1,10 @@
 #include <scriptos/kernel/graphics.hpp>
 
 Color::Color(u32 color)
-    : fa((f32)((color >> 24) & 0xff) / 255.f), fr((f32)((color >> 16) & 0xff) / 255.f), fg((f32)((color >> 8) & 0xff) / 255.f), fb((f32)(color & 0xff) / 255.f)
+    : fa((f32)((color >> 24) & 0xff) / 255.f),
+      fr((f32)((color >> 16) & 0xff) / 255.f),
+      fg((f32)((color >> 8) & 0xff) / 255.f),
+      fb((f32)(color & 0xff) / 255.f)
 {
 }
 
