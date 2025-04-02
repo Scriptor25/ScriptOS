@@ -136,6 +136,44 @@ void Graphics::DrawRect(usize x1, usize y1, usize x2, usize y2)
     m_Dirty = true;
 }
 
+void Graphics::DrawString(usize x, usize y, usize wrap, cstr data)
+{
+    auto ptr = const_cast<str>(data);
+    for (usize dx = 0, dy = 0; *ptr; ++ptr)
+    {
+        if (!dx && *ptr <= 0x20)
+            continue;
+        DrawChar(*ptr, x + dx, y + dy);
+        dx += 8;
+        if (wrap && dx >= wrap - 8)
+        {
+            if (*(ptr + 1) > 0x20)
+                DrawChar('-', x + dx, y + dy);
+            dx = 0;
+            dy += 8;
+        }
+    }
+}
+
+void Graphics::DrawString(usize x, usize y, usize wrap, cwstr data)
+{
+    auto ptr = const_cast<wstr>(data);
+    for (usize dx = 0, dy = 0; *ptr; ++ptr)
+    {
+        if (!dx && *ptr <= 0x20)
+            continue;
+        DrawChar(*ptr, x + dx, y + dy);
+        dx += 8;
+        if (wrap && dx >= wrap - 8)
+        {
+            if (*(ptr + 1) > 0x20)
+                DrawChar('-', x + dx, y + dy);
+            dx = 0;
+            dy += 8;
+        }
+    }
+}
+
 void Graphics::DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y2, f32 u2, f32 v2, usize width, usize height, const u32 *data)
 {
     for (usize y = y1; y < y2; ++y)

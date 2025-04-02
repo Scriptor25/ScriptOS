@@ -2,8 +2,8 @@
 
 #include <scriptos/std/types.hpp>
 
-#define NUM_ENTRIES 0x400
-#define PAGE_SIZE 0x1000
+#define NUM_ENTRIES 0x400u
+#define PAGE_SIZE 0x1000u
 
 struct PageDirectoryEntry_4MiB
 {

@@ -60,7 +60,32 @@ static void setup_graphics(const MultibootInfo &info)
     graphics.Clear();
 }
 
-static void exec(const string &cmd)
+/**
+ * - request a free page as user stack space and map it to some "anonymous" virtual address
+ * - map the text, rodata, data and bss sections to be accessible by the user mode
+ * - jump to the user mode entry point
+ */
+static void setup_user()
+{
+    auto user_stack = PageFrameAllocator::GetInstance().RequestPage();
+    PageTableManager::GetKernelInstance().MapPage(reinterpret_cast<void *>(0xC0000000), user_stack, true);
+
+    auto text_page_count = ceil_div(USER_TEXT_SIZE, PAGE_SIZE);
+    PageTableManager::GetKernelInstance().MapPages(USER_TEXT_START, USER_TEXT_START, text_page_count, true);
+
+    auto rodata_page_count = ceil_div(USER_RODATA_SIZE, PAGE_SIZE);
+    PageTableManager::GetKernelInstance().MapPages(USER_RODATA_START, USER_RODATA_START, rodata_page_count, true);
+
+    auto data_page_count = ceil_div(USER_DATA_SIZE, PAGE_SIZE);
+    PageTableManager::GetKernelInstance().MapPages(USER_DATA_START, USER_DATA_START, data_page_count, true);
+
+    auto bss_page_count = ceil_div(USER_BSS_SIZE, PAGE_SIZE);
+    PageTableManager::GetKernelInstance().MapPages(USER_BSS_START, USER_BSS_START, bss_page_count, true);
+
+    jump_user_main(reinterpret_cast<void *>(0xC0000000 + PAGE_SIZE));
+}
+
+static void serial_exec(const string &cmd)
 {
     auto args = string_view(cmd).split(',');
     for (auto &arg : args)
@@ -116,7 +141,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     setup_graphics(info);
 
     /**
-     * Get the current kernel stack address, used to initialize the GDT
+     * Get the current kernel stack address for initializing the GDT
      */
     void *kernel_stack;
     asm volatile("mov %%esp, %0" : "=g"(kernel_stack));
@@ -131,6 +156,9 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     PIT_Write_C0_w(1193); // 1000Hz
     STI();
 
+    /**
+     * Draw some test graphics
+     */
     {
         auto &graphics = Graphics::GetInstance();
         {
@@ -159,16 +187,11 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
                 0xffffffff,
             };
             graphics.DrawTexture(400, 50, 0.f, 0.f, 500, 150, 1.f, 1.f, 2, 2, data);
+            graphics.DrawString(400, 150, 100, L"this is an image with some text äöü");
         }
     }
 
-    // auto user_stack = PageFrameAllocator::GetInstance().RequestPage();
-    // PageTableManager::GetKernelInstance().MapPage((void *)0xC0000000, user_stack, true);
-
-    // auto page_count = ceil_div((uptr)USER_TEXT_END - (uptr)USER_TEXT_START, PAGE_SIZE);
-    // PageTableManager::GetKernelInstance().MapPages(USER_TEXT_START, USER_TEXT_START, page_count, true);
-
-    // jump_user_main((void *)(0xC0000000 + PAGE_SIZE));
+    setup_user();
 
     auto error = Serial_Init();
     if (error)
@@ -193,7 +216,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
             break;
         case 0x0d:
             Serial_Write("\r\n");
-            exec(buffer);
+            serial_exec(buffer);
             buffer.clear();
             Serial_Write("> ");
             break;

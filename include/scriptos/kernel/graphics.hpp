@@ -74,6 +74,9 @@ public:
     void DrawChar(int c, usize x, usize y);
     void DrawRect(usize x1, usize y1, usize x2, usize y2);
 
+    void DrawString(usize x, usize y, usize wrap, cstr data);
+    void DrawString(usize x, usize y, usize wrap, cwstr data);
+
     void DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y2, f32 u2, f32 v2, usize width, usize height, const u32 *data);
 
     void ClearRainbow(usize offset = 0, usize scale = 1);

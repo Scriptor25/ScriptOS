@@ -2,7 +2,7 @@
 #include <scriptos/kernel/user.hpp>
 #include <scriptos/std/vararg.hpp>
 
-extern "C" USERFN NORET void user_main()
+extern "C" USER_TEXT NORET void user_main()
 {
     int a;
 
@@ -16,27 +16,27 @@ extern "C" USERFN NORET void user_main()
         ;
 }
 
-USERFN void user_print(cstr string)
+USER_TEXT void user_print(cstr string)
 {
     syscall(0b10000, string);
 }
 
-USERFN void user_wprint(cstr string)
+USER_TEXT void user_wprint(cstr string)
 {
     syscall(0b10001, string);
 }
 
-USERFN void user_printn(cstr string, usize count)
+USER_TEXT void user_printn(cstr string, usize count)
 {
     syscall(0b10010, string, count);
 }
 
-USERFN void user_wprintn(cstr string, usize count)
+USER_TEXT void user_wprintn(cstr string, usize count)
 {
     syscall(0b10011, string, count);
 }
 
-USERFN void user_printf(cstr format, ...)
+USER_TEXT void user_printf(cstr format, ...)
 {
     va_list ap;
     va_start(ap, format);
@@ -44,7 +44,7 @@ USERFN void user_printf(cstr format, ...)
     va_end(ap);
 }
 
-USERFN void user_wprintf(cstr format, ...)
+USER_TEXT void user_wprintf(cstr format, ...)
 {
     va_list ap;
     va_start(ap, format);
