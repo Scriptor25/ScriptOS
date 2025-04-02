@@ -14,34 +14,39 @@ Color::Color(f32 a, f32 r, f32 g, f32 b)
 {
 }
 
-Color Color::operator*(f32 other) const
-{
-    return {
-        a * other,
-        r * other,
-        g * other,
-        b * other,
-    };
-}
-
-Color Color::operator+(const Color &other) const
-{
-    return {
-        a + other.a,
-        r + other.r,
-        g + other.g,
-        b + other.b,
-    };
-}
-
 Color::operator u32() const
 {
-    auto ia = static_cast<u32>(a * 255.999f);
-    auto ir = static_cast<u32>(r * 255.999f);
-    auto ig = static_cast<u32>(g * 255.999f);
-    auto ib = static_cast<u32>(b * 255.999f);
+    auto ia = static_cast<u32>(a * 255.f);
+    auto ir = static_cast<u32>(r * 255.f);
+    auto ig = static_cast<u32>(g * 255.f);
+    auto ib = static_cast<u32>(b * 255.f);
 
     return (ia & 0xff) << 24 | (ir & 0xff) << 16 | (ig & 0xff) << 8 | (ib & 0xff);
+}
+
+Color operator*(const Color &lhs, f32 rhs)
+{
+    return {
+        lhs.a * rhs,
+        lhs.r * rhs,
+        lhs.g * rhs,
+        lhs.b * rhs,
+    };
+}
+
+Color operator*(f32 lhs, const Color &rhs)
+{
+    return rhs * lhs;
+}
+
+Color operator+(const Color &lhs, const Color &rhs)
+{
+    return {
+        lhs.a + rhs.a,
+        lhs.r + rhs.r,
+        lhs.g + rhs.g,
+        lhs.b + rhs.b,
+    };
 }
 
 Graphics &Graphics::GetInstance()
@@ -127,7 +132,7 @@ void Graphics::DrawChar(int c, usize x, usize y)
             buffer[j][i] = color;
         }
 
-    DrawTexture(x, y, 0.f, 0.f, x + 8, y + 8, 1.f, 1.f, 8, 8, &buffer[0][0]);
+    DrawTexture(x, y, 0.f, 0.f, x + 8, y + 8, 1.f, 1.f, 8, 8, false, &buffer[0][0]);
 }
 
 void Graphics::DrawRect(usize x1, usize y1, usize x2, usize y2)
@@ -174,7 +179,7 @@ void Graphics::DrawString(usize x, usize y, usize wrap, cwstr data)
     }
 }
 
-void Graphics::DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y2, f32 u2, f32 v2, usize width, usize height, const u32 *data)
+void Graphics::DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y2, f32 u2, f32 v2, usize width, usize height, bool filter, const u32 *data)
 {
     for (usize y = y1; y < y2; ++y)
         for (usize x = x1; x < x2; ++x)
@@ -185,11 +190,39 @@ void Graphics::DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y
             auto u = (1 - tx) * u1 + tx * u2;
             auto v = (1 - ty) * v1 + ty * v2;
 
-            auto px = static_cast<usize>(u * width) % width;
-            auto py = static_cast<usize>(v * height) % height;
+            u32 value;
+            if (!filter)
+            {
+                auto px = static_cast<usize>(u * width) % width;
+                auto py = static_cast<usize>(v * height) % height;
 
-            auto color = Blend(data[px + py * width], m_BackBuffer.Read(x, y));
+                value = data[px + py * width];
+            }
+            else
+            {
+                auto px = u * (width - 1);
+                auto py = v * (height - 1);
 
+                auto px0 = static_cast<usize>(floor(px)) % width;
+                auto py0 = static_cast<usize>(floor(py)) % height;
+                auto px1 = static_cast<usize>(ceil(px)) % width;
+                auto py1 = static_cast<usize>(ceil(py)) % height;
+
+                Color c00 = data[px0 + py0 * width];
+                Color c10 = data[px1 + py0 * width];
+                Color c01 = data[px0 + py1 * width];
+                Color c11 = data[px1 + py1 * width];
+
+                auto dx = px - px0;
+                auto dy = py - py0;
+
+                auto c0 = lerp(c00, c10, dx);
+                auto c1 = lerp(c01, c11, dx);
+
+                value = lerp(c0, c1, dy);
+            }
+
+            auto color = Blend(value, m_BackBuffer.Read(x, y));
             m_BackBuffer.Write(x, y, color);
         }
 

@@ -1,3 +1,4 @@
+#include <scriptos/std/memory.hpp>
 #include <scriptos/std/util.hpp>
 
 bool isalnum(int c)
@@ -77,4 +78,96 @@ int uitoa(str buf, unsigned value, unsigned base, bool upper)
             buf[i] = rev[j];
 
     return len;
+}
+
+f32 floor(f32 x)
+{
+    u32 input;
+    memcpy(&input, &x, 4);
+
+    auto exponent = static_cast<i32>((input >> 23) & 255) - 127;
+    if (exponent < 0)
+        return x < 0.f ? -1.f : 0.f;
+
+    auto fractional_bits = 23 - exponent;
+    if (fractional_bits <= 0)
+        return x;
+
+    auto integral_mask = ~((1U << fractional_bits) - 1);
+    auto output = input & integral_mask;
+
+    memcpy(&x, &output, 4);
+    if (x < 0.f && output != input)
+        --x;
+
+    return x;
+}
+
+f64 floor(f64 x)
+{
+    u64 input;
+    memcpy(&input, &x, 8);
+
+    auto exponent = static_cast<i32>((input >> 52) & 0x7FF) - 1023;
+    if (exponent < 0)
+        return x < 0. ? -1. : 0.;
+
+    auto fractional_bits = 52 - exponent;
+    if (fractional_bits <= 0)
+        return x;
+
+    auto integral_mask = ~((1ULL << fractional_bits) - 1);
+    auto output = input & integral_mask;
+
+    memcpy(&x, &output, 8);
+    if (x < 0. && output != input)
+        --x;
+
+    return x;
+}
+
+f32 ceil(f32 x)
+{
+    u32 input;
+    memcpy(&input, &x, 4);
+
+    auto exponent = static_cast<i32>((input >> 23) & 255) - 127;
+    if (exponent < 0)
+        return x > 0.f ? 1.f : 0.f;
+
+    auto fractional_bits = 23 - exponent;
+    if (fractional_bits <= 0)
+        return x;
+
+    auto integral_mask = ~((1U << fractional_bits) - 1);
+    auto output = input & integral_mask;
+
+    memcpy(&x, &output, 4);
+    if (x > 0.f && output != input)
+        ++x;
+
+    return x;
+}
+
+f64 ceil(f64 x)
+{
+    u64 input;
+    memcpy(&input, &x, 8);
+
+    auto exponent = static_cast<i32>((input >> 52) & 0x7FF) - 1023;
+    if (exponent < 0)
+        return x > 0. ? 1. : 0.;
+
+    auto fractional_bits = 52 - exponent;
+    if (fractional_bits <= 0)
+        return x;
+
+    auto integral_mask = ~((1ULL << fractional_bits) - 1);
+    auto output = input & integral_mask;
+
+    memcpy(&x, &output, 8);
+    if (x > 0. && output != input)
+        ++x;
+
+    return x;
 }

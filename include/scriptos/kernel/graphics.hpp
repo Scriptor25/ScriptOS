@@ -17,9 +17,6 @@ struct Color
     Color(u32 color);
     Color(f32 a, f32 r, f32 g, f32 b);
 
-    Color operator*(f32 other) const;
-    Color operator+(const Color &other) const;
-
     operator u32() const;
 
     union
@@ -43,6 +40,10 @@ struct Color
         f32 e[4];
     };
 };
+
+Color operator*(const Color &lhs, f32 rhs);
+Color operator*(f32 lhs, const Color &rhs);
+Color operator+(const Color &lhs, const Color &rhs);
 
 class Graphics
 {
@@ -77,7 +78,7 @@ public:
     void DrawString(usize x, usize y, usize wrap, cstr data);
     void DrawString(usize x, usize y, usize wrap, cwstr data);
 
-    void DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y2, f32 u2, f32 v2, usize width, usize height, const u32 *data);
+    void DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y2, f32 u2, f32 v2, usize width, usize height, bool filter, const u32 *data);
 
     void ClearRainbow(usize offset = 0, usize scale = 1);
 

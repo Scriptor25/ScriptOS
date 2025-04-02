@@ -165,19 +165,19 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
             u32 data[]{
                 0xffff0000,
             };
-            graphics.DrawTexture(50, 50, 0.f, 0.f, 150, 150, 1.f, 1.f, 1, 1, data);
+            graphics.DrawTexture(50, 50, 0.f, 0.f, 150, 150, 1.f, 1.f, 1, 1, false, data);
         }
         {
             u32 data[]{
                 0x9900ff00,
             };
-            graphics.DrawTexture(80, 60, 0.f, 0.f, 180, 160, 1.f, 1.f, 1, 1, data);
+            graphics.DrawTexture(80, 60, 0.f, 0.f, 180, 160, 1.f, 1.f, 1, 1, false, data);
         }
         {
             u32 data[]{
                 0x770000ff,
             };
-            graphics.DrawTexture(110, 70, 0.f, 0.f, 210, 170, 1.f, 1.f, 1, 1, data);
+            graphics.DrawTexture(110, 70, 0.f, 0.f, 210, 170, 1.f, 1.f, 1, 1, false, data);
         }
         {
             u32 data[]{
@@ -186,7 +186,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
                 0xff0000ff,
                 0xffffffff,
             };
-            graphics.DrawTexture(400, 50, 0.f, 0.f, 500, 150, 1.f, 1.f, 2, 2, data);
+            graphics.DrawTexture(400, 50, 0.f, 0.f, 500, 150, 1.f, 1.f, 2, 2, true, data);
             graphics.DrawString(400, 150, 100, L"this is an image with some text äöü");
         }
     }

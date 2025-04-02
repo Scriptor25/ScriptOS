@@ -20,26 +20,38 @@ bool isxdigit(int c);
 
 int uitoa(str buf, unsigned value, unsigned base, bool upper);
 
+f32 floor(f32 x);
+f64 floor(f64 x);
+
+f32 ceil(f32 x);
+f64 ceil(f64 x);
+
+template <typename V, typename T>
+V lerp(V a, V b, T t)
+{
+    return (1 - t) * a + t * b;
+}
+
 template <typename T, typename U>
-auto ceil_div(const T &divisor, const U &dividend)
+auto ceil_div(T divisor, U dividend)
 {
     return (divisor / dividend) + !!(divisor % dividend);
 }
 
 template <typename T, typename U>
-auto min(const T &lhs, const U &rhs)
+auto min(T lhs, U rhs)
 {
     return lhs < rhs ? lhs : rhs;
 }
 
 template <typename T, typename U>
-auto max(const T &lhs, const U &rhs)
+auto max(T lhs, U rhs)
 {
     return lhs > rhs ? lhs : rhs;
 }
 
 template <typename T, typename U, typename V>
-auto clamp(const T &min, const U &max, const V &x)
+auto clamp(T min, U max, V x)
 {
     return ::max(::min(x, max), min);
 }
