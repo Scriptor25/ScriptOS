@@ -2,6 +2,9 @@
 
 #include <scriptos/std/types.hpp>
 
+/**
+ * Task State Segment
+ */
 struct TSS
 {
     u16 Link;

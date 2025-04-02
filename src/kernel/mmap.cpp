@@ -1,15 +1,15 @@
 #include <scriptos/kernel/mmap.hpp>
 
-MemoryMap::Iter::Iter(multiboot_mmap_entry *ptr, usize entry_size)
+MemoryMap::Iter::Iter(const multiboot_mmap_entry *ptr, usize entry_size)
     : m_Ptr(ptr), m_EntrySize(entry_size)
 {
 }
 
-multiboot_mmap_entry &MemoryMap::Iter::operator*() const { return *m_Ptr; }
+const multiboot_mmap_entry &MemoryMap::Iter::operator*() const { return *m_Ptr; }
 
 MemoryMap::Iter &MemoryMap::Iter::operator++()
 {
-    m_Ptr = reinterpret_cast<multiboot_mmap_entry *>(reinterpret_cast<u8 *>(m_Ptr) + m_EntrySize);
+    m_Ptr = reinterpret_cast<const multiboot_mmap_entry *>(reinterpret_cast<const u8 *>(m_Ptr) + m_EntrySize);
     return *this;
 }
 
@@ -28,7 +28,7 @@ MemoryMap::MemoryMap()
 {
 }
 
-MemoryMap::MemoryMap(multiboot_mmap_entry *beg, multiboot_mmap_entry *end, usize entry_size)
+MemoryMap::MemoryMap(const multiboot_mmap_entry *beg, const multiboot_mmap_entry *end, usize entry_size)
     : m_Beg(beg), m_End(end), m_EntrySize(entry_size), m_Size(0)
 {
     for (auto &entry : *this)
@@ -38,8 +38,6 @@ MemoryMap::MemoryMap(multiboot_mmap_entry *beg, multiboot_mmap_entry *end, usize
         m_Size += entry.length_lo;
     }
 }
-
-usize MemoryMap::Size() { return m_Size; }
 
 usize MemoryMap::Size() const { return m_Size; }
 

@@ -36,24 +36,72 @@ enum PIT_Operating_Mode
     PIT_Operating_Mode_Hardware_Strobe = 0b101,
 };
 
+/**
+ * Read a single byte from port C0.
+ */
 u8 PIT_Read_C0_b();
+/**
+ * Read a single byte from port C1.
+ */
 u8 PIT_Read_C1_b();
+/**
+ * Read a single byte from port C2.
+ */
 u8 PIT_Read_C2_b();
 
+/**
+ * Write a single byte to port C0.
+ */
 void PIT_Write_C0_b(u8 data);
+/**
+ * Write a single byte to port C1.
+ */
 void PIT_Write_C1_b(u8 data);
+/**
+ * Write a single byte to port C2.
+ */
 void PIT_Write_C2_b(u8 data);
 
+/**
+ * Read a two-byte word from port C0.
+ */
 u16 PIT_Read_C0_w();
+/**
+ * Read a two-byte word from port C1.
+ */
 u16 PIT_Read_C1_w();
+/**
+ * Read a two-byte word from port C2.
+ */
 u16 PIT_Read_C2_w();
 
+/**
+ * Write a two-byte word to port C0.
+ */
 void PIT_Write_C0_w(u16 data);
+/**
+ * Write a two-byte word to port C1.
+ */
 void PIT_Write_C1_w(u16 data);
+/**
+ * Write a two-byte word to port C2.
+ */
 void PIT_Write_C2_w(u16 data);
 
+/**
+ * Send a command to the PIT.
+ */
 void PIT_Command(u8 channel, u8 access_mode, u8 operating_mode);
 
+/**
+ * Read the current value as a two-byte word from port C0.
+ */
 u16 PIT_Read_C0_Count();
+/**
+ * Read the current value as a two-byte word from port C1.
+ */
 u16 PIT_Read_C1_Count();
+/**
+ * Read the current value as a two-byte word from port C2.
+ */
 u16 PIT_Read_C2_Count();

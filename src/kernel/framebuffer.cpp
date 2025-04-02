@@ -23,7 +23,7 @@ void Framebuffer::Write(u32 x, u32 y, u32 value)
 {
     if (x >= m_Width || y >= m_Height)
         return;
-    *(u32 *)(m_Base + x * m_BPP + y * m_Pitch) = value;
+    *reinterpret_cast<u32 *>(m_Base + x * m_BPP + y * m_Pitch) = value;
 }
 
 void Framebuffer::WriteArray(u32 x, u32 y, u32 width, u32 height, const void *src)
@@ -37,14 +37,14 @@ void Framebuffer::WriteArray(u32 x, u32 y, u32 width, u32 height, const void *sr
 
     auto pitch = width * m_BPP;
     for (u32 j = 0; j < height; ++j)
-        memcpy(m_Base + x * m_BPP + (j + y) * m_Pitch, (u8 *)src + j * pitch, pitch);
+        memcpy(m_Base + x * m_BPP + (j + y) * m_Pitch, reinterpret_cast<const u8 *>(src) + j * pitch, pitch);
 }
 
 u32 Framebuffer::Read(u32 x, u32 y)
 {
     if (x >= m_Width || y >= m_Height)
         return 0;
-    return *(u32 *)(m_Base + x * m_BPP + y * m_Pitch);
+    return *reinterpret_cast<u32 *>(m_Base + x * m_BPP + y * m_Pitch);
 }
 
 void *Framebuffer::ReadArray(u32 x, u32 y, u32 width, u32 height, void *dst)
@@ -58,7 +58,7 @@ void *Framebuffer::ReadArray(u32 x, u32 y, u32 width, u32 height, void *dst)
 
     auto pitch = width * m_BPP;
     for (u32 j = 0; j < height; ++j)
-        memcpy((u8 *)dst + y * pitch, m_Base + x * m_BPP + (j + y) * m_Pitch, pitch);
+        memcpy(reinterpret_cast<u8 *>(dst) + y * pitch, m_Base + x * m_BPP + (j + y) * m_Pitch, pitch);
     return dst;
 }
 

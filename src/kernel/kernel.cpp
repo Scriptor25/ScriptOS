@@ -40,7 +40,7 @@ static void setup_graphics(const MultibootInfo &info)
     auto &ptm = PageTableManager::GetKernelInstance();
     auto &graphics = Graphics::GetInstance();
 
-    auto &tag = *reinterpret_cast<multiboot_tag_framebuffer *>(info[MULTIBOOT_TAG_TYPE_FRAMEBUFFER]);
+    auto &tag = *reinterpret_cast<const multiboot_tag_framebuffer *>(info[MULTIBOOT_TAG_TYPE_FRAMEBUFFER]);
     auto fb_addr = tag.framebuffer_addr_lo;
     auto width = tag.framebuffer_width;
     auto height = tag.framebuffer_height;

@@ -5,21 +5,29 @@
 #include <scriptos/std/types.hpp>
 
 /**
- * Multiboot info structure wrapper
+ * Multiboot info structure wrapper.
  */
 class MultibootInfo
 {
 public:
-    multiboot_tag *operator[](u32 type) const;
+    const multiboot_tag *operator[](u32 type) const;
 
+    /**
+     * Iterate over the multiboot info structure. Return early by returning true from the callback.
+     */
     template <typename T>
     void ForEach(T callback) const
     {
-        for (auto tag = (multiboot_tag *)this + 1; tag->type != MULTIBOOT_TAG_TYPE_END; tag = (multiboot_tag *)((uptr)tag + ((tag->size + 7) & ~7)))
+        for (auto tag = reinterpret_cast<const multiboot_tag *>(this) + 1;
+             tag->type != MULTIBOOT_TAG_TYPE_END;
+             tag = reinterpret_cast<const multiboot_tag *>(reinterpret_cast<uptr>(tag) + ((tag->size + 7) & ~7)))
             if (callback(tag))
                 return;
     }
 
+    /**
+     * Utility function to get a wrapped version of the multiboot memory map info structure.
+     */
     MemoryMap GetMMap() const;
 
 private:

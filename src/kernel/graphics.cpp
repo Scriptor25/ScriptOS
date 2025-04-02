@@ -1,10 +1,10 @@
 #include <scriptos/kernel/graphics.hpp>
 
 Color::Color(u32 color)
-    : a((f32)((color >> 24) & 0xff) / 255.f),
-      r((f32)((color >> 16) & 0xff) / 255.f),
-      g((f32)((color >> 8) & 0xff) / 255.f),
-      b((f32)(color & 0xff) / 255.f)
+    : a(static_cast<f32>((color >> 24) & 0xff) / 255.f),
+      r(static_cast<f32>((color >> 16) & 0xff) / 255.f),
+      g(static_cast<f32>((color >> 8) & 0xff) / 255.f),
+      b(static_cast<f32>(color & 0xff) / 255.f)
 {
 }
 
@@ -129,14 +129,14 @@ void Graphics::DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y
     for (usize y = y1; y < y2; ++y)
         for (usize x = x1; x < x2; ++x)
         {
-            auto tx = (f32)(x - x1) / (f32)(x2 - x1);
-            auto ty = (f32)(y - y1) / (f32)(y2 - y1);
+            auto tx = static_cast<f32>(x - x1) / static_cast<f32>(x2 - x1);
+            auto ty = static_cast<f32>(y - y1) / static_cast<f32>(y2 - y1);
 
             auto u = (1 - tx) * u1 + tx * u2;
             auto v = (1 - ty) * v1 + ty * v2;
 
-            auto px = (usize)(u * width);
-            auto py = (usize)(v * height);
+            auto px = static_cast<usize>(u * width);
+            auto py = static_cast<usize>(v * height);
 
             px = px >= width ? width - 1 : px;
             py = py >= height ? height - 1 : py;
@@ -157,11 +157,11 @@ void Graphics::ClearRainbow(usize offset, usize scale)
     for (usize j = 0; j < fb_height; ++j)
         for (usize i = 0; i < fb_width; ++i)
         {
-            auto fr = (f32)(((i + offset) * scale) % fb_width) / (f32)(fb_width - 1);
-            auto fg = (f32)(((j + offset) * scale) % fb_height) / (f32)(fb_height - 1);
+            auto fr = static_cast<f32>(((i + offset) * scale) % fb_width) / static_cast<f32>(fb_width - 1);
+            auto fg = static_cast<f32>(((j + offset) * scale) % fb_height) / static_cast<f32>(fb_height - 1);
 
-            auto ur = (u32)(fr * 255.999f);
-            auto ug = (u32)(fg * 255.999f);
+            auto ur = static_cast<u32>(fr * 255.999f);
+            auto ug = static_cast<u32>(fg * 255.999f);
 
             auto color = (ur & 0xff) << 16 | (ug & 0xff) << 8;
             m_BackBuffer.Write(i, j, color);

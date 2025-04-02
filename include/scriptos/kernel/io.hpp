@@ -21,7 +21,7 @@
  */
 #define LOOP() asm volatile("jmp .")
 /**
- * Halt CPU
+ * Halt CPU execution
  */
 #define HLT() asm volatile("hlt")
 

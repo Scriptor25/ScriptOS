@@ -36,17 +36,44 @@ public:
         usize m_Index;
     };
 
+    /**
+     * Initialize the bitmap with a size (in byte) and a pre-allocated buffer.
+     */
     void Init(usize size, u8 *buffer);
 
+    /**
+     * Get the size (in byte).
+     */
     usize Size() const;
+    /**
+     * Get the underlying buffer.
+     */
     void *Buffer() const;
 
+    /**
+     * Get a bit.
+     */
     bool operator[](usize index) const;
+    /**
+     * Get a bit.
+     */
     bool Get(usize index) const;
+    /**
+     * Set a bit.
+     */
     bool Set(usize index);
+    /**
+     * Clear a bit.
+     */
     bool Clr(usize index);
 
+    /**
+     * Get an iterator from the first bit.
+     */
     Iter begin() const;
+    /**
+     * Get an iterator after the last bit.
+     */
     Iter end() const;
 
 private:

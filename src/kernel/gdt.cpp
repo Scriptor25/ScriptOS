@@ -19,17 +19,17 @@ static TSS tss;
 
 void InitGDT(void *kernel_stack)
 {
-    gdt[0] = {0, 0, 0, 0};                                                                                                                                          // null descriptor
-    gdt[1] = {0, 0xfffff, GDT_Access_Present | GDT_Access_Ring0 | GDT_Access_Code_Segment | GDT_Access_Code_Readable, GDT_Flags_32Bit | GDT_Flags_Granularity_4K};  // kernel code segment
-    gdt[2] = {0, 0xfffff, GDT_Access_Present | GDT_Access_Ring0 | GDT_Access_Data_Segment | GDT_Access_Data_Writeable, GDT_Flags_32Bit | GDT_Flags_Granularity_4K}; // kernel data segment
-    gdt[3] = {0, 0xfffff, GDT_Access_Present | GDT_Access_Ring3 | GDT_Access_Code_Segment | GDT_Access_Code_Readable, GDT_Flags_32Bit | GDT_Flags_Granularity_4K};  // user code segment
-    gdt[4] = {0, 0xfffff, GDT_Access_Present | GDT_Access_Ring3 | GDT_Access_Data_Segment | GDT_Access_Data_Writeable, GDT_Flags_32Bit | GDT_Flags_Granularity_4K}; // user data segment
-    gdt[5] = {(uptr)&tss, sizeof(TSS) - 1, GDT_Access_Present | GDT_Access_Ring0 | GDT_Access_Task_Segment, GDT_Flags_32Bit | GDT_Flags_Granularity_1B};            // task state segment
+    gdt[0] = {0, 0, 0, 0};                                                                                                                                                 // null descriptor
+    gdt[1] = {0, 0xfffff, GDT_Access_Present | GDT_Access_Ring0 | GDT_Access_Code_Segment | GDT_Access_Code_Readable, GDT_Flags_32Bit | GDT_Flags_Granularity_4K};         // kernel code segment
+    gdt[2] = {0, 0xfffff, GDT_Access_Present | GDT_Access_Ring0 | GDT_Access_Data_Segment | GDT_Access_Data_Writeable, GDT_Flags_32Bit | GDT_Flags_Granularity_4K};        // kernel data segment
+    gdt[3] = {0, 0xfffff, GDT_Access_Present | GDT_Access_Ring3 | GDT_Access_Code_Segment | GDT_Access_Code_Readable, GDT_Flags_32Bit | GDT_Flags_Granularity_4K};         // user code segment
+    gdt[4] = {0, 0xfffff, GDT_Access_Present | GDT_Access_Ring3 | GDT_Access_Data_Segment | GDT_Access_Data_Writeable, GDT_Flags_32Bit | GDT_Flags_Granularity_4K};        // user data segment
+    gdt[5] = {reinterpret_cast<uptr>(&tss), sizeof(TSS) - 1, GDT_Access_Present | GDT_Access_Ring0 | GDT_Access_Task_Segment, GDT_Flags_32Bit | GDT_Flags_Granularity_1B}; // task state segment
 
     memset(&tss, 0, sizeof(TSS));
     tss.IOPB = sizeof(TSS);
     tss.SS0 = GDT_DATA_SEGMENT;
-    tss.ESP0 = (uptr)kernel_stack;
+    tss.ESP0 = reinterpret_cast<uptr>(kernel_stack);
 
     GDT_Descriptor desc{sizeof(gdt) - 1, gdt};
     LoadGDT(&desc, GDT_CODE_SEGMENT, GDT_DATA_SEGMENT);
