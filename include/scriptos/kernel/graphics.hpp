@@ -52,6 +52,11 @@ public:
      */
     static Graphics &GetInstance();
 
+    /**
+     * Blend two colors together using a linear interpolation function.
+     */
+    static u32 Blend(u32 src, u32 dst);
+
     void Init(u8 *fb_addr, u8 *bb_addr, u32 width, u32 height, u32 pitch, u8 bpp);
 
     u32 Width() const;
@@ -78,8 +83,6 @@ public:
 
     void SetFGColor(u32 color);
     void SetBGColor(u32 color);
-
-    u32 Blend(u32 src, u32 dst);
 
 private:
     bool m_Dirty;

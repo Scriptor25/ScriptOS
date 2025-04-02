@@ -1,4 +1,5 @@
 #include <scriptos/kernel/graphics.hpp>
+#include <scriptos/std/util.hpp>
 
 Color::Color(u32 color)
     : a(static_cast<f32>((color >> 24) & 0xff) / 255.f),
@@ -47,6 +48,17 @@ Graphics &Graphics::GetInstance()
 {
     static Graphics instance;
     return instance;
+}
+
+u32 Graphics::Blend(u32 src, u32 dst)
+{
+    Color src_color(src);
+    Color dst_color(dst);
+
+    auto src_factor = src_color.a;
+    auto dst_factor = 1.f - src_color.a;
+
+    return src_color * src_factor + dst_color * dst_factor;
 }
 
 void Graphics::Init(u8 *fb_addr, u8 *bb_addr, u32 width, u32 height, u32 pitch, u8 bpp)
@@ -135,11 +147,8 @@ void Graphics::DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y
             auto u = (1 - tx) * u1 + tx * u2;
             auto v = (1 - ty) * v1 + ty * v2;
 
-            auto px = static_cast<usize>(u * width);
-            auto py = static_cast<usize>(v * height);
-
-            px = px >= width ? width - 1 : px;
-            py = py >= height ? height - 1 : py;
+            auto px = static_cast<usize>(u * width) % width;
+            auto py = static_cast<usize>(v * height) % height;
 
             auto color = Blend(data[px + py * width], m_BackBuffer.Read(x, y));
 
@@ -214,15 +223,4 @@ void Graphics::SetFGColor(u32 color)
 void Graphics::SetBGColor(u32 color)
 {
     m_BGColor = color;
-}
-
-u32 Graphics::Blend(u32 src, u32 dst)
-{
-    Color src_color(src);
-    Color dst_color(dst);
-
-    auto src_factor = src_color.a;
-    auto dst_factor = 1.f - src_color.a;
-
-    return src_color * src_factor + dst_color * dst_factor;
 }

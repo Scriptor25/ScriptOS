@@ -151,6 +151,15 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
             };
             graphics.DrawTexture(110, 70, 0.f, 0.f, 210, 170, 1.f, 1.f, 1, 1, data);
         }
+        {
+            u32 data[]{
+                0xffff0000,
+                0xff00ff00,
+                0xff0000ff,
+                0xffffffff,
+            };
+            graphics.DrawTexture(400, 50, 0.f, 0.f, 500, 150, 1.f, 1.f, 2, 2, data);
+        }
     }
 
     // auto user_stack = PageFrameAllocator::GetInstance().RequestPage();
