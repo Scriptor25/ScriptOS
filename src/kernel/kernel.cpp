@@ -17,6 +17,7 @@
 #include <scriptos/std/types.hpp>
 #include <scriptos/std/util.hpp>
 #include <scriptos/stl/string.hpp>
+#include <scriptos/stl/string_view.hpp>
 
 static void setup_memory(const MultibootInfo &info)
 {

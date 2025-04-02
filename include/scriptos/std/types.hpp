@@ -1,24 +1,24 @@
 #pragma once
 
-typedef __INT8_TYPE__ i8;
-typedef __UINT8_TYPE__ u8;
-typedef __INT16_TYPE__ i16;
-typedef __UINT16_TYPE__ u16;
-typedef __INT32_TYPE__ i32;
-typedef __UINT32_TYPE__ u32;
-typedef __INT64_TYPE__ i64;
-typedef __UINT64_TYPE__ u64;
+using i8 = __INT8_TYPE__;
+using u8 = __UINT8_TYPE__;
+using i16 = __INT16_TYPE__;
+using u16 = __UINT16_TYPE__;
+using i32 = __INT32_TYPE__;
+using u32 = __UINT32_TYPE__;
+using i64 = __INT64_TYPE__;
+using u64 = __UINT64_TYPE__;
 
-typedef __INTPTR_TYPE__ iptr;
-typedef __UINTPTR_TYPE__ uptr;
-typedef __PTRDIFF_TYPE__ ptrdiff;
-typedef __SIZE_TYPE__ usize;
+using iptr = __INTPTR_TYPE__;
+using uptr = __UINTPTR_TYPE__;
+using ptrdiff = __PTRDIFF_TYPE__;
+using usize = __SIZE_TYPE__;
 
-typedef float f32;
-typedef double f64;
-typedef long double f128;
+using f32 = float;
+using f64 = double;
+using f128 = long double;
 
-typedef char *str;
-typedef const char *cstr;
-typedef wchar_t *wstr;
-typedef const wchar_t *cwstr;
+using str = char *;
+using cstr = const char *;
+using wstr = wchar_t *;
+using cwstr = const wchar_t *;

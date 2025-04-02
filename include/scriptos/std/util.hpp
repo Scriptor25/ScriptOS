@@ -27,22 +27,59 @@ auto ceil_div(const T &divisor, const U &dividend)
 }
 
 template <typename T, typename U>
+auto min(const T &lhs, const U &rhs)
+{
+    return lhs < rhs ? lhs : rhs;
+}
+
+template <typename T, typename U>
 auto max(const T &lhs, const U &rhs)
 {
     return lhs > rhs ? lhs : rhs;
 }
 
-inline constexpr unsigned long long int operator""_KiB(unsigned long long int value)
+template <typename T, typename U, typename V>
+auto clamp(const T &min, const U &max, const V &x)
 {
-    return value * 1024;
+    return ::max(::min(x, max), min);
 }
 
-inline constexpr unsigned long long int operator""_MiB(unsigned long long int value)
+inline constexpr unsigned long long int operator""_KiB(unsigned long long int bytes)
 {
-    return value * 1024 * 1024;
+    return bytes * 1024;
 }
 
-inline constexpr unsigned long long int operator""_GiB(unsigned long long int value)
+inline constexpr unsigned long long int operator""_MiB(unsigned long long int bytes)
 {
-    return value * 1024 * 1024 * 1024;
+    return bytes * 1024 * 1024;
+}
+
+inline constexpr unsigned long long int operator""_GiB(unsigned long long int bytes)
+{
+    return bytes * 1024 * 1024 * 1024;
+}
+
+inline constexpr unsigned long long int operator""_TiB(unsigned long long int bytes)
+{
+    return bytes * 1024 * 1024 * 1024 * 1024;
+}
+
+inline constexpr unsigned long long int operator""_KB(unsigned long long int bytes)
+{
+    return bytes * 1000;
+}
+
+inline constexpr unsigned long long int operator""_MB(unsigned long long int bytes)
+{
+    return bytes * 1000 * 1000;
+}
+
+inline constexpr unsigned long long int operator""_GB(unsigned long long int bytes)
+{
+    return bytes * 1000 * 1000 * 1000;
+}
+
+inline constexpr unsigned long long int operator""_TB(unsigned long long int bytes)
+{
+    return bytes * 1000 * 1000 * 1000 * 1000;
 }

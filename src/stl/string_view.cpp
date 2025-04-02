@@ -1,29 +1,29 @@
 #include <scriptos/stl/string.hpp>
 #include <scriptos/stl/string_view.hpp>
 
-string::string()
-    : vector()
+string_view::string_view()
+    : view()
 {
 }
 
-string::string(cstr data)
-    : vector(data, strlen(data))
+string_view::string_view(cstr data)
+    : view(data, strlen(data))
 {
 }
 
-string::string(const string_view &data)
-    : vector(data.begin(), data.end())
+string_view::string_view(const string &data)
+    : view(data.begin(), data.end())
 {
 }
 
-string::string(cstr begin, cstr end)
-    : vector(begin, end)
+string_view::string_view(cstr begin, cstr end)
+    : view(begin, end)
 {
 }
 
-vector<string> string::split(char value) const
+vector<string_view> string_view::split(char value) const
 {
-    vector<string> elements;
+    vector<string_view> elements;
     usize beg = 0;
 
     auto count = size();
@@ -41,7 +41,7 @@ vector<string> string::split(char value) const
     return elements;
 }
 
-string string::trim() const
+string_view string_view::trim() const
 {
     auto b = begin();
     for (; b < end() && isspace(*b); ++b)
@@ -51,5 +51,5 @@ string string::trim() const
     for (; e >= begin() && isspace(*e); --e)
         ;
 
-    return string(b, e + 1);
+    return string_view(b, e + 1);
 }

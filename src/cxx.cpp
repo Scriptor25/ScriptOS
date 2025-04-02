@@ -9,7 +9,7 @@ extern "C"
     {
     }
 
-    typedef unsigned uarch_t;
+    using uarch_t = unsigned;
 
     struct atexit_func_entry_t
     {
@@ -129,12 +129,12 @@ namespace __cxxabiv1
 
     extern "C" int __cxa_guard_acquire(__guard *g)
     {
-        return !*(char *)(g);
+        return !*reinterpret_cast<char *>(g);
     }
 
     extern "C" void __cxa_guard_release(__guard *g)
     {
-        *(char *)g = 1;
+        *reinterpret_cast<char *>(g) = 1;
     }
 
     extern "C" void __cxa_guard_abort(__guard *)

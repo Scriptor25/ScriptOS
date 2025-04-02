@@ -78,11 +78,11 @@ enum FLAG
     flag_pad_zero = 16,
 };
 
-typedef struct print_int
+struct print_int_t
 {
     va_list ap;
     int count;
-} print_int_t;
+};
 
 static print_int_t print_int(va_list ap, int flags, int width, int precision, bool is_signed, int base, bool uppercase)
 {
@@ -117,6 +117,12 @@ static print_int_t print_int(va_list ap, int flags, int width, int precision, bo
     {
         switch (base)
         {
+        case 2:
+            if (uppercase)
+                count += print("0B");
+            else
+                count += print("0b");
+            break;
         case 8:
             putchar('0');
             count++;

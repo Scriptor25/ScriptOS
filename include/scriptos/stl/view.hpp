@@ -76,13 +76,13 @@ public:
 
     const T &at(usize index) const
     {
-        assert(index < (usize)(m_End - m_Begin));
+        assert(index < static_cast<usize>(m_End - m_Begin));
         return m_Begin[index];
     }
 
     const T &operator[](usize index) const
     {
-        assert(index < (usize)(m_End - m_Begin));
+        assert(index < static_cast<usize>(m_End - m_Begin));
         return m_Begin[index];
     }
 
@@ -99,7 +99,7 @@ public:
 
     const T *data() const { return m_Begin; }
 
-    usize size() const { return (usize)(m_End - m_Begin); }
+    usize size() const { return static_cast<usize>(m_End - m_Begin); }
 
 private:
     const T *m_Begin;

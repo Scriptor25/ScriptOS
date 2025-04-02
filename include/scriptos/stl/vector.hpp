@@ -62,7 +62,7 @@ public:
     {
         m_Size = other.m_Size;
         m_Reserved = other.m_Reserved;
-        m_Data = (T *)realloc(m_Data, m_Reserved * sizeof(T));
+        m_Data = reinterpret_cast<T *>(realloc(m_Data, m_Reserved * sizeof(T)));
         memcpy(m_Data, other.m_Data, m_Size * sizeof(T));
 
         return *this;
@@ -104,7 +104,7 @@ public:
             {
                 m_Reserved += m_Reserved;
             } while (m_Reserved < m_Size);
-            m_Data = (T *)realloc(m_Data, m_Reserved * sizeof(T));
+            m_Data = reinterpret_cast<T *>(realloc(m_Data, m_Reserved * sizeof(T)));
         }
 
         memcpy(m_Data + start, other.data(), other.size());
@@ -180,8 +180,7 @@ public:
     template <typename... Args>
     T &emplace_back(Args... args)
     {
-        T e(args...);
-        return push_back(e);
+        return push_back(T(args...));
     }
 
     T &push_back(T &&e)
@@ -189,7 +188,7 @@ public:
         if (m_Reserved <= m_Size)
         {
             m_Reserved += m_Reserved;
-            m_Data = (T *)realloc(m_Data, m_Reserved * sizeof(T));
+            m_Data = reinterpret_cast<T *>(realloc(m_Data, m_Reserved * sizeof(T)));
         }
         return m_Data[m_Size++] = e;
     }
@@ -199,7 +198,7 @@ public:
         if (m_Reserved <= m_Size)
         {
             m_Reserved += m_Reserved;
-            m_Data = (T *)realloc(m_Data, m_Reserved * sizeof(T));
+            m_Data = reinterpret_cast<T *>(realloc(m_Data, m_Reserved * sizeof(T)));
         }
         return m_Data[m_Size++] = e;
     }
