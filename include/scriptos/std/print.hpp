@@ -4,6 +4,7 @@
 #include <scriptos/std/vararg.hpp>
 
 void putchar(int c);
+
 int print(cstr string);
 int wprint(cwstr string);
 int printn(cstr string, usize count);

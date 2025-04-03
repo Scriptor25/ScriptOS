@@ -66,12 +66,12 @@ u32 Graphics::Blend(u32 src, u32 dst)
     return src_color * src_factor + dst_color * dst_factor;
 }
 
-void Graphics::Init(u8 *fb_addr, u8 *bb_addr, u32 width, u32 height, u32 pitch, u8 bpp)
+void Graphics::Initialize(u8 *fb_addr, u8 *bb_addr, u32 width, u32 height, u32 pitch, u8 bpp)
 {
     m_Dirty = false;
 
-    m_FrontBuffer.Init(fb_addr, width, height, pitch, bpp);
-    m_BackBuffer.Init(bb_addr, width, height, pitch, bpp);
+    m_FrontBuffer.Initialize(fb_addr, width, height, pitch, bpp);
+    m_BackBuffer.Initialize(bb_addr, width, height, pitch, bpp);
 }
 
 u32 Graphics::Width() const
@@ -117,7 +117,7 @@ void Graphics::DrawPixel(usize x, usize y, u32 color)
 
 void Graphics::DrawChar(int c, usize x, usize y)
 {
-    auto bmp = Font_GetChar(c);
+    auto bmp = Font::GetChar(c);
     if (!bmp)
         return;
 
@@ -127,7 +127,7 @@ void Graphics::DrawChar(int c, usize x, usize y)
         for (u8 i = 0; i < 8; ++i)
         {
             auto color = m_BGColor;
-            if (Font_GetBit(bmp, i, j))
+            if (Font::GetBit(bmp, i, j))
                 color = m_FGColor;
             buffer[j][i] = color;
         }

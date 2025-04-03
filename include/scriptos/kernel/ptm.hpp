@@ -17,7 +17,7 @@ public:
     /**
      * Initialize this page table manager with a page directory.
      */
-    void Init(PageDirectoryEntry *page_directory);
+    void Initialize(PageDirectoryEntry *page_directory);
 
     /**
      * Map a single physical page to a virtual address for either user or kernel mode access.
@@ -36,3 +36,8 @@ public:
 private:
     PageDirectoryEntry *m_PageDirectory;
 };
+
+/**
+ * Invalidate a single page. Use this instead of updating the whole IDT to save some performance
+ */
+void InvalidatePage(void *address);

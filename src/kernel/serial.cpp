@@ -1,7 +1,7 @@
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/serial.hpp>
 
-int Serial_Init()
+int Serial::Initialize()
 {
     out<u8>(SERIAL_PORT_COM1 + 1, 0x00);
     out<u8>(SERIAL_PORT_COM1 + 3, 0x80);
@@ -20,44 +20,44 @@ int Serial_Init()
     return 0;
 }
 
-int Serial_Received()
+int Serial::Received()
 {
     return in<u8>(SERIAL_PORT_COM1 + 5) & 1;
 }
 
-char Serial_Read()
+char Serial::Read()
 {
-    while (Serial_Received() == 0)
+    while (Received() == 0)
         ;
 
     return in<u8>(SERIAL_PORT_COM1);
 }
 
-int Serial_Transmit_Empty()
+int Serial::Transmit_Empty()
 {
     return in<u8>(SERIAL_PORT_COM1 + 5) & 0x20;
 }
 
-void Serial_Write(char a)
+void Serial::Write(char a)
 {
-    while (Serial_Transmit_Empty() == 0)
+    while (Transmit_Empty() == 0)
         ;
 
     out<u8>(SERIAL_PORT_COM1, a);
 }
 
-void Serial_Write(cstr string)
+void Serial::Write(cstr string)
 {
     if (!string)
-        return Serial_Write("(null)");
+        return Write("(null)");
     for (auto p = (str)string; *p; ++p)
-        Serial_Write(*p);
+        Write(*p);
 }
 
-void Serial_Write(cstr string, usize count)
+void Serial::Write(cstr string, usize count)
 {
     if (!string)
-        return Serial_Write("(null)");
+        return Write("(null)");
     for (usize i = 0; i < count && string[i]; ++i)
-        Serial_Write(string[i]);
+        Write(string[i]);
 }

@@ -11,7 +11,7 @@ PageFrameAllocator &PageFrameAllocator::GetInstance()
     return instance;
 }
 
-void PageFrameAllocator::Init(const MemoryMap &mmap)
+void PageFrameAllocator::Initialize(const MemoryMap &mmap)
 {
     auto memory_size = mmap.Size();
     auto bitmap_size = ceil_div(memory_size, PAGE_SIZE * 8);
@@ -95,7 +95,7 @@ usize PageFrameAllocator::ReservedMemory() const { return m_ReservedMemory; }
 
 void PageFrameAllocator::InitBitmap(usize size, u8 *buffer)
 {
-    m_PageMap.Init(size, buffer);
+    m_PageMap.Initialize(size, buffer);
     memset(buffer, 0, size);
 }
 

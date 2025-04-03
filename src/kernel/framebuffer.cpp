@@ -10,7 +10,7 @@ void Framebuffer::Blit(Framebuffer &dst, const Framebuffer &src)
     memcpy(dst.m_Base, src.m_Base, dst.m_Pitch * dst.m_Height);
 }
 
-void Framebuffer::Init(u8 *base, u32 width, u32 height, u32 pitch, u8 bpp)
+void Framebuffer::Initialize(u8 *base, u32 width, u32 height, u32 pitch, u8 bpp)
 {
     m_Base = base;
     m_Width = width;

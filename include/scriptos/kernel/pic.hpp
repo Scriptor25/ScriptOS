@@ -31,23 +31,26 @@
 #define PIC_IRQ14 (PIC2_OFFSET + 6)
 #define PIC_IRQ15 (PIC2_OFFSET + 7)
 
-/**
- * Remap the interrupt offsets for the PIC.
- */
-void PIC_Remap(u8 offset_1, u8 offset_2);
-/**
- * Tell the PIC that the interrupt was handled.
- */
-void PIC_Send_EOI(u8 irq);
-/**
- * Disable the PIC by masking all data bits.
- */
-void PIC_Disable();
-/**
- * Enable an interrupt in the PIC by clearing a data bit.
- */
-void PIC_Clr_Mask(u8 irq);
-/**
- * Disable an interrupt in the PIC by setting a data bit.
- */
-void PIC_Set_Mask(u8 irq);
+namespace PIC
+{
+    /**
+     * Remap the interrupt offsets for the PIC.
+     */
+    void Remap(u8 offset_1, u8 offset_2);
+    /**
+     * Tell the PIC that the interrupt was handled.
+     */
+    void Send_EOI(u8 irq);
+    /**
+     * Disable the PIC by masking all data bits.
+     */
+    void Disable();
+    /**
+     * Enable an interrupt in the PIC by clearing a data bit.
+     */
+    void Clr_Mask(u8 irq);
+    /**
+     * Disable an interrupt in the PIC by setting a data bit.
+     */
+    void Set_Mask(u8 irq);
+}

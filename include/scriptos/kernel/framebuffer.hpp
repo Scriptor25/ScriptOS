@@ -13,7 +13,7 @@ public:
     /**
      * Initialize this framebuffer.
      */
-    void Init(u8 *base, u32 width, u32 height, u32 pitch, u8 bpp);
+    void Initialize(u8 *base, u32 width, u32 height, u32 pitch, u8 bpp);
 
     /**
      * Write a color value at a row-column addressed pixel.

@@ -39,7 +39,7 @@ public:
     /**
      * Initialize the bitmap with a size (in byte) and a pre-allocated buffer.
      */
-    void Init(usize size, u8 *buffer);
+    void Initialize(usize size, u8 *buffer);
 
     /**
      * Get the size (in byte).

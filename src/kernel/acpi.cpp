@@ -2,7 +2,7 @@
 #include <scriptos/std/memory.hpp>
 #include <scriptos/std/print.hpp>
 
-bool RSDP::Validate()
+bool ACPI::RSDP::Validate()
 {
     u8 sum = 0;
 
@@ -12,7 +12,7 @@ bool RSDP::Validate()
     return sum == 0;
 }
 
-bool XSDP::Validate()
+bool ACPI::XSDP::Validate()
 {
     u8 sum = 0;
 
@@ -22,7 +22,7 @@ bool XSDP::Validate()
     return sum == 0;
 }
 
-bool SDT_Header::Validate()
+bool ACPI::SDT_Header::Validate()
 {
     u8 sum = 0;
 
@@ -32,7 +32,7 @@ bool SDT_Header::Validate()
     return sum == 0;
 }
 
-SDT_Header *RSDT::Find(cstr signature)
+ACPI::SDT_Header *ACPI::RSDT::Find(cstr signature)
 {
     usize num_entries = (Header.Length - sizeof(SDT_Header)) / 4;
 

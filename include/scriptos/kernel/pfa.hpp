@@ -17,7 +17,7 @@ public:
     /**
      * Initialize this page frame allocator with a memory map.
      */
-    void Init(const MemoryMap &mmap);
+    void Initialize(const MemoryMap &mmap);
 
     /**
      * Mark a single addressed page as free.

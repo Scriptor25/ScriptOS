@@ -31,7 +31,7 @@ bool Bitmap::Iter::operator==(const Iter &other) const { return other.m_Index ==
 
 bool Bitmap::Iter::operator!=(const Iter &other) const { return other.m_Index != m_Index; }
 
-void Bitmap::Init(usize size, u8 *buffer)
+void Bitmap::Initialize(usize size, u8 *buffer)
 {
     m_Size = size;
     m_Buffer = buffer;

@@ -1,3 +1,5 @@
+#include <scriptos/kernel/cr.hpp>
+#include <scriptos/kernel/idt.hpp>
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/pfa.hpp>
 #include <scriptos/kernel/ptm.hpp>
@@ -21,7 +23,7 @@ PageTableManager &PageTableManager::GetKernelInstance()
     return instance;
 }
 
-void PageTableManager::Init(PageDirectoryEntry *page_directory)
+void PageTableManager::Initialize(PageDirectoryEntry *page_directory)
 {
     m_PageDirectory = page_directory;
 }
@@ -52,7 +54,7 @@ void PageTableManager::MapPage(void *virtual_address, void *physical_address, bo
     pte.ReadWrite = true;
     pte.Address_31_12 = reinterpret_cast<uptr>(physical_address) >> 12;
 
-    invlpg(virtual_address);
+    InvalidatePage(virtual_address);
 }
 
 void PageTableManager::MapPages(void *virtual_address, void *physical_address, usize count, bool user)
@@ -64,10 +66,14 @@ void PageTableManager::MapPages(void *virtual_address, void *physical_address, u
 
 void PageTableManager::SetupPaging()
 {
-    asm volatile("mov %0, %%cr3" : : "r"(m_PageDirectory));
+    CR::CR3::W(reinterpret_cast<uptr>(m_PageDirectory));
+    auto cr0 = CR::CR0::R();
+    cr0.PE = true;
+    cr0.PG = true;
+    CR::CR0::W(cr0);
+}
 
-    u32 cr0;
-    asm volatile("mov %%cr0, %0" : "=r"(cr0));
-    cr0 |= 0x80000001;
-    asm volatile("mov %0, %%cr0" : : "r"(cr0));
+void InvalidatePage(void *address)
+{
+    asm volatile("invlpg (%0)" ::"r"(address) : "memory");
 }

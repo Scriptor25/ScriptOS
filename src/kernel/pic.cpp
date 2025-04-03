@@ -1,7 +1,7 @@
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/pic.hpp>
 
-void PIC_Remap(u8 offset_1, u8 offset_2)
+void PIC::Remap(u8 offset_1, u8 offset_2)
 {
     auto a1 = in<u8>(PIC1_DATA);
     io_wait();
@@ -32,20 +32,20 @@ void PIC_Remap(u8 offset_1, u8 offset_2)
     out<u8>(PIC2_DATA, a2);
 }
 
-void PIC_Send_EOI(u8 irq)
+void PIC::Send_EOI(u8 irq)
 {
     if (irq >= 8)
         out<u8>(PIC2_COMMAND, PIC_EOI);
     out<u8>(PIC1_COMMAND, PIC_EOI);
 }
 
-void PIC_Disable()
+void PIC::Disable()
 {
     out<u8>(PIC1_DATA, 0b11111111);
     out<u8>(PIC2_DATA, 0b11111111);
 }
 
-void PIC_Clr_Mask(u8 irq)
+void PIC::Clr_Mask(u8 irq)
 {
     u16 port;
     if (irq < 8)
@@ -59,7 +59,7 @@ void PIC_Clr_Mask(u8 irq)
     out<u8>(port, in<u8>(port) & ~(1 << irq));
 }
 
-void PIC_Set_Mask(u8 irq)
+void PIC::Set_Mask(u8 irq)
 {
     u16 port;
     if (irq < 8)

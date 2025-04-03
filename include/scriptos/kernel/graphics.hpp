@@ -58,7 +58,7 @@ public:
      */
     static u32 Blend(u32 src, u32 dst);
 
-    void Init(u8 *fb_addr, u8 *bb_addr, u32 width, u32 height, u32 pitch, u8 bpp);
+    void Initialize(u8 *fb_addr, u8 *bb_addr, u32 width, u32 height, u32 pitch, u8 bpp);
 
     u32 Width() const;
     u32 Height() const;

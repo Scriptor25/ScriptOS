@@ -160,7 +160,7 @@ INTER void PIT_Handler(interrupt_frame *)
     if (counter % 20) // 50 Hz
         Graphics::GetInstance().SwapBuffers();
 
-    PIC_Send_EOI(0);
+    PIC::Send_EOI(0);
 }
 
 INTER void SYS_Handler(interrupt_frame *frame)

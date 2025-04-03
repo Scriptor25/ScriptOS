@@ -26,11 +26,11 @@
 #define HLT() asm volatile("hlt")
 
 /**
- * Disable interrupts
+ * Disable maskable interrupts
  */
 #define CLI() asm volatile("cli")
 /**
- * Enable interrupts
+ * Enable maskable interrupts
  */
 #define STI() asm volatile("sti")
 
@@ -58,12 +58,3 @@ T in(u16 port)
  * Write something to the bus to wait one cycle
  */
 void io_wait();
-
-/**
- * Load an IDT from a descriptor
- */
-void lidt(const struct IDT_Descriptor &idt);
-/**
- * Invalidate a single page. Use this instead of updating the whole IDT to save some performance
- */
-void invlpg(void *address);

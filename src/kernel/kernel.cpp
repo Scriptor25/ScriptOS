@@ -26,10 +26,10 @@ static void setup_memory(const MultibootInfo &info)
 
     auto mmap = info.GetMMap();
 
-    pfa.Init(mmap);
+    pfa.Initialize(mmap);
     pfa.LockPages(KERNEL_START, ceil_div(KERNEL_SIZE, PAGE_SIZE));
 
-    ptm.Init(reinterpret_cast<PageDirectoryEntry *>(pfa.RequestEmptyPage()));
+    ptm.Initialize(reinterpret_cast<PageDirectoryEntry *>(pfa.RequestEmptyPage()));
     ptm.MapPages(nullptr, nullptr, ceil_div(mmap.Size(), PAGE_SIZE));
     ptm.SetupPaging();
 }
@@ -52,7 +52,7 @@ static void setup_graphics(const MultibootInfo &info)
     ptm.MapPages(reinterpret_cast<void *>(fb_addr), reinterpret_cast<void *>(fb_addr), page_count);
 
     auto bb_addr = malloc(pitch * height);
-    graphics.Init(reinterpret_cast<u8 *>(fb_addr), reinterpret_cast<u8 *>(bb_addr), width, height, pitch, bpp);
+    graphics.Initialize(reinterpret_cast<u8 *>(fb_addr), reinterpret_cast<u8 *>(bb_addr), width, height, pitch, bpp);
 
     graphics.SetBGColor(0xff121212);
     graphics.SetFGColor(0xfffefefe);
@@ -117,19 +117,19 @@ static void serial_exec(const string &cmd)
         Panic("%.*s", message.size(), message.data());
     }
 
-    Serial_Write("undefined command ");
-    Serial_Write('\'');
-    Serial_Write(command.data(), command.size());
-    Serial_Write('\'');
+    Serial::Write("undefined command ");
+    Serial::Write('\'');
+    Serial::Write(command.data(), command.size());
+    Serial::Write('\'');
     if (!args.empty())
-        Serial_Write(", args");
+        Serial::Write(", args");
     for (auto &arg : args)
     {
-        Serial_Write(" '");
-        Serial_Write(arg.data(), arg.size());
-        Serial_Write('\'');
+        Serial::Write(" '");
+        Serial::Write(arg.data(), arg.size());
+        Serial::Write('\'');
     }
-    Serial_Write("\r\n");
+    Serial::Write("\r\n");
 }
 
 extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
@@ -146,14 +146,14 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     void *kernel_stack;
     asm volatile("mov %%esp, %0" : "=g"(kernel_stack));
 
-    InitGDT(kernel_stack);
-    InitIDT();
+    GDT::Initialize(kernel_stack);
+    IDT::Initialize();
 
     CLI();
-    PIC_Remap(PIC1_OFFSET, PIC2_OFFSET);
-    PIC_Disable();
-    PIC_Clr_Mask(0);
-    PIT_Write_C0_w(1193); // 1000Hz
+    PIC::Remap(PIC1_OFFSET, PIC2_OFFSET);
+    PIC::Disable();
+    PIC::Clr_Mask(0);
+    PIT::Write_C0_w(1193); // 1000Hz
     STI();
 
     /**
@@ -193,38 +193,38 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 
     setup_user();
 
-    auto error = Serial_Init();
+    auto error = Serial::Initialize();
     if (error)
         LOOP();
 
-    Serial_Write("Hello Serial Terminal!\r\n");
-    Serial_Write("> ");
+    Serial::Write("Hello Serial Terminal!\r\n");
+    Serial::Write("> ");
 
     string buffer;
     while (true)
     {
-        auto c = Serial_Read();
+        auto c = Serial::Read();
         switch (c)
         {
         case 0x08:
             if (buffer.empty())
                 break;
             buffer.pop_back();
-            Serial_Write(0x08);
-            Serial_Write(' ');
-            Serial_Write(0x08);
+            Serial::Write(0x08);
+            Serial::Write(' ');
+            Serial::Write(0x08);
             break;
         case 0x0d:
-            Serial_Write("\r\n");
+            Serial::Write("\r\n");
             serial_exec(buffer);
             buffer.clear();
-            Serial_Write("> ");
+            Serial::Write("> ");
             break;
         default:
             if (c >= 0x20)
             {
                 buffer.push_back(c);
-                Serial_Write(c);
+                Serial::Write(c);
             }
             break;
         }
