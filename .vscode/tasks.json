@@ -13,6 +13,15 @@
             }
         },
         {
+            "label": "Debug",
+            "type": "shell",
+            "command": "make debug",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
             "label": "Build",
             "type": "shell",
             "command": "make build",

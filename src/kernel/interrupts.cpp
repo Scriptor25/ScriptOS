@@ -168,6 +168,8 @@ INTER void PIT_Handler(interrupt_frame *)
     PIC::Send_EOI(0);
 }
 
+#define RET(X) asm volatile("mov %0, %%eax" : : "g"(X))
+
 INTER void SYS_Handler(interrupt_frame *frame)
 {
     auto ap = reinterpret_cast<va_list>(frame->ESP);
@@ -176,37 +178,47 @@ INTER void SYS_Handler(interrupt_frame *frame)
     switch (id)
     {
     case 0b10000:
-        print(va_arg(ap, cstr));
+    {
+        auto result = print(va_arg(ap, cstr));
+        RET(result);
         break;
+    }
     case 0b10001:
-        wprint(va_arg(ap, cwstr));
+    {
+        auto result = wprint(va_arg(ap, cwstr));
+        RET(result);
         break;
+    }
     case 0b10010:
     {
         auto string = va_arg(ap, cstr);
         auto count = va_arg(ap, usize);
-        printn(string, count);
+        auto result = printn(string, count);
+        RET(result);
         break;
     }
     case 0b10011:
     {
         auto string = va_arg(ap, cwstr);
         auto count = va_arg(ap, usize);
-        wprintn(string, count);
+        auto result = wprintn(string, count);
+        RET(result);
         break;
     }
     case 0b10100:
     {
         auto string = va_arg(ap, cstr);
         auto args = va_arg(ap, va_list);
-        vprintf(string, args);
+        auto result = vprintf(string, args);
+        RET(result);
         break;
     }
     case 0b10101:
     {
         auto string = va_arg(ap, cwstr);
         auto args = va_arg(ap, va_list);
-        wvprintf(string, args);
+        auto result = wvprintf(string, args);
+        RET(result);
         break;
     }
 
