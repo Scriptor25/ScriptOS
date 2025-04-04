@@ -61,29 +61,27 @@ static void setup_graphics(const MultibootInfo &info)
     graphics.Clear();
 }
 
-/**
- * - request a free page as user stack space and map it to some "anonymous" virtual address
- * - map the text, rodata, data and bss sections to be accessible by the user mode
- * - jump to the user mode entry point
- */
+static void __attribute__((aligned(PAGE_SIZE))) user_main()
+{
+    LOOP();
+}
+
 static void setup_user()
 {
-    auto user_stack = PageFrameAllocator::GetInstance().RequestPage();
-    PageTableManager::GetKernelInstance().MapPage(reinterpret_cast<void *>(0xC0000000), user_stack, true);
+    auto &ptm = PageTableManager::GetKernelInstance();
 
-    auto text_page_count = ceil_div(USER_TEXT_SIZE, PAGE_SIZE);
-    PageTableManager::GetKernelInstance().MapPages(USER_TEXT_START, USER_TEXT_START, text_page_count, true);
+    auto stack = PageFrameAllocator::GetInstance().RequestPage();
+    auto main = reinterpret_cast<void *>(::user_main);
 
-    auto rodata_page_count = ceil_div(USER_RODATA_SIZE, PAGE_SIZE);
-    PageTableManager::GetKernelInstance().MapPages(USER_RODATA_START, USER_RODATA_START, rodata_page_count, true);
+    auto mapped_stack = reinterpret_cast<void *>(0xE0000000);
+    auto mapped_main = reinterpret_cast<void *>(0xF0000000);
 
-    auto data_page_count = ceil_div(USER_DATA_SIZE, PAGE_SIZE);
-    PageTableManager::GetKernelInstance().MapPages(USER_DATA_START, USER_DATA_START, data_page_count, true);
+    ptm.MapPage(mapped_stack, stack, true);
+    ptm.MapPage(mapped_main, main, true);
 
-    auto bss_page_count = ceil_div(USER_BSS_SIZE, PAGE_SIZE);
-    PageTableManager::GetKernelInstance().MapPages(USER_BSS_START, USER_BSS_START, bss_page_count, true);
+    // TODO: load user code into memory and map the used memory regions to be accessible by user mode
 
-    jump_user_main(reinterpret_cast<void *>(0xC0000000 + PAGE_SIZE));
+    jump_user(reinterpret_cast<void *>(reinterpret_cast<uptr>(mapped_stack) + PAGE_SIZE), mapped_main);
 }
 
 static void serial_exec(const string &cmd)

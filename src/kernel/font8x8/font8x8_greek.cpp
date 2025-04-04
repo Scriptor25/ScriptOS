@@ -1,4 +1,4 @@
-#include <scriptos/font/font8x8.hpp>
+#include <scriptos/kernel/font8x8.hpp>
 
 u8 font8x8::greek[58][8] = {
     {0x2D, 0x00, 0x0C, 0x0C, 0x0C, 0x2C, 0x18, 0x00}, // U+0390 (iota with tonos and diaeresis)

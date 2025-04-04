@@ -15,20 +15,27 @@ BIN_DIR = bin
 
 INCLUDE = -I include
 
-OSNAME = scriptos
-KERNEL_BIN = $(BIN_DIR)/kernel.bin
+KERNEL_SRC_DIR = $(SRC_DIR)/kernel
+KERNEL_BIN = $(BIN_DIR)/kernel.elf
 KERNEL_SYM = $(BIN_DIR)/kernel.sym
+KERNEL_ASM_SRC = $(call rwildcard,$(KERNEL_SRC_DIR),*.s)
+KERNEL_CPP_SRC = $(call rwildcard,$(KERNEL_SRC_DIR),*.cpp)
+KERNEL_ASM_OBJ = $(patsubst $(SRC_DIR)/%.s,$(BIN_DIR)/%.s.o,$(KERNEL_ASM_SRC))
+KERNEL_CPP_OBJ = $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.cpp.o,$(KERNEL_CPP_SRC))
+KERNEL_OBJ = $(KERNEL_ASM_OBJ) $(KERNEL_CPP_OBJ)
+
+USER_SRC_DIR = $(SRC_DIR)/user
+USER_BIN = $(BIN_DIR)/user.elf
+USER_ASM_SRC = $(call rwildcard,$(USER_SRC_DIR),*.s)
+USER_CPP_SRC = $(call rwildcard,$(USER_SRC_DIR),*.cpp)
+USER_ASM_OBJ = $(patsubst $(SRC_DIR)/%.s,$(BIN_DIR)/%.s.o,$(USER_ASM_SRC))
+USER_CPP_OBJ = $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.cpp.o,$(USER_CPP_SRC))
+USER_OBJ = $(USER_ASM_OBJ) $(USER_CPP_OBJ)
+
+OSNAME = scriptos
 
 ISO_DIR = $(BIN_DIR)/iso
 ISO = $(BIN_DIR)/$(OSNAME).iso
-
-ASM_SRC = $(call rwildcard,$(SRC_DIR),*.s)
-CPP_SRC = $(call rwildcard,$(SRC_DIR),*.cpp)
-
-ASM_OBJ = $(patsubst $(SRC_DIR)/%.s,$(BIN_DIR)/%.s.o,$(ASM_SRC))
-CPP_OBJ = $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.cpp.o,$(CPP_SRC))
-
-OBJS = $(ASM_OBJ) $(CPP_OBJ)
 
 .PHONY: all clean build launch debug
 
@@ -61,14 +68,17 @@ $(BIN_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(@D)
 	$(CC) $(CFLAGS) -o $@ $(INCLUDE) -c $<
 
-$(KERNEL_BIN): $(SRC_DIR)/linker.ld $(OBJS)
+$(KERNEL_BIN): $(KERNEL_SRC_DIR)/linker.ld $(KERNEL_OBJ)
 	$(CC) $(LDFLAGS) -o $@ -T $^
 	objcopy --only-keep-debug $(KERNEL_BIN) $(KERNEL_SYM)
 	objcopy --strip-debug $(KERNEL_BIN)
 	grub-file --is-x86-multiboot2 $(KERNEL_BIN)
 
-$(ISO): $(KERNEL_BIN) $(SRC_DIR)/grub.cfg
+$(USER_BIN): $(USER_SRC_DIR)/linker.ld $(USER_OBJ)
+	$(CC) $(LDFLAGS) -o $@ -T $^
+
+$(ISO): $(KERNEL_BIN) $(KERNEL_SRC_DIR)/grub.cfg
 	mkdir -p $(ISO_DIR)/boot/grub
-	cp $(KERNEL_BIN) $(ISO_DIR)/boot/kernel.bin
-	cp $(SRC_DIR)/grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
+	cp $(KERNEL_BIN) $(ISO_DIR)/boot/kernel.elf
+	cp $(KERNEL_SRC_DIR)/grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
 	grub-mkrescue -o $(ISO) $(ISO_DIR)

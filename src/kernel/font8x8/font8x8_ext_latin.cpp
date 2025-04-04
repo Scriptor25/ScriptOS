@@ -1,4 +1,4 @@
-#include <scriptos/font/font8x8.hpp>
+#include <scriptos/kernel/font8x8.hpp>
 
 u8 font8x8::ext_latin[96][8] = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // U+00A0 (no break space)

@@ -1,4 +1,4 @@
-#include <scriptos/font/font8x8.hpp>
+#include <scriptos/kernel/font8x8.hpp>
 
 u8 font8x8::box[128][8] = {
     {0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00}, // U+2500 (thin horizontal)

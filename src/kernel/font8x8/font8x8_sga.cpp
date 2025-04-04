@@ -1,4 +1,4 @@
-#include <scriptos/font/font8x8.hpp>
+#include <scriptos/kernel/font8x8.hpp>
 
 u8 font8x8::sga[26][8] = {
     {0x00, 0x00, 0x38, 0x66, 0x06, 0x06, 0x07, 0x00}, // U+E541 (SGA A)

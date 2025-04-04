@@ -1,7 +1,7 @@
 .section .text
-.global jump_user_main
-.type jump_user_main, @function
-jump_user_main:
+.global jump_user
+.type jump_user, @function
+jump_user:
     /* setup stack frame */
     push %ebp
     mov %esp, %ebp
@@ -17,29 +17,14 @@ jump_user_main:
     mov %ax, %fs
     mov %ax, %gs
 
+    /* load arguments into scratch registers */
+    mov 0x8(%ebp), %eax /* user stack address */
+    mov 0xC(%ebp), %ecx /* user main address */
+
     /* jump to user code segment */
-    mov 0x8(%ebp), %eax
     push $0x23 /* <data segment> | 3 */
     push %eax
     pushf
     push $0x1b /* <code segment> | 3 */
-    push $user_main
+    push %ecx
     iret
-
-.section .user_text
-.global syscall
-.type syscall, @function
-syscall:
-    /* setup stack frame */
-    push %ebp
-    mov %esp, %ebp
-
-    /* interrupt for syscall */
-    add $0x8, %esp
-    int $0x80
-    sub $0x8, %esp
-
-    /* clean up stack frame */
-    mov %ebp, %esp
-    pop %ebp
-    ret

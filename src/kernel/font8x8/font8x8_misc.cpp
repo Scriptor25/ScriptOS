@@ -1,4 +1,4 @@
-#include <scriptos/font/font8x8.hpp>
+#include <scriptos/kernel/font8x8.hpp>
 
 u8 font8x8::misc[10][8] = {
     {0x1F, 0x33, 0x33, 0x5F, 0x63, 0xF3, 0x63, 0xE3}, // U+20A7 (Spanish Pesetas/Pt)
