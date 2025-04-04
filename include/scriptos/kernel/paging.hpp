@@ -26,13 +26,13 @@ struct PageDirectoryEntry_4MiB
     /** global bit */
     bool Global : 1;
     /** reserved */
-    u8 reserved1 : 3;
+    u8 : 3;
     /** page attribute bit */
     bool PageAttribute : 1;
     /** address [39:32] */
     u32 Address_39_32 : 8;
     /** reserved */
-    bool reserved2 : 1;
+    u8 : 1;
     /** address [31:22] */
     u32 Address_31_22 : 10;
 };
@@ -54,11 +54,11 @@ union PageDirectoryEntry
         /** accessed bit */
         bool Accessed : 1;
         /** reserved */
-        u8 reserved1 : 1;
+        u8 : 1;
         /** page size bit (= 0) */
         bool PageSize : 1;
         /** reserved */
-        u8 reserved2 : 4;
+        u8 : 4;
         /** address [31:12] */
         u32 Address_31_12 : 20;
     };
@@ -89,7 +89,7 @@ union PageTableEntry
         /** global bit */
         bool Global : 1;
         /** reserved */
-        u8 reserved1 : 3;
+        u8 : 3;
         /** address [31:12] */
         u32 Address_31_12 : 20;
     };

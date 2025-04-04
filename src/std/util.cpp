@@ -68,7 +68,7 @@ int uitoa(str buf, unsigned value, unsigned base, bool upper)
 
     do
     {
-        unsigned int rem = value % base;
+        auto rem = value % base;
         rev[len++] = ((rem < 10) ? (rem + 0x30) : (rem + (upper ? 'A' : 'a') - 10));
         value /= base;
     } while (value);

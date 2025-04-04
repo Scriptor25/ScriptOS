@@ -34,11 +34,11 @@ static void init_heap(usize size = 0x100000 /* default 1MiB heap */)
     auto &pfa = PageFrameAllocator::GetInstance();
     auto &ptm = PageTableManager::GetKernelInstance();
 
-    heap_root = (heap_header *)pfa.RequestPage();
+    heap_root = reinterpret_cast<heap_header *>(pfa.RequestPage());
     for (usize i = PAGE_SIZE; i < size; i += PAGE_SIZE)
     {
         auto address = pfa.RequestPage();
-        ptm.MapPage((void *)((uptr)heap_root + i), address);
+        ptm.MapPage(reinterpret_cast<void *>(reinterpret_cast<uptr>(heap_root) + i), address);
     }
 
     heap_root->free = true;
@@ -57,7 +57,7 @@ static heap_header *expand_heap(usize size)
     for (usize i = aligned_heap_size; i < total_size; i += PAGE_SIZE)
     {
         auto address = pfa.RequestPage();
-        ptm.MapPage((void *)((uptr)heap_root + i), address);
+        ptm.MapPage(reinterpret_cast<void *>(reinterpret_cast<uptr>(heap_root) + i), address);
     }
 
     auto ptr = heap_end();
@@ -65,7 +65,7 @@ static heap_header *expand_heap(usize size)
         ptr->length = ptr->length + size;
     else
     {
-        auto new_ptr = (heap_header *)((uptr)(ptr + 1) + ptr->length);
+        auto new_ptr = reinterpret_cast<heap_header *>(reinterpret_cast<uptr>(ptr + 1) + ptr->length);
 
         new_ptr->free = true;
         new_ptr->length = size - sizeof(heap_header);
@@ -98,7 +98,7 @@ void *malloc(usize count)
         return ptr + 1;
     }
 
-    auto split = (heap_header *)((uptr)(ptr + 1) + count);
+    auto split = reinterpret_cast<heap_header *>(reinterpret_cast<uptr>(ptr + 1) + count);
     split->free = true;
     split->length = ptr->length - sizeof(heap_header) - count;
     split->prev = ptr;
@@ -118,7 +118,7 @@ void free(void *address)
     if (!address)
         return;
 
-    auto ptr = (heap_header *)address - 1;
+    auto ptr = reinterpret_cast<heap_header *>(address) - 1;
     ptr->free = true;
 
     if (ptr->prev && ptr->prev->free)
@@ -151,7 +151,7 @@ void *realloc(void *address, usize count)
     if (!address)
         return new_address;
 
-    auto ptr = (heap_header *)address - 1;
+    auto ptr = reinterpret_cast<heap_header *>(address) - 1;
     if (new_address)
         memcpy(new_address, address, ptr->length);
     free(address);

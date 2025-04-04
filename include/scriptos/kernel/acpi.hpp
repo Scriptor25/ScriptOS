@@ -35,7 +35,8 @@ namespace ACPI
         u32 XSDTAddressLo;
         u32 XSDTAddressHi;
         u8 ExtendedChecksum;
-        u8 reserved[3];
+
+        u8 _1[3];
     } __attribute__((packed));
 
     struct SDT_Header
@@ -90,7 +91,7 @@ namespace ACPI
         u32 FirmwareCtrl;
         u32 Dsdt;
 
-        u8 reserved1;
+        u8 _1;
 
         u8 PreferredPowerManagementProfile;
         u16 SCI_Interrupt;
@@ -127,13 +128,13 @@ namespace ACPI
 
         u16 BootArchitectureFlags;
 
-        u8 reserved2;
+        u8 _2;
         u32 Flags;
 
         GenericAddressStructure ResetReg;
 
         u8 ResetValue;
-        u8 reserved3[3];
+        u8 _3[3];
 
         u64 X_FirmwareControl;
         u64 X_Dsdt;

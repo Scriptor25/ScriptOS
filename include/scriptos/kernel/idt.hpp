@@ -28,11 +28,14 @@ namespace IDT
      */
     struct Entry
     {
+        Entry() = default;
         Entry(u32 offset, u16 selector, u8 attributes);
 
         u16 OffsetLo;
         u16 Selector;
-        u8 Reserved;
+
+        u8 _1;
+
         u8 Attributes;
         u16 OffsetHi;
     };
@@ -42,17 +45,17 @@ namespace IDT
      */
     struct Descriptor
     {
-        u16 Limit;
-        Entry *Ptr;
+        u16 Size;
+        Entry *Offset;
     } __attribute__((packed));
 
     /**
-     * Initialize the kernel IDT
+     * Initialize the kernel protected mode IDT
      */
     void Initialize();
 
     /**
      * Load an IDT from a descriptor
      */
-    void lidt(const Descriptor &descriptor);
+    void LoadIDT(const Descriptor *descriptor);
 }

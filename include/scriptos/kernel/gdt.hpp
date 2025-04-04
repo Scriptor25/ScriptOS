@@ -58,26 +58,29 @@ namespace GDT
         u16 BaseLo;
         u8 BaseMi;
         u8 Access;
-        u8 Flags_LimitHi;
+        u8 LimitHi : 4;
+        u8 Flags : 4;
         u8 BaseHi;
     } __attribute__((packed));
 
     /**
      * Global Descriptor Table - Descriptor
+     *
+     * Representation for the structure of the contents inside the GDTR.
      */
     struct Descriptor
     {
         u16 Size;
-        Entry *Ptr;
+        Entry *Offset;
     } __attribute__((packed));
 
     /**
-     * Load a GDT from a descriptor
-     */
-    extern "C" void LoadGDT(Descriptor *descriptor, u16 code_segment, u16 data_segment);
-
-    /**
-     * Initialize the kernel GDT
+     * Initialize the kernel protected mode GDT
      */
     void Initialize(void *kernel_stack);
+
+    /**
+     * Load a GDT descriptor into the GDTR
+     */
+    extern "C" void LoadGDT(const Descriptor *descriptor, u16 code_segment, u16 data_segment);
 }

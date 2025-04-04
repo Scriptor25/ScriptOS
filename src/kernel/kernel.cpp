@@ -5,6 +5,7 @@
 #include <scriptos/kernel/interrupts.hpp>
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/mb_info.hpp>
+#include <scriptos/kernel/nmi.hpp>
 #include <scriptos/kernel/panic.hpp>
 #include <scriptos/kernel/pfa.hpp>
 #include <scriptos/kernel/pic.hpp>

@@ -14,7 +14,7 @@ int print(cstr string)
         return print("(null)");
 
     str p;
-    for (p = (str)string; *p; ++p)
+    for (p = const_cast<str>(string); *p; ++p)
         putchar(*p);
     return p - string;
 }
@@ -25,7 +25,7 @@ int wprint(cwstr string)
         return wprint(L"(null)");
 
     wstr p;
-    for (p = (wstr)string; *p; ++p)
+    for (p = const_cast<wstr>(string); *p; ++p)
         putchar(*p);
     return p - string;
 }
@@ -70,21 +70,21 @@ int wprintf(cwstr format, ...)
 
 enum FLAG
 {
-    flag_none = 0,
-    flag_left_justify = 1,
-    flag_force_sign = 2,
-    flag_blank_space = 4,
-    flag_prefix = 8,
-    flag_pad_zero = 16,
+    FLAG_NONE = 0 << 0,
+    FLAG_LEFT_JUSTIFY = 1 << 0,
+    FLAG_FORCE_SIGN = 1 << 1,
+    FLAG_BLANK_SPACE = 1 << 2,
+    FLAG_PREFIX = 1 << 3,
+    FLAG_PAD_ZERO = 1 << 4,
 };
 
-struct print_int_t
+struct print_int_result
 {
     va_list ap;
     int count;
 };
 
-static print_int_t print_int(va_list ap, int flags, int width, int precision, bool is_signed, int base, bool uppercase)
+static print_int_result print_int(va_list ap, int flags, int width, int precision, bool is_signed, int base, bool uppercase)
 {
     (void)precision;
 
@@ -92,11 +92,11 @@ static print_int_t print_int(va_list ap, int flags, int width, int precision, bo
 
     int count = 0;
 
-    auto left_justify = flags & flag_left_justify;
-    auto force_sign = flags & flag_force_sign;
-    auto blank_space = flags & flag_blank_space;
-    auto prefix = flags & flag_prefix;
-    auto pad_zero = flags & flag_pad_zero;
+    auto left_justify = flags & FLAG_LEFT_JUSTIFY;
+    auto force_sign = flags & FLAG_FORCE_SIGN;
+    auto blank_space = flags & FLAG_BLANK_SPACE;
+    auto prefix = flags & FLAG_PREFIX;
+    auto pad_zero = flags & FLAG_PAD_ZERO;
 
     auto i = va_arg(ap, int);
 
@@ -104,7 +104,7 @@ static print_int_t print_int(va_list ap, int flags, int width, int precision, bo
     if (has_sign)
         i = -i;
 
-    auto len = uitoa(buf, (unsigned int)i, base, uppercase);
+    auto len = uitoa(buf, static_cast<unsigned int>(i), base, uppercase);
 
     if (!left_justify && !pad_zero)
         for (int x = len; x < width; ++x)
@@ -187,7 +187,7 @@ static int tvprintf(const T *format, va_list ap)
 
     int flags = 0, width = 0, precision = 0;
 
-    auto p = (T *)format;
+    auto p = const_cast<T *>(format);
 
     while (*p)
     {
@@ -201,30 +201,30 @@ static int tvprintf(const T *format, va_list ap)
                 break;
             }
             state = state_flags;
-            flags = flag_none;
+            flags = FLAG_NONE;
             p++;
             break;
         case state_flags:
             switch (*p)
             {
             case '-':
-                flags |= flag_left_justify;
+                flags |= FLAG_LEFT_JUSTIFY;
                 p++;
                 break;
             case '+':
-                flags |= flag_force_sign;
+                flags |= FLAG_FORCE_SIGN;
                 p++;
                 break;
             case ' ':
-                flags |= flag_blank_space;
+                flags |= FLAG_BLANK_SPACE;
                 p++;
                 break;
             case '#':
-                flags |= flag_prefix;
+                flags |= FLAG_PREFIX;
                 p++;
                 break;
             case '0':
-                flags |= flag_pad_zero;
+                flags |= FLAG_PAD_ZERO;
                 p++;
                 break;
             default:
@@ -360,7 +360,7 @@ static int tvprintf(const T *format, va_list ap)
             {
                 char buf[16];
                 auto ptr = va_arg(ap, void *);
-                auto len = uitoa(buf, (uptr)ptr, 16, 0);
+                auto len = uitoa(buf, reinterpret_cast<uptr>(ptr), 16, 0);
                 for (unsigned x = len; x < sizeof(void *) * 2; ++x)
                     putchar('0');
                 printn(buf, len);

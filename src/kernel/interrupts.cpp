@@ -16,6 +16,11 @@ INTER void DB_Handler(interrupt_frame *frame)
     Panic("Debug\n%04x:%p", frame->CS, frame->IP);
 }
 
+INTER void NMI_Handler(interrupt_frame *frame)
+{
+    Panic("Non-Maskable Interrupt\n%04x:%p", frame->CS, frame->IP);
+}
+
 INTER void BP_Handler(interrupt_frame *frame)
 {
     Panic("Breakpoint\n%04x:%p", frame->CS, frame->IP);

@@ -31,6 +31,7 @@ struct interrupt_frame
 
 void DE_Handler(interrupt_frame *frame);
 void DB_Handler(interrupt_frame *frame);
+void NMI_Handler(interrupt_frame *frame);
 void BP_Handler(interrupt_frame *frame);
 void OF_Handler(interrupt_frame *frame);
 void BR_Handler(interrupt_frame *frame);
