@@ -43,8 +43,8 @@ framebuffer_tag_start:
         .short MULTIBOOT_HEADER_TAG_FRAMEBUFFER
         .short MULTIBOOT_HEADER_TAG_OPTIONAL
         .long framebuffer_tag_end - framebuffer_tag_start
-        .long 0
-        .long 0
+        .long 1920
+        .long 1200
         .long 32
 framebuffer_tag_end:
 

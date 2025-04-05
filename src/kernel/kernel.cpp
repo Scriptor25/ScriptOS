@@ -168,7 +168,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
         else if (tag_old)
             rsdp = reinterpret_cast<const ACPI::RSDP *>(tag_old->rsdp);
         else
-            print("no rsdp\r\n");
+            print("no rsdp\n");
 
         if (rsdp)
         {

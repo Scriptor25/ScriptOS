@@ -663,6 +663,8 @@ cstr PCI::GetVendorName(u16 vendor_id)
         return "NVIDIA Corporation";
     case 0x10EC:
         return "Realtek Semiconductor Co., Ltd.";
+    case 0x1234:
+        return "QEMU";
     case 0x8086:
         return "Intel Corp.";
     default:
@@ -768,6 +770,14 @@ cstr PCI::GetDeviceName(u16 vendor_id, u16 device_id)
         default:
             return nullptr;
         }
+    case 0x1234:
+        switch (device_id)
+        {
+        case 0x1111:
+            return "Generic VGA Controller";
+        default:
+            return nullptr;
+        }
     default:
         return nullptr;
     }
@@ -834,26 +844,22 @@ void PCI::EnumerateFunction(uptr device_address, uptr function)
     if (device_header->DeviceID == 0x0000 || device_header->DeviceID == 0xffff)
         return;
 
+    auto vendor_name = GetVendorName(device_header->VendorID);
+    auto device_name = GetDeviceName(device_header->VendorID, device_header->DeviceID);
+
     auto class_code_desc = GetDeviceDescriptor(device_header->ClassCode);
     auto subclass_desc = GetDeviceDescriptor(device_header->ClassCode, device_header->Subclass);
     auto prog_if_desc = GetDeviceDescriptor(device_header->ClassCode, device_header->Subclass, device_header->ProgIF);
 
-    auto device_name = GetDeviceName(device_header->VendorID, device_header->DeviceID);
-    auto vendor_name = GetVendorName(device_header->VendorID);
+    if (!vendor_name || !device_name)
+        printf("%04x:%04x", device_header->VendorID, device_header->DeviceID);
+    else
+        printf("%s - %s", vendor_name, device_name);
 
-    printf("%04x:%04x %02x:%02x:%02x", device_header->VendorID, device_header->DeviceID, device_header->ClassCode, device_header->Subclass, device_header->ProgIF);
-    printf(" - %s, %s", device_name, vendor_name);
-    if (class_code_desc)
-    {
-        if (subclass_desc)
-        {
-            if (prog_if_desc)
-                printf(" [ %s, %s, %s ]", class_code_desc, subclass_desc, prog_if_desc);
-            else
-                printf(" [ %s, %s ]", class_code_desc, subclass_desc);
-        }
-        else
-            printf(" [ %s ]", class_code_desc);
-    }
-    print("\r\n");
+    if (!class_code_desc)
+        printf(" %02x:%02x:%02x", device_header->ClassCode, device_header->Subclass, device_header->ProgIF);
+    else
+        printf(subclass_desc ? prog_if_desc ? " [ %s > %s > %s ]" : " [ %s > %s ]" : " [ %s ]", class_code_desc, subclass_desc, prog_if_desc);
+
+    print("\n");
 }

@@ -4,6 +4,7 @@
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/pfa.hpp>
 #include <scriptos/kernel/pic.hpp>
+#include <scriptos/std/memory.hpp>
 
 IDT::Entry::Entry(u32 offset, u16 selector, u8 attributes)
     : OffsetLo(offset & 0xffff),
@@ -20,6 +21,8 @@ void IDT::Initialize()
 {
     descriptor.Size = sizeof(entries) - 1;
     descriptor.Offset = entries;
+
+    memset(entries, 0, sizeof(entries));
 
     // hardware interrupts
     entries[0x00] = {reinterpret_cast<uptr>(DE_Handler), GDT_CODE_SEGMENT, Attributes_Present | Attributes_Ring0 | Attributes_32Bit_Interrupt_Gate};
@@ -54,6 +57,11 @@ void IDT::Initialize()
 
     // user mode system call interrupt
     entries[0x80] = {reinterpret_cast<uptr>(SYS_Handler), GDT_CODE_SEGMENT, Attributes_Present | Attributes_Ring3 | Attributes_32Bit_Interrupt_Gate};
+
+    // unhandled interrupts
+    for (usize i = 0; i < (sizeof(entries) / sizeof(entries[0])); ++i)
+        if (!entries[i].OffsetHi && !entries[i].OffsetLo)
+            entries[i] = {reinterpret_cast<uptr>(NI_Handler), GDT_CODE_SEGMENT, Attributes_Present | Attributes_Ring0 | Attributes_32Bit_Interrupt_Gate};
 
     LoadIDT(&descriptor);
 }

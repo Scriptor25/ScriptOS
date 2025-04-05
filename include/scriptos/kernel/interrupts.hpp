@@ -56,3 +56,5 @@ void SX_Handler(interrupt_frame *frame, u32 code);
 void PIT_Handler(interrupt_frame *frame);
 
 void SYS_Handler(interrupt_frame *frame);
+
+void NI_Handler(interrupt_frame *frame);

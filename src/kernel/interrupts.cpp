@@ -218,3 +218,8 @@ INTER void SYS_Handler(interrupt_frame *frame)
         Panic("System Call\n%04x:%p\nid=%u", frame->CS, frame->IP, id);
     }
 }
+
+INTER void NI_Handler(interrupt_frame *frame)
+{
+    printf("No Interrupt Handler => %04x:%p\n", frame->CS, frame->IP);
+}
