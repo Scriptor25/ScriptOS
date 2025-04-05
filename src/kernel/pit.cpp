@@ -1,6 +1,8 @@
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/pit.hpp>
 
+u32 PIT::TicksSinceBoot = 0;
+
 u8 PIT::Read_C0_b()
 {
     return in<u8>(Port_C0_Data);

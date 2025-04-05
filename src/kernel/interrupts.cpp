@@ -3,6 +3,7 @@
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/panic.hpp>
 #include <scriptos/kernel/pic.hpp>
+#include <scriptos/kernel/pit.hpp>
 #include <scriptos/std/print.hpp>
 #include <scriptos/std/util.hpp>
 
@@ -152,17 +153,16 @@ INTER void SX_Handler(interrupt_frame *frame, u32 code)
 INTER void PIT_Handler(interrupt_frame *)
 {
     static u16 counter = 0;
-    static u32 timer = 0;
 
-    counter++;
+    ++PIT::TicksSinceBoot;
 
-    if (counter >= 1000)
+    if (++counter >= PIT_TICKS_PER_SECOND)
     {
         counter = 0;
-        printf("\rUptime: %us", ++timer);
+        printf("\rUptime: %us", PIT::TicksSinceBoot / PIT_TICKS_PER_SECOND);
     }
 
-    if (counter % 20) // 50 Hz
+    if (!(counter % (PIT_TICKS_PER_SECOND / 50)))
         Graphics::GetInstance().SwapBuffers();
 
     PIC::Send_EOI(0);

@@ -17,6 +17,7 @@
 #include <scriptos/kernel/user.hpp>
 #include <scriptos/std/memory.hpp>
 #include <scriptos/std/print.hpp>
+#include <scriptos/std/time.hpp>
 #include <scriptos/std/types.hpp>
 #include <scriptos/std/util.hpp>
 #include <scriptos/stl/string.hpp>
@@ -154,7 +155,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     PIC::Remap(PIC1_OFFSET, PIC2_OFFSET);
     PIC::Disable();
     PIC::Clr_Mask(0);
-    PIT::Write_C0_w(1193); // 1000Hz
+    PIT::Write_C0_w(PIT_BASE_FREQUENCY / PIT_TICKS_PER_SECOND);
     STI();
 
     {
@@ -176,6 +177,12 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
             auto mcfg = reinterpret_cast<ACPI::MCFG_Header *>(rsdt->Find("MCFG"));
             PCI::EnumeratePCI(mcfg);
         }
+    }
+
+    for (usize i = 0; i < 4; ++i)
+    {
+        printf("#%u\n", i);
+        sleep(500);
     }
 
     setup_user();

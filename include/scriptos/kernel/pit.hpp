@@ -2,6 +2,9 @@
 
 #include <scriptos/std/types.hpp>
 
+#define PIT_BASE_FREQUENCY 1193182
+#define PIT_TICKS_PER_SECOND 1000
+
 namespace PIT
 {
     enum Port
@@ -37,6 +40,8 @@ namespace PIT
         Operating_Mode_Software_Strobe = 0b100,
         Operating_Mode_Hardware_Strobe = 0b101,
     };
+
+    extern u32 TicksSinceBoot;
 
     /**
      * Read a single byte from port C0.
