@@ -31,12 +31,12 @@ all: cleanbuild build test clean
 $(BINUTILS_SRC_FILE):
 	@ echo ======== Downloading - Binutils ========
 	@ mkdir -p $(SRC_DIR)
-	@ curl $(BINUTILS_URL) --output $(BINUTILS_SRC_FILE) --silent
+	@ curl $(BINUTILS_URL) --output $(BINUTILS_SRC_FILE) --progress-bar
 
 $(GCC_SRC_FILE):
 	@ echo ======== Downloading - GCC =============
 	@ mkdir -p $(SRC_DIR)
-	@ curl $(GCC_URL) --output $(GCC_SRC_FILE) --silent
+	@ curl $(GCC_URL) --output $(GCC_SRC_FILE) --progress-bar
 
 $(BINUTILS_SRC_DIR): $(BINUTILS_SRC_FILE)
 	@ echo ======== Unpacking - Binutils ==========
