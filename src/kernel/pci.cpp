@@ -661,6 +661,8 @@ cstr PCI::GetVendorName(u16 vendor_id)
         return "Advanced Micro Devices, Inc. [AMD]";
     case 0x10DE:
         return "NVIDIA Corporation";
+    case 0x10EC:
+        return "Realtek Semiconductor Co., Ltd.";
     case 0x8086:
         return "Intel Corp.";
     default:
@@ -675,18 +677,96 @@ cstr PCI::GetDeviceName(u16 vendor_id, u16 device_id)
     case 0x8086:
         switch (device_id)
         {
-        case 0x29C0:
-            return "82G33/G31/P35/P31 Express DRAM Controller";
         case 0x10D3:
             return "82574L Gigabit Network Connection";
+        case 0x2448:
+            return "82801 Mobile PCI Bridge";
+        case 0x2815:
+            return "82801HM (ICH8M) LPC Interface Controller";
+        case 0x2828:
+            return "82801HM/HEM (ICH8M/ICH8M-E) SATA Controller [IDE mode]";
+        case 0x2830:
+            return "82801H (ICH8 Family) USB UHCI Controller #1";
+        case 0x2831:
+            return "82801H (ICH8 Family) USB UHCI Controller #2";
+        case 0x2832:
+            return "82801H (ICH8 Family) USB UHCI Controller #3";
+        case 0x2833:
+            return "82801H (ICH8 Family) USB UHCI Controller #4";
+        case 0x2834:
+            return "82801H (ICH8 Family) USB UHCI Controller #4";
+        case 0x2835:
+            return "82801H (ICH8 Family) USB UHCI Controller #5";
+        case 0x2836:
+            return "82801H (ICH8 Family) USB2 EHCI Controller #1";
+        case 0x283A:
+            return "82801H (ICH8 Family) USB2 EHCI Controller #2";
+        case 0x283E:
+            return "82801H (ICH8 Family) SMBus Controller";
+        case 0x283F:
+            return "82801H (ICH8 Family) PCI Express Port 1";
+        case 0x2841:
+            return "82801H (ICH8 Family) PCI Express Port 2";
+        case 0x2843:
+            return "82801H (ICH8 Family) PCI Express Port 3";
+        case 0x2845:
+            return "82801H (ICH8 Family) PCI Express Port 4";
+        case 0x2847:
+            return "82801H (ICH8 Family) PCI Express Port 5";
+        case 0x2849:
+            return "82801H (ICH8 Family) PCI Express Port 6";
+        case 0x284B:
+            return "82801H (ICH8 Family) HD Audio Controller";
+        case 0x284F:
+            return "82801H (ICH8 Family) Thermal Reporting Device";
         case 0x2918:
             return "82801IB (ICH9) LPC Interface Controller";
         case 0x2922:
             return "82801IR/IO/IH (ICH9R/DO/DH) 6 port SATA Controller [AHCI mode]";
         case 0x2930:
             return "82801I (ICH9 Family) SMBus Controller";
+        case 0x29C0:
+            return "82G33/G31/P35/P31 Express DRAM Controller";
+        case 0x2A00:
+            return "Mobile PM965/GM965/GL960 Memory Controller Hub";
+        case 0x2A01:
+            return "Mobile PM965/GM965/GL960 PCI Express Root Port";
+        case 0x4229:
+            return "PRO/Wireless 4965 AG or AGN [Kedron] Network Connection";
         default:
-            break;
+            return nullptr;
+        }
+    case 0x10DE:
+        switch (device_id)
+        {
+        case 0x060C:
+            return "G92M [GeForce 8800M GTX]";
+        default:
+            return nullptr;
+        }
+    case 0x10EC:
+        switch (device_id)
+        {
+        case 0x8161:
+            return "RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller";
+        case 0x8167:
+            return "RTL-8110SC/8169SC Gigabit Ethernet";
+        case 0x8168:
+            return "RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller";
+        case 0x8169:
+            return "RTL8169 PCI Gigabit Ethernet Controller";
+        case 0x816A:
+            return "RTL8111xP UART #1";
+        case 0x816B:
+            return "RTL8111xP UART #2";
+        case 0x816C:
+            return "RTL8111xP IPMI interface";
+        case 0x816D:
+            return "RTL811x EHCI host controller";
+        case 0x816E:
+            return "Realtek RealManage BMC";
+        default:
+            return nullptr;
         }
     default:
         return nullptr;
