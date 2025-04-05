@@ -8,7 +8,7 @@ QEMU = qemu-system-i386
 
 OPT = -O0 -g -ggdb -g3
 CFLAGS = $(OPT) -std=c++20 -ffreestanding -mno-red-zone -Wall -Wextra -fno-exceptions -fno-rtti
-LDFLAGS = $(OPT) -ffreestanding -nostdlib -lgcc
+LDFLAGS = $(OPT) -ffreestanding -nostdlib
 
 SRC_DIR = src
 BIN_DIR = bin
@@ -26,11 +26,10 @@ KERNEL_OBJ = $(KERNEL_ASM_OBJ) $(KERNEL_CPP_OBJ)
 
 USER_SRC_DIR = $(SRC_DIR)/user
 USER_BIN = $(BIN_DIR)/user.elf
-USER_ASM_SRC = $(call rwildcard,$(USER_SRC_DIR),*.s)
-USER_CPP_SRC = $(call rwildcard,$(USER_SRC_DIR),*.cpp)
-USER_ASM_OBJ = $(patsubst $(SRC_DIR)/%.s,$(BIN_DIR)/%.s.o,$(USER_ASM_SRC))
-USER_CPP_OBJ = $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.cpp.o,$(USER_CPP_SRC))
-USER_OBJ = $(USER_ASM_OBJ) $(USER_CPP_OBJ)
+USER_SRC = $(call rwildcard,$(USER_SRC_DIR),*.s) $(call rwildcard,$(USER_SRC_DIR),*.cpp)
+USER_OBJ = $(patsubst $(SRC_DIR)/%,$(BIN_DIR)/%.o,$(USER_SRC))
+
+GRUB_CFG = $(KERNEL_SRC_DIR)/grub.cfg
 
 OSNAME = scriptos
 
@@ -47,10 +46,10 @@ clean:
 build: $(ISO)
 
 launch: $(ISO)
-	$(QEMU) -cdrom $(ISO)
+	$(QEMU) -machine q35 -cdrom $(ISO)
 
 debug: $(ISO)
-	$(QEMU) -cdrom $(ISO) -s
+	$(QEMU) -machine q35 -cdrom $(ISO) -s
 
 $(BIN_DIR)/%.s.pp: $(SRC_DIR)/%.s
 	mkdir -p $(@D)
@@ -70,15 +69,17 @@ $(BIN_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
 
 $(KERNEL_BIN): $(KERNEL_SRC_DIR)/linker.ld $(KERNEL_OBJ)
 	$(CC) $(LDFLAGS) -o $@ -T $^
-	objcopy --only-keep-debug $(KERNEL_BIN) $(KERNEL_SYM)
-	objcopy --strip-debug $(KERNEL_BIN)
-	grub-file --is-x86-multiboot2 $(KERNEL_BIN)
+	objcopy --only-keep-debug $@ $(KERNEL_SYM)
+	objcopy --strip-debug $@
+	grub-file --is-x86-multiboot2 $@
 
 $(USER_BIN): $(USER_SRC_DIR)/linker.ld $(USER_OBJ)
 	$(CC) $(LDFLAGS) -o $@ -T $^
+	objcopy --strip-debug $@
 
-$(ISO): $(KERNEL_BIN) $(KERNEL_SRC_DIR)/grub.cfg
+$(ISO): $(KERNEL_BIN) $(USER_BIN) $(GRUB_CFG)
 	mkdir -p $(ISO_DIR)/boot/grub
 	cp $(KERNEL_BIN) $(ISO_DIR)/boot/kernel.elf
-	cp $(KERNEL_SRC_DIR)/grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
-	grub-mkrescue -o $(ISO) $(ISO_DIR)
+	cp $(USER_BIN) $(ISO_DIR)/boot/user.elf
+	cp $(GRUB_CFG) $(ISO_DIR)/boot/grub/grub.cfg
+	grub-mkrescue -o $@ $(ISO_DIR)

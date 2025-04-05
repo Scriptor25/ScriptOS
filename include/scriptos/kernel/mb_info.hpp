@@ -10,7 +10,20 @@
 class MultibootInfo
 {
 public:
-    const multiboot_tag *operator[](u32 type) const;
+    template <typename T>
+    const T *at(u32 type) const
+    {
+        const T *result = nullptr;
+        ForEach(
+            [&](const multiboot_tag *tag) -> bool
+            {
+                if (tag->type != type)
+                    return false;
+                result = reinterpret_cast<const T *>(tag);
+                return true;
+            });
+        return result;
+    }
 
     /**
      * Iterate over the multiboot info structure. Return early by returning true from the callback.

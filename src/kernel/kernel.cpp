@@ -1,3 +1,4 @@
+#include <scriptos/kernel/acpi.hpp>
 #include <scriptos/kernel/gdt.hpp>
 #include <scriptos/kernel/graphics.hpp>
 #include <scriptos/kernel/idt.hpp>
@@ -7,6 +8,7 @@
 #include <scriptos/kernel/mb_info.hpp>
 #include <scriptos/kernel/nmi.hpp>
 #include <scriptos/kernel/panic.hpp>
+#include <scriptos/kernel/pci.hpp>
 #include <scriptos/kernel/pfa.hpp>
 #include <scriptos/kernel/pic.hpp>
 #include <scriptos/kernel/pit.hpp>
@@ -41,12 +43,12 @@ static void setup_graphics(const MultibootInfo &info)
     auto &ptm = PageTableManager::GetKernelInstance();
     auto &graphics = Graphics::GetInstance();
 
-    auto &tag = *reinterpret_cast<const multiboot_tag_framebuffer *>(info[MULTIBOOT_TAG_TYPE_FRAMEBUFFER]);
-    auto fb_addr = tag.framebuffer_addr_lo;
-    auto width = tag.framebuffer_width;
-    auto height = tag.framebuffer_height;
-    auto pitch = tag.framebuffer_pitch;
-    auto bpp = tag.framebuffer_bpp;
+    auto tag = info.at<multiboot_tag_framebuffer>(MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
+    auto fb_addr = tag->framebuffer_addr_lo;
+    auto width = tag->framebuffer_width;
+    auto height = tag->framebuffer_height;
+    auto pitch = tag->framebuffer_pitch;
+    auto bpp = tag->framebuffer_bpp;
 
     auto page_count = ceil_div(pitch * height, PAGE_SIZE);
     pfa.LockPages(reinterpret_cast<void *>(fb_addr), page_count);
@@ -155,38 +157,24 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     PIT::Write_C0_w(1193); // 1000Hz
     STI();
 
-    /**
-     * Draw some test graphics
-     */
     {
-        auto &graphics = Graphics::GetInstance();
+        const ACPI::RSDP *rsdp = nullptr;
+
+        auto tag_new = info.at<multiboot_tag_new_acpi>(MULTIBOOT_TAG_TYPE_ACPI_NEW);
+        auto tag_old = info.at<multiboot_tag_old_acpi>(MULTIBOOT_TAG_TYPE_ACPI_OLD);
+
+        if (tag_new)
+            rsdp = reinterpret_cast<const ACPI::RSDP *>(tag_new->rsdp);
+        else if (tag_old)
+            rsdp = reinterpret_cast<const ACPI::RSDP *>(tag_old->rsdp);
+        else
+            print("no rsdp\r\n");
+
+        if (rsdp)
         {
-            u32 data[]{
-                0xffff0000,
-            };
-            graphics.DrawTexture(50, 50, 0.f, 0.f, 150, 150, 1.f, 1.f, 1, 1, false, data);
-        }
-        {
-            u32 data[]{
-                0x9900ff00,
-            };
-            graphics.DrawTexture(80, 60, 0.f, 0.f, 180, 160, 1.f, 1.f, 1, 1, false, data);
-        }
-        {
-            u32 data[]{
-                0x770000ff,
-            };
-            graphics.DrawTexture(110, 70, 0.f, 0.f, 210, 170, 1.f, 1.f, 1, 1, false, data);
-        }
-        {
-            u32 data[]{
-                0xffff0000,
-                0xff00ff00,
-                0xff0000ff,
-                0xffffffff,
-            };
-            graphics.DrawTexture(400, 50, 0.f, 0.f, 500, 150, 1.f, 1.f, 2, 2, true, data);
-            graphics.DrawString(400, 150, 100, L"this is an image with some text äöü");
+            auto rsdt = reinterpret_cast<ACPI::RSDT *>(rsdp->RSDTAddress);
+            auto mcfg = reinterpret_cast<ACPI::MCFG_Header *>(rsdt->Find("MCFG"));
+            PCI::EnumeratePCI(mcfg);
         }
     }
 

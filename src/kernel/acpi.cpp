@@ -32,13 +32,13 @@ bool ACPI::SDT_Header::Validate()
     return sum == 0;
 }
 
-ACPI::SDT_Header *ACPI::RSDT::Find(cstr signature)
+ACPI::SDT_Header *ACPI::RSDT::Find(cstr signature) const
 {
-    usize num_entries = (Header.Length - sizeof(SDT_Header)) / 4;
+    auto num_entries = (Header.Length - sizeof(SDT_Header)) / 4;
 
     for (usize i = 0; i < num_entries; ++i)
     {
-        auto header = reinterpret_cast<SDT_Header *>(PointerToOtherSDT[i]);
+        auto header = Entries[i];
         if (!memcmp(header->Signature, signature, 4))
             return header;
     }
