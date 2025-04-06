@@ -63,9 +63,9 @@ bool isxdigit(int c)
 
 int uitoa(str buf, unsigned value, unsigned base, bool upper)
 {
-    int len = 0;
     char rev[256];
 
+    int len = 0;
     do
     {
         auto rem = value % base;
@@ -76,6 +76,19 @@ int uitoa(str buf, unsigned value, unsigned base, bool upper)
     if (buf)
         for (int i = 0, j = len - 1; j >= 0; ++i, --j)
             buf[i] = rev[j];
+
+    return len;
+}
+
+int fftoa(str buf, double value, unsigned precision)
+{
+    int len = 0;
+    for (unsigned i = 0, m = 10; i < precision; ++i, m *= 10)
+    {
+        auto ivalue = static_cast<unsigned>(value * m);
+        auto rem = ivalue % 10;
+        buf[len++] = rem + 0x30;
+    }
 
     return len;
 }

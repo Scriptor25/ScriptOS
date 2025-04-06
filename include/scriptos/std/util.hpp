@@ -19,6 +19,7 @@ bool isupper(int c);
 bool isxdigit(int c);
 
 int uitoa(str buf, unsigned value, unsigned base, bool upper);
+int fftoa(str buf, double value, unsigned precision);
 
 f32 floor(f32 x);
 f64 floor(f64 x);

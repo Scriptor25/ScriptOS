@@ -179,11 +179,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
         }
     }
 
-    for (usize i = 0; i < 4; ++i)
-    {
-        printf("#%u\n", i);
-        sleep(500);
-    }
+    printf("%.1f, %.2f, %.3f, %f\n", 123.456f, 123.456, 123.456f, 123.456);
 
     setup_user();
 

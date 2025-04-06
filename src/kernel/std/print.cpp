@@ -78,16 +78,14 @@ enum FLAG
     FLAG_PAD_ZERO = 1 << 4,
 };
 
-struct print_int_result
+struct print_result
 {
     va_list ap;
     int count;
 };
 
-static print_int_result print_int(va_list ap, int flags, int width, int precision, bool is_signed, int base, bool uppercase)
+static print_result print_int(va_list ap, int flags, int width, int precision, bool is_signed, int base, bool uppercase)
 {
-    (void)precision;
-
     char buf[256];
 
     int count = 0;
@@ -98,13 +96,13 @@ static print_int_result print_int(va_list ap, int flags, int width, int precisio
     auto prefix = flags & FLAG_PREFIX;
     auto pad_zero = flags & FLAG_PAD_ZERO;
 
-    auto i = va_arg(ap, int);
+    auto n = va_arg(ap, int);
 
-    auto has_sign = is_signed && i < 0;
+    auto has_sign = is_signed && n < 0;
     if (has_sign)
-        i = -i;
+        n = -n;
 
-    auto len = uitoa(buf, static_cast<unsigned int>(i), base, uppercase);
+    auto len = uitoa(buf, static_cast<unsigned int>(n), base, uppercase);
 
     if (!left_justify && !pad_zero)
         for (int x = len; x < width; ++x)
@@ -167,6 +165,37 @@ static print_int_result print_int(va_list ap, int flags, int width, int precisio
             putchar(' ');
             count++;
         }
+
+    return {ap, count};
+}
+
+/**
+ * print a formatted floating point number
+ *
+ * - ap: arguments pointer
+ * - flags: formatting flags
+ * - width: minimum number of characters to be printed
+ * - precision: number of floating point digits
+ * - info:
+ *   [0]: is uppercase
+ *   [1]: scientific
+ *   [2]: shortest
+ *   [3]: hexadecimal
+ */
+static print_result print_float(va_list ap, int flags, int width, int precision, int info)
+{
+    char buf[256];
+    int len;
+
+    int count = 0;
+    auto n = va_arg(ap, double);
+
+    len = uitoa(buf, static_cast<unsigned int>(n), 10, false);
+    count += printn(buf, len);
+    putchar('.');
+    count += 1;
+    len = fftoa(buf, n, precision < 0 ? 6 : precision);
+    count += printn(buf, len);
 
     return {ap, count};
 }
@@ -336,25 +365,81 @@ static int tvprintf(const T *format, va_list ap)
                 count += result.count;
                 break;
             }
+            case 'f':
+            case 'F':
+            {
+                auto result = print_float(ap, flags, width, precision, 0b0000);
+                ap = result.ap;
+                count += result.count;
+                break;
+            }
+            case 'e':
+            {
+                auto result = print_float(ap, flags, width, precision, 0b0010);
+                ap = result.ap;
+                count += result.count;
+                break;
+            }
+            case 'E':
+            {
+                auto result = print_float(ap, flags, width, precision, 0b0011);
+                ap = result.ap;
+                count += result.count;
+                break;
+            }
+            case 'g':
+            {
+                auto result = print_float(ap, flags, width, precision, 0b0100);
+                ap = result.ap;
+                count += result.count;
+                break;
+            }
+            case 'G':
+            {
+                auto result = print_float(ap, flags, width, precision, 0b0101);
+                ap = result.ap;
+                count += result.count;
+                break;
+            }
+            case 'a':
+            {
+                auto result = print_float(ap, flags, width, precision, 0b1000);
+                ap = result.ap;
+                count += result.count;
+                break;
+            }
+            case 'A':
+            {
+                auto result = print_float(ap, flags, width, precision, 0b1001);
+                ap = result.ap;
+                count += result.count;
+                break;
+            }
             case 'c':
             case 'C':
+            {
                 putchar(va_arg(ap, int));
                 count++;
                 break;
+            }
             case 's':
             case 'S':
+            {
                 if (precision < 0)
                     count += print(va_arg(ap, cstr));
                 else
                     count += printn(va_arg(ap, cstr), precision);
                 break;
+            }
             case 'w':
             case 'W':
+            {
                 if (precision < 0)
                     count += wprint(va_arg(ap, cwstr));
                 else
                     count += wprintn(va_arg(ap, cwstr), precision);
                 break;
+            }
             case 'p':
             case 'P':
             {
@@ -368,10 +453,18 @@ static int tvprintf(const T *format, va_list ap)
                 count += 16;
                 break;
             }
+            case 'n':
+            {
+                auto ptr = va_arg(ap, int *);
+                *ptr = count;
+                break;
+            }
             case '%':
+            {
                 putchar('%');
                 count++;
                 break;
+            }
             default:
                 break;
             }
