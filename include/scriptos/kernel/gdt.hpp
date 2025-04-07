@@ -83,4 +83,9 @@ namespace GDT
      * Load a GDT descriptor into the GDTR
      */
     extern "C" void LoadGDT(const Descriptor *descriptor, u16 code_segment, u16 data_segment);
+
+    /**
+     * Load a LDT descriptor into the LDTR
+     */
+    extern "C" void LoadLDT(const Descriptor *descriptor);
 }
