@@ -61,20 +61,20 @@ bool isxdigit(int c)
     return (0x30 <= c && c <= 0x39) || (0x41 <= c && c <= 0x46) || (0x61 <= c && c <= 0x66);
 }
 
-int uitoa(str buf, unsigned value, unsigned base, bool upper)
+int uitoa(str buf, unsigned value, unsigned base, unsigned min_len, bool upper)
 {
     char rev[256];
 
-    int len = 0;
-    do
+    unsigned len = 0;
+    while ((value != 0) || (len < min_len))
     {
         auto rem = value % base;
-        rev[len++] = ((rem < 10) ? (rem + 0x30) : (rem + (upper ? 'A' : 'a') - 10));
         value /= base;
-    } while (value);
+        rev[len++] = ((rem < 10) ? (rem + 0x30) : (rem + (upper ? 'A' : 'a') - 10));
+    }
 
     if (buf)
-        for (int i = 0, j = len - 1; j >= 0; ++i, --j)
+        for (int i = 0, j = static_cast<int>(len) - 1; j >= 0; ++i, --j)
             buf[i] = rev[j];
 
     return len;

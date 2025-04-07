@@ -1,4 +1,5 @@
 #include <scriptos/kernel/graphics.hpp>
+#include <scriptos/std/memory.hpp>
 #include <scriptos/std/print.hpp>
 #include <scriptos/std/types.hpp>
 #include <scriptos/std/util.hpp>
@@ -96,13 +97,13 @@ static print_result print_int(va_list ap, int flags, int width, int precision, b
     auto prefix = flags & FLAG_PREFIX;
     auto pad_zero = flags & FLAG_PAD_ZERO;
 
-    auto n = va_arg(ap, int);
+    auto value = va_arg(ap, int);
 
-    auto has_sign = is_signed && n < 0;
+    auto has_sign = is_signed && value < 0;
     if (has_sign)
-        n = -n;
+        value = -value;
 
-    auto len = uitoa(buf, static_cast<unsigned int>(n), base, uppercase);
+    auto len = uitoa(buf, static_cast<unsigned int>(value), base, precision < 0 ? 1 : precision, uppercase);
 
     if (!left_justify && !pad_zero)
         for (int x = len; x < width; ++x)
@@ -184,18 +185,94 @@ static print_result print_int(va_list ap, int flags, int width, int precision, b
  */
 static print_result print_float(va_list ap, int flags, int width, int precision, int info)
 {
-    char buf[256];
-    int len;
+    (void)width; // TODO: minimum width
+    (void)info;  // TODO: scientific or hexadecimal version
+
+    char int_buf[256];
+    char flt_buf[256];
+
+    auto left_justify = flags & FLAG_LEFT_JUSTIFY;
+    auto force_sign = flags & FLAG_FORCE_SIGN;
+    auto blank_space = flags & FLAG_BLANK_SPACE;
+    auto prefix = flags & FLAG_PREFIX;
+    auto pad_zero = flags & FLAG_PAD_ZERO;
+
+    (void)left_justify; // TODO: justify left
+    (void)force_sign;   // TODO: always preceed with sign
+    (void)blank_space;  // TODO: space when no sign
+    (void)pad_zero;     // TODO: left pad with leading zeros
 
     int count = 0;
-    auto n = va_arg(ap, double);
+    auto value = va_arg(ap, double);
 
-    len = uitoa(buf, static_cast<unsigned int>(n), 10, false);
-    count += printn(buf, len);
-    putchar('.');
-    count += 1;
-    len = fftoa(buf, n, precision < 0 ? 6 : precision);
-    count += printn(buf, len);
+    auto int_len = uitoa(int_buf, static_cast<unsigned int>(value), 10, 1, false);
+    auto flt_len = fftoa(flt_buf, value, precision < 0 ? 6 : precision);
+
+    count += printn(int_buf, int_len);
+    if (prefix || flt_len != 0)
+    {
+        putchar('.');
+        count += 1;
+        count += printn(flt_buf, flt_len);
+    }
+
+    return {ap, count};
+}
+
+static print_result print_string(va_list ap, int flags, int width, int precision)
+{
+    int count = 0;
+
+    auto left_justify = flags & FLAG_LEFT_JUSTIFY;
+
+    auto value = va_arg(ap, cstr);
+
+    auto len = (precision < 0) ? strlen(value) : min(precision, strlen(value));
+
+    if (!left_justify)
+        for (int x = len; x < width; ++x)
+        {
+            putchar(' ');
+            count++;
+        }
+
+    count += printn(value, len);
+
+    if (left_justify)
+        for (int x = len; x < width; ++x)
+        {
+            putchar(' ');
+            count++;
+        }
+
+    return {ap, count};
+}
+
+static print_result print_wstring(va_list ap, int flags, int width, int precision)
+{
+    int count = 0;
+
+    auto left_justify = flags & FLAG_LEFT_JUSTIFY;
+
+    auto value = va_arg(ap, cwstr);
+
+    auto len = (precision < 0) ? strlen(value) : min(precision, strlen(value));
+
+    if (!left_justify)
+        for (int x = len; x < width; ++x)
+        {
+            putchar(' ');
+            count++;
+        }
+
+    count += wprintn(value, len);
+
+    if (left_justify)
+        for (int x = len; x < width; ++x)
+        {
+            putchar(' ');
+            count++;
+        }
 
     return {ap, count};
 }
@@ -425,32 +502,26 @@ static int tvprintf(const T *format, va_list ap)
             case 's':
             case 'S':
             {
-                if (precision < 0)
-                    count += print(va_arg(ap, cstr));
-                else
-                    count += printn(va_arg(ap, cstr), precision);
+                auto result = print_string(ap, flags, width, precision);
+                ap = result.ap;
+                count += result.count;
                 break;
             }
             case 'w':
             case 'W':
             {
-                if (precision < 0)
-                    count += wprint(va_arg(ap, cwstr));
-                else
-                    count += wprintn(va_arg(ap, cwstr), precision);
+                auto result = print_wstring(ap, flags, width, precision);
+                ap = result.ap;
+                count += result.count;
                 break;
             }
             case 'p':
             case 'P':
             {
-                char buf[16];
+                char buf[8];
                 auto ptr = va_arg(ap, void *);
-                auto len = uitoa(buf, reinterpret_cast<uptr>(ptr), 16, 0);
-                for (unsigned x = len; x < sizeof(void *) * 2; ++x)
-                    putchar('0');
-                printn(buf, len);
-
-                count += 16;
+                auto len = uitoa(buf, reinterpret_cast<uptr>(ptr), 16, 8, false);
+                count += printn(buf, len);
                 break;
             }
             case 'n':

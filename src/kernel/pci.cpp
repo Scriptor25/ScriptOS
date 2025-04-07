@@ -854,12 +854,11 @@ void PCI::EnumerateFunction(uptr device_address, uptr function)
     if (!vendor_name || !device_name)
         printf("%04x:%04x", device_header->VendorID, device_header->DeviceID);
     else
-        printf("%s - %s", vendor_name, device_name);
+        printf("%-10.10s %-65.65s", vendor_name, device_name);
 
     if (!class_code_desc)
         printf(" %02x:%02x:%02x", device_header->ClassCode, device_header->Subclass, device_header->ProgIF);
     else
-        printf(subclass_desc ? prog_if_desc ? " [ %s > %s > %s ]" : " [ %s > %s ]" : " [ %s ]", class_code_desc, subclass_desc, prog_if_desc);
-
+        printf(subclass_desc ? prog_if_desc ? " [ %-25.25s > %-25.25s > %-20.20s ]" : " [ %-25.25s > %-48.48s ]" : " [ %-75.75s ]", class_code_desc, subclass_desc, prog_if_desc);
     print("\n");
 }
