@@ -857,7 +857,7 @@ void PCI::EnumerateFunction(uptr device_address, uptr function)
     auto subclass_desc = GetDeviceDescriptor(device_header->ClassCode, device_header->Subclass);
     auto prog_if_desc = GetDeviceDescriptor(device_header->ClassCode, device_header->Subclass, device_header->ProgIF);
 
-    putchar('\r');
+    putc('\r');
     if (!vendor_name || !device_name)
         printf("%04x:%04x", device_header->VendorID, device_header->DeviceID);
     else
@@ -867,5 +867,5 @@ void PCI::EnumerateFunction(uptr device_address, uptr function)
         printf(" %02x:%02x:%02x", device_header->ClassCode, device_header->Subclass, device_header->ProgIF);
     else
         printf(subclass_desc ? prog_if_desc ? " [ %-25.25s > %-25.25s > %-20.20s ]" : " [ %-25.25s > %-48.48s ]" : " [ %-75.75s ]", class_code_desc, subclass_desc, prog_if_desc);
-    putchar('\n');
+    putc('\n');
 }

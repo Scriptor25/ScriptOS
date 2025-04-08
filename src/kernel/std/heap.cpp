@@ -1,5 +1,6 @@
 #include <scriptos/kernel/pfa.hpp>
 #include <scriptos/kernel/ptm.hpp>
+#include <scriptos/std/assert.hpp>
 #include <scriptos/std/memory.hpp>
 #include <scriptos/std/util.hpp>
 
@@ -35,9 +36,11 @@ static void init_heap(usize size = 0x100000 /* default 1MiB heap */)
     auto &ptm = PageTableManager::GetKernelInstance();
 
     heap_root = reinterpret_cast<heap_header *>(pfa.RequestPage());
+    assert(heap_root && "out of memory");
     for (usize i = PAGE_SIZE; i < size; i += PAGE_SIZE)
     {
         auto address = pfa.RequestPage();
+        assert(address && "out of memory");
         ptm.MapPage(reinterpret_cast<void *>(reinterpret_cast<uptr>(heap_root) + i), address);
     }
 
@@ -57,6 +60,7 @@ static heap_header *expand_heap(usize size)
     for (usize i = aligned_heap_size; i < total_size; i += PAGE_SIZE)
     {
         auto address = pfa.RequestPage();
+        assert(address && "out of memory");
         ptm.MapPage(reinterpret_cast<void *>(reinterpret_cast<uptr>(heap_root) + i), address);
     }
 

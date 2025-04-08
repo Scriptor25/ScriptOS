@@ -22,16 +22,18 @@ public:
     /**
      * Map a single physical page to a virtual address for either user or kernel mode access.
      */
-    void MapPage(void *virtual_address, void *physical_address, bool user = false);
+    bool MapPage(void *virtual_address, void *physical_address, bool user = false);
     /**
      * Map a range of physical pages to some virtual address space for either user or kernel mode access.
      */
-    void MapPages(void *virtual_address, void *physical_address, usize count, bool user = false);
+    bool MapPages(void *virtual_address, void *physical_address, usize count, bool user = false);
 
     /**
      * Set up paging with this page table manager.
      */
     void SetupPaging();
+
+    bool IsMapped(void *virtual_address) const;
 
 private:
     PageDirectoryEntry *m_PageDirectory;

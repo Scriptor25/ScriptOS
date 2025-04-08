@@ -13,12 +13,12 @@ NORET void Panic(cstr format, ...)
     graphics.Reset();
     graphics.ClearRainbow();
 
-    print("Kernel Panic\n\n");
+    puts("Kernel Panic\n\n");
     va_list ap;
     va_start(ap, format);
     vprintf(format, ap);
     va_end(ap);
-    putchar('\n');
+    putc('\n');
 
     graphics.SwapBuffers();
 

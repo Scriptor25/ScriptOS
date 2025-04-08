@@ -81,6 +81,8 @@ void *PageFrameAllocator::RequestPage()
 void *PageFrameAllocator::RequestEmptyPage()
 {
     auto address = RequestPage();
+    if (!address)
+        return nullptr;
     memset(address, 0, PAGE_SIZE);
     return address;
 }

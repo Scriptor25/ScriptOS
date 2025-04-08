@@ -6,7 +6,7 @@ namespace ACPI
 {
     struct RSDP
     {
-        bool Validate();
+        bool Validate() const;
 
         char Signature[8];
         u8 Checksum;
@@ -17,7 +17,7 @@ namespace ACPI
 
     struct XSDP
     {
-        bool Validate();
+        bool Validate() const;
 
         char Signature[8];
         u8 Checksum;
@@ -33,7 +33,7 @@ namespace ACPI
 
     struct SDT_Header
     {
-        bool Validate();
+        bool Validate() const;
 
         char Signature[4];
         u32 Length;

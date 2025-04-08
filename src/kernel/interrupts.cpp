@@ -169,26 +169,26 @@ INTER void SYS_Handler(interrupt_frame *frame)
     {
     case 0b10000:
     {
-        print(va_arg(ap, cstr));
+        puts(va_arg(ap, cstr));
         break;
     }
     case 0b10001:
     {
-        wprint(va_arg(ap, cwstr));
+        puts(va_arg(ap, cwstr));
         break;
     }
     case 0b10010:
     {
         auto string = va_arg(ap, cstr);
         auto count = va_arg(ap, usize);
-        printn(string, count);
+        putn(string, count);
         break;
     }
     case 0b10011:
     {
         auto string = va_arg(ap, cwstr);
         auto count = va_arg(ap, usize);
-        wprintn(string, count);
+        putn(string, count);
         break;
     }
     case 0b10100:
@@ -202,7 +202,7 @@ INTER void SYS_Handler(interrupt_frame *frame)
     {
         auto string = va_arg(ap, cwstr);
         auto args = va_arg(ap, va_list);
-        wvprintf(string, args);
+        vprintf(string, args);
         break;
     }
 

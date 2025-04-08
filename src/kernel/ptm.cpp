@@ -3,14 +3,16 @@
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/pfa.hpp>
 #include <scriptos/kernel/ptm.hpp>
+#include <scriptos/std/assert.hpp>
+#include <scriptos/std/debug.hpp>
 #include <scriptos/std/memory.hpp>
 
 struct page_index
 {
     page_index(uptr virtual_address)
     {
-        pdi = (virtual_address >> 22);
-        pti = (virtual_address >> 12) & 0x3ff;
+        pdi = (virtual_address >> 22) & 0x3FF;
+        pti = (virtual_address >> 12) & 0x3FF;
     }
 
     uptr pdi;
@@ -28,7 +30,7 @@ void PageTableManager::Initialize(PageDirectoryEntry *page_directory)
     m_PageDirectory = page_directory;
 }
 
-void PageTableManager::MapPage(void *virtual_address, void *physical_address, bool user)
+bool PageTableManager::MapPage(void *virtual_address, void *physical_address, bool user)
 {
     page_index index(reinterpret_cast<uptr>(virtual_address));
     PageTableEntry *pt;
@@ -38,6 +40,7 @@ void PageTableManager::MapPage(void *virtual_address, void *physical_address, bo
     if (!pde.Present)
     {
         pt = reinterpret_cast<PageTableEntry *>(PageFrameAllocator::GetKernelInstance().RequestEmptyPage());
+        assert(pt && "out of memory");
 
         pde.Present = true;
         pde.ReadWrite = true;
@@ -49,19 +52,40 @@ void PageTableManager::MapPage(void *virtual_address, void *physical_address, bo
     }
 
     auto &pte = pt[index.pti];
+
+    if (pte.Present)
+    {
+        auto pa = reinterpret_cast<void *>(pte.Address_31_12 << 12);
+        if (pa == physical_address && pte.UserSupervisor == user)
+            return false;
+
+        debug("[WARNING] remapping page at %p from %p to %p for %s (previously owned by %s) [ %u | %u ]",
+              virtual_address,
+              pa,
+              physical_address,
+              user ? "user" : "supervisor",
+              pte.UserSupervisor ? "user" : "supervisor",
+              index.pdi,
+              index.pti);
+    }
+
     pte.UserSupervisor = user;
     pte.Present = true;
     pte.ReadWrite = true;
     pte.Address_31_12 = reinterpret_cast<uptr>(physical_address) >> 12;
 
     InvalidatePage(virtual_address);
+
+    return false;
 }
 
-void PageTableManager::MapPages(void *virtual_address, void *physical_address, usize count, bool user)
+bool PageTableManager::MapPages(void *virtual_address, void *physical_address, usize count, bool user)
 {
     auto size = count * PAGE_SIZE;
     for (usize i = 0; i < size; i += PAGE_SIZE)
-        MapPage(reinterpret_cast<void *>(reinterpret_cast<uptr>(virtual_address) + i), reinterpret_cast<void *>(reinterpret_cast<uptr>(physical_address) + i), user);
+        if (MapPage(reinterpret_cast<void *>(reinterpret_cast<uptr>(virtual_address) + i), reinterpret_cast<void *>(reinterpret_cast<uptr>(physical_address) + i), user))
+            return true;
+    return false;
 }
 
 void PageTableManager::SetupPaging()
@@ -71,6 +95,21 @@ void PageTableManager::SetupPaging()
     cr0.PE = true;
     cr0.PG = true;
     CR::CR0::W(cr0);
+}
+
+bool PageTableManager::IsMapped(void *virtual_address) const
+{
+    page_index index(reinterpret_cast<uptr>(virtual_address));
+
+    auto &pde = m_PageDirectory[index.pdi];
+    if (!pde.Present)
+        return false;
+
+    auto &pte = reinterpret_cast<PageTableEntry *>(pde.Address_31_12 << 12)[index.pti];
+    if (!pte.Present)
+        return false;
+
+    return true;
 }
 
 void InvalidatePage(void *address)

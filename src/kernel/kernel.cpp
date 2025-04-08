@@ -17,6 +17,7 @@
 #include <scriptos/kernel/user.hpp>
 #include <scriptos/std/memory.hpp>
 #include <scriptos/std/print.hpp>
+#include <scriptos/std/stream.hpp>
 #include <scriptos/std/time.hpp>
 #include <scriptos/std/types.hpp>
 #include <scriptos/std/util.hpp>
@@ -33,7 +34,10 @@ static void setup_memory(const MultibootInfo &info)
     pfa.Initialize(mmap);
     pfa.LockPages(KERNEL_START, ceil_div(KERNEL_SIZE, PAGE_SIZE));
 
-    ptm.Initialize(reinterpret_cast<PageDirectoryEntry *>(pfa.RequestEmptyPage()));
+    auto page_directory = reinterpret_cast<PageDirectoryEntry *>(pfa.RequestEmptyPage());
+    assert(page_directory && "out of memory");
+
+    ptm.Initialize(page_directory);
     ptm.MapPages(nullptr, nullptr, ceil_div(mmap.Size(), PAGE_SIZE));
     ptm.SetupPaging();
 }
@@ -75,7 +79,13 @@ static void setup_pci(const MultibootInfo &info)
 
     if (!rsdp)
     {
-        print("no rsdp\n");
+        puts("no rsdp\n");
+        return;
+    }
+
+    if (!rsdp->Validate())
+    {
+        puts("failed to validate rsdp\n");
         return;
     }
 
@@ -96,6 +106,7 @@ static void setup_user()
     auto &ptm = PageTableManager::GetKernelInstance();
 
     auto stack = pfa.RequestPage();
+    assert(stack && "out of memory");
     auto main = reinterpret_cast<void *>(::user_main);
 
     auto mapped_stack = reinterpret_cast<void *>(0xE0000000);
@@ -120,10 +131,10 @@ static void serial_exec(const string &cmd)
     {
         for (auto &arg : args)
         {
-            printn(arg.data(), arg.size());
-            putchar(' ');
+            putn(arg.data(), arg.size());
+            putc(' ');
         }
-        putchar('\n');
+        putc('\n');
         return;
     }
     if (command == "panic")
@@ -158,10 +169,14 @@ static void serial_exec(const string &cmd)
 
 extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 {
+    InitializeStdIO();
+
+    auto error = Serial::Initialize();
+    if (error)
+        LOOP();
+
     if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || (reinterpret_cast<uptr>(&info) & 7))
         return;
-
-    setup_memory(info);
 
     /**
      * Get the current kernel stack address for initializing the GDT
@@ -179,6 +194,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     PIT::Write_C0_w(PIT_DIVIDER);
     STI();
 
+    setup_memory(info);
     setup_graphics(info);
     setup_pci(info);
 
@@ -189,10 +205,6 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     }
 
     setup_user();
-
-    auto error = Serial::Initialize();
-    if (error)
-        LOOP();
 
     Serial::Write("Hello Serial Terminal!\r\n");
     Serial::Write("> ");
