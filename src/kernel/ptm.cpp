@@ -37,7 +37,7 @@ void PageTableManager::MapPage(void *virtual_address, void *physical_address, bo
     pde.UserSupervisor = user;
     if (!pde.Present)
     {
-        pt = reinterpret_cast<PageTableEntry *>(PageFrameAllocator::GetInstance().RequestEmptyPage());
+        pt = reinterpret_cast<PageTableEntry *>(PageFrameAllocator::GetKernelInstance().RequestEmptyPage());
 
         pde.Present = true;
         pde.ReadWrite = true;

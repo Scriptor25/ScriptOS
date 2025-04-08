@@ -49,7 +49,7 @@ Color operator+(const Color &lhs, const Color &rhs)
     };
 }
 
-Graphics &Graphics::GetInstance()
+Graphics &Graphics::GetKernelInstance()
 {
     static Graphics instance;
     return instance;

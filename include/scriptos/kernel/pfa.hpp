@@ -12,7 +12,7 @@ public:
     /**
      * Get the kernel managed instance of the page frame allocator.
      */
-    static PageFrameAllocator &GetInstance();
+    static PageFrameAllocator &GetKernelInstance();
 
     /**
      * Initialize this page frame allocator with a memory map.

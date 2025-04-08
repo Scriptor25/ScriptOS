@@ -54,6 +54,14 @@ T in(u16 port)
     return value;
 }
 
+void outb(u16 port, u8 value);
+void outw(u16 port, u16 value);
+void outl(u16 port, u32 value);
+
+u8 inb(u16 port);
+u16 inw(u16 port);
+u32 inl(u16 port);
+
 /**
  * Write something to the bus to wait one cycle
  */

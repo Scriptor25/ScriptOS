@@ -31,7 +31,7 @@ static heap_header *heap_end()
 
 static void init_heap(usize size = 0x100000 /* default 1MiB heap */)
 {
-    auto &pfa = PageFrameAllocator::GetInstance();
+    auto &pfa = PageFrameAllocator::GetKernelInstance();
     auto &ptm = PageTableManager::GetKernelInstance();
 
     heap_root = reinterpret_cast<heap_header *>(pfa.RequestPage());
@@ -49,7 +49,7 @@ static void init_heap(usize size = 0x100000 /* default 1MiB heap */)
 
 static heap_header *expand_heap(usize size)
 {
-    auto &pfa = PageFrameAllocator::GetInstance();
+    auto &pfa = PageFrameAllocator::GetKernelInstance();
     auto &ptm = PageTableManager::GetKernelInstance();
 
     auto aligned_heap_size = ceil_div(heap_size(), PAGE_SIZE) * PAGE_SIZE;

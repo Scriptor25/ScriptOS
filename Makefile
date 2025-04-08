@@ -7,7 +7,7 @@ PP = $(TARGET)-cpp
 QEMU = qemu-system-i386
 
 OPT = -O0 -g -ggdb -g3
-CFLAGS = $(OPT) -std=c++20 -ffreestanding -mno-red-zone -Wall -Wextra -fno-exceptions -fno-rtti
+CFLAGS = $(OPT) -std=c++20 -ffreestanding -mno-red-zone -Wall -Wextra -Werror -fno-exceptions -fno-rtti
 LDFLAGS = $(OPT) -ffreestanding -nostdlib
 
 SRC_DIR = src

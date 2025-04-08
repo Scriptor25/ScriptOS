@@ -4,7 +4,7 @@
 
 void sleep(u32 millis)
 {
-    auto start = PIT::TicksSinceBoot;
-    while (PIT::TicksSinceBoot < start + millis)
+    auto end = PIT::TicksSinceBoot + (PIT_TICKS_PER_SECOND * millis) / 1000;
+    while (PIT::TicksSinceBoot < end)
         HLT();
 }

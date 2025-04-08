@@ -7,7 +7,7 @@ NORET void Panic(cstr format, ...)
 {
     CLI();
 
-    auto &graphics = Graphics::GetInstance();
+    auto &graphics = Graphics::GetKernelInstance();
     graphics.SetFGColor(0xffffffff);
     graphics.SetBGColor(0x00000000);
     graphics.Reset();

@@ -152,18 +152,10 @@ INTER void SX_Handler(interrupt_frame *frame, u32 code)
 
 INTER void PIT_Handler(interrupt_frame *)
 {
-    static u16 counter = 0;
-
     ++PIT::TicksSinceBoot;
 
-    if (++counter >= PIT_TICKS_PER_SECOND)
-    {
-        counter = 0;
-        printf("\rUptime: %us", PIT::TicksSinceBoot / PIT_TICKS_PER_SECOND);
-    }
-
-    if (!(counter % (PIT_TICKS_PER_SECOND / 50)))
-        Graphics::GetInstance().SwapBuffers();
+    if (!((PIT::TicksSinceBoot * 50) % PIT_TICKS_PER_SECOND))
+        Graphics::GetKernelInstance().SwapBuffers();
 
     PIC::Send_EOI(0);
 }

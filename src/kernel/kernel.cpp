@@ -25,7 +25,7 @@
 
 static void setup_memory(const MultibootInfo &info)
 {
-    auto &pfa = PageFrameAllocator::GetInstance();
+    auto &pfa = PageFrameAllocator::GetKernelInstance();
     auto &ptm = PageTableManager::GetKernelInstance();
 
     auto mmap = info.GetMMap();
@@ -40,9 +40,9 @@ static void setup_memory(const MultibootInfo &info)
 
 static void setup_graphics(const MultibootInfo &info)
 {
-    auto &pfa = PageFrameAllocator::GetInstance();
+    auto &pfa = PageFrameAllocator::GetKernelInstance();
     auto &ptm = PageTableManager::GetKernelInstance();
-    auto &graphics = Graphics::GetInstance();
+    auto &graphics = Graphics::GetKernelInstance();
 
     auto tag = info.at<multiboot_tag_framebuffer>(MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
     auto fb_addr = tag->framebuffer_addr_lo;
@@ -64,6 +64,27 @@ static void setup_graphics(const MultibootInfo &info)
     graphics.Clear();
 }
 
+static void setup_pci(const MultibootInfo &info)
+{
+    const ACPI::RSDP *rsdp = nullptr;
+
+    if (auto tag = info.at<multiboot_tag_new_acpi>(MULTIBOOT_TAG_TYPE_ACPI_NEW); tag && !rsdp)
+        rsdp = reinterpret_cast<const ACPI::RSDP *>(tag->rsdp);
+    if (auto tag = info.at<multiboot_tag_old_acpi>(MULTIBOOT_TAG_TYPE_ACPI_OLD); tag && !rsdp)
+        rsdp = reinterpret_cast<const ACPI::RSDP *>(tag->rsdp);
+
+    if (!rsdp)
+    {
+        print("no rsdp\n");
+        return;
+    }
+
+    auto rsdt = reinterpret_cast<ACPI::RSDT *>(rsdp->RSDTAddress);
+    auto mcfg = reinterpret_cast<ACPI::MCFG_Header *>(rsdt->Find("MCFG"));
+
+    PCI::EnumeratePCI(mcfg);
+}
+
 static void __attribute__((aligned(PAGE_SIZE))) user_main()
 {
     LOOP();
@@ -71,9 +92,10 @@ static void __attribute__((aligned(PAGE_SIZE))) user_main()
 
 static void setup_user()
 {
+    auto &pfa = PageFrameAllocator::GetKernelInstance();
     auto &ptm = PageTableManager::GetKernelInstance();
 
-    auto stack = PageFrameAllocator::GetInstance().RequestPage();
+    auto stack = pfa.RequestPage();
     auto main = reinterpret_cast<void *>(::user_main);
 
     auto mapped_stack = reinterpret_cast<void *>(0xE0000000);
@@ -140,7 +162,6 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
         return;
 
     setup_memory(info);
-    setup_graphics(info);
 
     /**
      * Get the current kernel stack address for initializing the GDT
@@ -155,32 +176,17 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     PIC::Remap(PIC1_OFFSET, PIC2_OFFSET);
     PIC::Disable();
     PIC::Clr_Mask(0);
-    PIT::Write_C0_w(PIT_BASE_FREQUENCY / PIT_TICKS_PER_SECOND);
+    PIT::Write_C0_w(PIT_DIVIDER);
     STI();
 
+    setup_graphics(info);
+    setup_pci(info);
+
+    for (;;)
     {
-        const ACPI::RSDP *rsdp = nullptr;
-
-        auto tag_new = info.at<multiboot_tag_new_acpi>(MULTIBOOT_TAG_TYPE_ACPI_NEW);
-        auto tag_old = info.at<multiboot_tag_old_acpi>(MULTIBOOT_TAG_TYPE_ACPI_OLD);
-
-        if (tag_new)
-            rsdp = reinterpret_cast<const ACPI::RSDP *>(tag_new->rsdp);
-        else if (tag_old)
-            rsdp = reinterpret_cast<const ACPI::RSDP *>(tag_old->rsdp);
-        else
-            print("no rsdp\n");
-
-        if (rsdp)
-        {
-            auto rsdt = reinterpret_cast<ACPI::RSDT *>(rsdp->RSDTAddress);
-            auto mcfg = reinterpret_cast<ACPI::MCFG_Header *>(rsdt->Find("MCFG"));
-            PCI::EnumeratePCI(mcfg);
-        }
+        printf("\rUptime: %us                                     ", PIT::TicksSinceBoot / PIT_TICKS_PER_SECOND);
+        sleep(100);
     }
-
-    printf("%1.1f, %2.2f, %3.3f, %4.4f\n", 123.456f, 123.456, 123.456f, 123.456);
-    printf("%u, %4u, %.4u, %4.4u\n", 123, 123, 123, 123);
 
     setup_user();
 
@@ -205,7 +211,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
             Serial::Write(' ');
             Serial::Write(0x08);
             break;
-        case 0x0d:
+        case 0x0D:
             Serial::Write("\r\n");
             serial_exec(buffer);
             buffer.clear();

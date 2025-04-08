@@ -801,6 +801,8 @@ void PCI::EnumerateBus(uptr base_address, uptr bus)
     auto offset = bus << 20;
     auto bus_address = base_address + offset;
 
+    printf("\renumerate bus      | %p", bus_address);
+
     ptm.MapPage(reinterpret_cast<void *>(bus_address), reinterpret_cast<void *>(bus_address));
 
     auto device_header = reinterpret_cast<Device_Header *>(bus_address);
@@ -818,6 +820,8 @@ void PCI::EnumerateDevice(uptr bus_address, uptr device)
 
     auto offset = device << 15;
     auto device_address = bus_address + offset;
+
+    printf("\renumerate device   | %p", device_address);
 
     ptm.MapPage(reinterpret_cast<void *>(device_address), reinterpret_cast<void *>(device_address));
 
@@ -837,6 +841,8 @@ void PCI::EnumerateFunction(uptr device_address, uptr function)
     auto offset = function << 12;
     auto function_address = device_address + offset;
 
+    printf("\renumerate function | %p", function_address);
+
     ptm.MapPage(reinterpret_cast<void *>(function_address), reinterpret_cast<void *>(function_address));
 
     auto device_header = reinterpret_cast<Device_Header *>(function_address);
@@ -851,14 +857,15 @@ void PCI::EnumerateFunction(uptr device_address, uptr function)
     auto subclass_desc = GetDeviceDescriptor(device_header->ClassCode, device_header->Subclass);
     auto prog_if_desc = GetDeviceDescriptor(device_header->ClassCode, device_header->Subclass, device_header->ProgIF);
 
+    putchar('\r');
     if (!vendor_name || !device_name)
         printf("%04x:%04x", device_header->VendorID, device_header->DeviceID);
     else
-        printf("%-10.10s %-65.65s", vendor_name, device_name);
+        printf("%-12.12s %-65.65s", vendor_name, device_name);
 
     if (!class_code_desc)
         printf(" %02x:%02x:%02x", device_header->ClassCode, device_header->Subclass, device_header->ProgIF);
     else
         printf(subclass_desc ? prog_if_desc ? " [ %-25.25s > %-25.25s > %-20.20s ]" : " [ %-25.25s > %-48.48s ]" : " [ %-75.75s ]", class_code_desc, subclass_desc, prog_if_desc);
-    print("\n");
+    putchar('\n');
 }

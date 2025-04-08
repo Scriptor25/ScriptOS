@@ -51,7 +51,7 @@ public:
     /**
      * Get the kernel graphics instance
      */
-    static Graphics &GetInstance();
+    static Graphics &GetKernelInstance();
 
     /**
      * Blend two colors together using a linear interpolation function.

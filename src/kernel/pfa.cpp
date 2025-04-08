@@ -5,7 +5,7 @@
 #include <scriptos/std/print.hpp>
 #include <scriptos/std/util.hpp>
 
-PageFrameAllocator &PageFrameAllocator::GetInstance()
+PageFrameAllocator &PageFrameAllocator::GetKernelInstance()
 {
     static PageFrameAllocator instance;
     return instance;
