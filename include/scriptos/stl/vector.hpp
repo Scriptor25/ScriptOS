@@ -17,28 +17,28 @@ public:
     vector(usize size = 0, usize reserved = 10)
         : m_Size(size), m_Reserved(max(size, reserved))
     {
-        m_Data = new T[m_Reserved];
+        m_Data = reinterpret_cast<T *>(malloc(m_Reserved * sizeof(T)));
         memset(m_Data, 0, m_Reserved * sizeof(T));
     }
 
     vector(const T *data, usize size)
         : m_Size(size), m_Reserved(size)
     {
-        m_Data = new T[m_Reserved];
+        m_Data = reinterpret_cast<T *>(malloc(m_Reserved * sizeof(T)));
         memcpy(m_Data, data, m_Size * sizeof(T));
     }
 
     vector(const T *begin, const T *end)
         : m_Size(end - begin), m_Reserved(end - begin)
     {
-        m_Data = new T[m_Reserved];
+        m_Data = reinterpret_cast<T *>(malloc(m_Reserved * sizeof(T)));
         memcpy(m_Data, begin, m_Size * sizeof(T));
     }
 
     vector(const vector &other)
         : m_Size(other.m_Size), m_Reserved(other.m_Reserved)
     {
-        m_Data = new T[m_Reserved];
+        m_Data = reinterpret_cast<T *>(malloc(m_Reserved * sizeof(T)));
         memcpy(m_Data, other.m_Data, m_Size * sizeof(T));
     }
 
@@ -52,7 +52,7 @@ public:
 
     ~vector()
     {
-        delete[] m_Data;
+        free(m_Data);
         m_Data = nullptr;
         m_Size = 0;
         m_Reserved = 0;
@@ -231,9 +231,9 @@ public:
     {
         auto element = m_Data[0];
         m_Size--;
-        auto buffer = new T[m_Reserved];
+        auto buffer = reinterpret_cast<T *>(malloc(m_Reserved * sizeof(T)));
         memcpy(buffer, m_Data + 1, m_Size * sizeof(T));
-        delete[] m_Data;
+        free(m_Data);
         m_Data = buffer;
         return element;
     }

@@ -39,25 +39,40 @@ static void init_heap(usize size = 0x10000 /* default 64KiB heap */)
     auto &pfa = PageFrameAllocator::GetKernelInstance();
     auto &ptm = PageTableManager::GetKernelInstance();
 
+    heap_header *chunk = nullptr;
     for (usize offset = 0; offset < size; offset += PAGE_SIZE)
     {
-        auto physical_address = pfa.RequestPage();
-        assert(physical_address && "out of memory");
+        auto address = pfa.RequestPage();
+        assert(address && "out of memory");
+
+        ptm.MapPage(address, address);
+
+        auto header = reinterpret_cast<heap_header *>(address);
 
         if (!heap_root)
-            heap_root = reinterpret_cast<heap_header *>(physical_address);
+            heap_root = header;
 
-        auto virtual_address = reinterpret_cast<void *>(reinterpret_cast<uptr>(heap_root) + offset);
-        ptm.MapPage(virtual_address, physical_address);
+        if (chunk)
+        {
+            if (address == reinterpret_cast<void *>(reinterpret_cast<uptr>(chunk + 1) + chunk->length))
+            {
+                chunk->length += PAGE_SIZE;
+                continue;
+            }
+
+            chunk->next = header;
+        }
+
+        header->free = true;
+        header->length = PAGE_SIZE - sizeof(heap_header);
+        header->prev = chunk;
+        header->next = nullptr;
+
+        chunk = header;
     }
-
-    heap_root->free = true;
-    heap_root->length = size - sizeof(heap_header);
-    heap_root->prev = nullptr;
-    heap_root->next = nullptr;
 }
 
-static heap_header *expand_heap(usize size)
+static void expand_heap(usize size)
 {
     auto &pfa = PageFrameAllocator::GetKernelInstance();
     auto &ptm = PageTableManager::GetKernelInstance();
@@ -65,34 +80,36 @@ static heap_header *expand_heap(usize size)
     auto aligned_heap_size = ceil_div(heap_size(), PAGE_SIZE) * PAGE_SIZE;
     auto total_size = aligned_heap_size + size;
 
+    auto last_header = heap_end();
+    auto chunk = last_header->free ? last_header : nullptr;
+
     for (usize offset = aligned_heap_size; offset < total_size; offset += PAGE_SIZE)
     {
         auto address = pfa.RequestPage();
         assert(address && "out of memory");
 
-        ptm.MapPage(reinterpret_cast<void *>(reinterpret_cast<uptr>(heap_root) + offset), address);
+        ptm.MapPage(address, address);
+
+        auto header = reinterpret_cast<heap_header *>(address);
+
+        if (chunk)
+        {
+            if (address == reinterpret_cast<void *>(reinterpret_cast<uptr>(chunk + 1) + chunk->length))
+            {
+                chunk->length += PAGE_SIZE;
+                continue;
+            }
+
+            chunk->next = header;
+        }
+
+        header->free = true;
+        header->length = PAGE_SIZE - sizeof(heap_header);
+        header->prev = chunk ? chunk : last_header;
+        header->next = nullptr;
+
+        chunk = header;
     }
-
-    auto header = heap_end();
-
-    if (header->free)
-    {
-        header->length = header->length + size;
-    }
-    else
-    {
-        auto new_header = reinterpret_cast<heap_header *>(reinterpret_cast<uptr>(header + 1) + header->length);
-
-        new_header->free = true;
-        new_header->length = size - sizeof(heap_header);
-        new_header->prev = header;
-        new_header->next = nullptr;
-
-        header->next = new_header;
-        header = new_header;
-    }
-
-    return header;
 }
 
 void *malloc(usize count)
@@ -105,31 +122,36 @@ void *malloc(usize count)
         ;
 
     if (!header)
-        header = expand_heap(count);
+    {
+        expand_heap(count);
+        return malloc(count);
+    }
 
-    if (!header)
-        return nullptr;
-
-    if (header->length - count <= sizeof(heap_header))
+    if ((header->length - count) <= sizeof(heap_header))
     {
         header->free = false;
         return header + 1;
     }
 
-    auto split = reinterpret_cast<heap_header *>(reinterpret_cast<uptr>(header + 1) + count);
-    split->free = true;
-    split->length = header->length - sizeof(heap_header) - count;
-    split->prev = header;
-    split->next = header->next;
+    auto split_header = reinterpret_cast<heap_header *>(reinterpret_cast<uptr>(header + 1) + count);
+    split_header->free = true;
+    split_header->length = header->length - sizeof(heap_header) - count;
+    split_header->prev = header;
+    split_header->next = header->next;
 
-    if (split->next)
-        split->next->prev = split;
+    if (split_header->next)
+        split_header->next->prev = split_header;
 
     header->free = false;
     header->length = count;
-    header->next = split;
+    header->next = split_header;
 
     return header + 1;
+}
+
+static bool adjacent(heap_header *header_a, heap_header *header_b)
+{
+    return reinterpret_cast<void *>(reinterpret_cast<uptr>(header_a + 1) + header_a->length) == reinterpret_cast<void *>(header_b);
 }
 
 void free(void *address)
@@ -140,7 +162,7 @@ void free(void *address)
     auto header = reinterpret_cast<heap_header *>(address) - 1;
     header->free = true;
 
-    if (header->prev && header->prev->free)
+    if (header->prev && header->prev->free && adjacent(header->prev, header))
     {
         header->prev->length = header->prev->length + sizeof(heap_header) + header->length;
         header->prev->next = header->next;
@@ -151,7 +173,7 @@ void free(void *address)
         header = header->prev;
     }
 
-    if (header->next && header->next->free)
+    if (header->next && header->next->free && adjacent(header, header->next))
     {
         header->length = header->length + sizeof(heap_header) + header->next->length;
         header->next = header->next->next;

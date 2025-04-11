@@ -10,7 +10,7 @@
 
 void PCI::EnumeratePCI(ACPI::MCFG_Header *mcfg)
 {
-    beg_tbl(5, 20, "vendor", "device", "class", "subclass", "prog if");
+    beg_tbl(5, 80, "vendor", "device", "class", "subclass", "prog if");
 
     mcfg->ForEach(
         [](const ACPI::MCFG_Entry &entry)
@@ -175,7 +175,7 @@ void PCI::EnumerateFunction(uptr device_address, uptr function)
         enumerate_ahci(device);
     }
 
-    char buf[256];
+    char buf[8];
     int len;
 
     len = uitoa(buf, vendor_id, 16, 4, true);
@@ -186,15 +186,9 @@ void PCI::EnumerateFunction(uptr device_address, uptr function)
     buf[len] = 0;
     next_col(device_name ? device_name : buf);
 
-    len = uitoa(buf, class_code, 16, 2, true);
-    buf[len] = 0;
-    next_col(class_code_desc ? class_code_desc : buf);
+    next_col(class_code_desc ? class_code_desc : nullptr);
 
-    len = uitoa(buf, subclass, 16, 2, true);
-    buf[len] = 0;
-    next_col(subclass_desc ? subclass_desc : buf);
+    next_col(subclass_desc ? subclass_desc : nullptr);
 
-    len = uitoa(buf, prog_if, 16, 2, true);
-    buf[len] = 0;
-    next_col(prog_if_desc ? prog_if_desc : buf);
+    next_col(prog_if_desc ? prog_if_desc : nullptr);
 }

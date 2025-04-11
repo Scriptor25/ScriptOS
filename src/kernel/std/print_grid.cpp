@@ -1,4 +1,5 @@
 #include <scriptos/kernel/graphics.hpp>
+#include <scriptos/std/debug.hpp>
 #include <scriptos/std/memory.hpp>
 #include <scriptos/std/print.hpp>
 #include <scriptos/std/util.hpp>
@@ -94,10 +95,7 @@ void beg_tbl(u32 columns, u32 maxw, ...)
     va_start(ap, maxw);
 
     for (u32 c = 0; c < columns; ++c)
-    {
         global_tbl.data.emplace_back(va_arg(ap, cstr));
-        global_tbl.data.back().push_back(0);
-    }
 
     va_end(ap);
 }
@@ -106,7 +104,10 @@ void end_tbl()
 {
     vector<cstr> raw_data;
     for (auto &s : global_tbl.data)
+    {
+        s.push_back(0);
         raw_data.push_back(s.data());
+    }
 
     printg(global_tbl.data.size() / global_tbl.columns, global_tbl.columns, global_tbl.maxw, raw_data.data());
 }
@@ -114,5 +115,4 @@ void end_tbl()
 void next_col(cstr data)
 {
     global_tbl.data.emplace_back(data);
-    global_tbl.data.back().push_back(0);
 }

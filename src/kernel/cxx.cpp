@@ -141,35 +141,3 @@ namespace __cxxabiv1
     {
     }
 }
-
-void *operator new(usize count)
-{
-    return malloc(count);
-}
-
-void *operator new[](usize count)
-{
-    return malloc(count);
-}
-
-void operator delete(void *block) noexcept
-{
-    free(block);
-}
-
-void operator delete(void *block, usize count) noexcept
-{
-    (void)count;
-    free(block);
-}
-
-void operator delete[](void *block) noexcept
-{
-    free(block);
-}
-
-void operator delete[](void *block, usize count) noexcept
-{
-    (void)count;
-    free(block);
-}
