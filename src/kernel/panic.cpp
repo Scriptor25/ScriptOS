@@ -22,9 +22,6 @@ NORET void Panic(cstr format, ...)
 
     graphics.SwapBuffers();
 
-    HLT();
-    LOOP();
-
     for (;;)
         ;
 }

@@ -57,6 +57,12 @@ auto clamp(T min, U max, V x)
     return ::max(::min(x, max), min);
 }
 
+template <typename T>
+auto abs(T val)
+{
+    return val < 0 ? -val : val;
+}
+
 inline constexpr unsigned long long int operator""_KiB(unsigned long long int bytes)
 {
     return bytes * 1024;

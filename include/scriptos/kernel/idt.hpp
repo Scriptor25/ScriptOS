@@ -34,11 +34,11 @@ namespace IDT
         u16 OffsetLo;
         u16 Selector;
 
-        u8 _1;
+        u8 : 8;
 
         u8 Attributes;
         u16 OffsetHi;
-    };
+    } __attribute__((packed));
 
     /**
      * Interrupt Descriptor Table - Descriptor

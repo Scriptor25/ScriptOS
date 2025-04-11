@@ -122,7 +122,6 @@ void Graphics::DrawChar(int c, usize x, usize y)
         return;
 
     u32 buffer[8][8];
-
     for (u8 j = 0; j < 8; ++j)
         for (u8 i = 0; i < 8; ++i)
         {
@@ -133,6 +132,67 @@ void Graphics::DrawChar(int c, usize x, usize y)
         }
 
     DrawTexture(x, y, 0.f, 0.f, x + 8, y + 8, 1.f, 1.f, 8, 8, false, &buffer[0][0]);
+}
+
+void Graphics::DrawLine(usize x1, usize y1, usize x2, usize y2)
+{
+    auto dx = static_cast<int>(x1) - static_cast<int>(x2);
+    auto dy = static_cast<int>(y1) - static_cast<int>(y2);
+
+    if (abs(dx) > abs(dy))
+    {
+        // left to right
+
+        auto m = static_cast<float>(dy) / static_cast<float>(dx);
+
+        usize xs, ys, xe;
+        if (x1 < x2)
+        {
+            xs = x1;
+            ys = y1;
+            xe = x2;
+        }
+        else
+        {
+            xs = x2;
+            ys = y2;
+            xe = x1;
+        }
+
+        for (usize x = xs; x <= xe; ++x)
+        {
+            auto y = m * (x - xs) + ys;
+            m_BackBuffer.Write(x, y, m_FGColor);
+        }
+    }
+    else
+    {
+        // top to bottom
+
+        auto m = static_cast<float>(dx) / static_cast<float>(dy);
+
+        usize xs, ys, ye;
+        if (y1 < y2)
+        {
+            xs = x1;
+            ys = y1;
+            ye = y2;
+        }
+        else
+        {
+            xs = x2;
+            ys = y2;
+            ye = y1;
+        }
+
+        for (usize y = ys; y <= ye; ++y)
+        {
+            auto x = m * (y - ys) + xs;
+            m_BackBuffer.Write(x, y, m_FGColor);
+        }
+    }
+
+    m_Dirty = true;
 }
 
 void Graphics::DrawRect(usize x1, usize y1, usize x2, usize y2)
@@ -146,13 +206,13 @@ void Graphics::DrawString(usize x, usize y, usize wrap, cstr data)
     auto ptr = const_cast<str>(data);
     for (usize dx = 0, dy = 0; *ptr; ++ptr)
     {
-        if (!dx && *ptr <= 0x20)
+        if (!dx && (*ptr <= 0x20))
             continue;
         DrawChar(*ptr, x + dx, y + dy);
         dx += 8;
-        if (wrap && dx >= wrap - 8)
+        if (wrap && (dx >= (wrap - 8)))
         {
-            if (*(ptr + 1) > 0x20)
+            if ((*ptr > 0x20) && (*(ptr + 1) > 0x20))
                 DrawChar('-', x + dx, y + dy);
             dx = 0;
             dy += 8;
@@ -165,13 +225,13 @@ void Graphics::DrawString(usize x, usize y, usize wrap, cwstr data)
     auto ptr = const_cast<wstr>(data);
     for (usize dx = 0, dy = 0; *ptr; ++ptr)
     {
-        if (!dx && *ptr <= 0x20)
+        if (!dx && (*ptr <= 0x20))
             continue;
         DrawChar(*ptr, x + dx, y + dy);
         dx += 8;
-        if (wrap && dx >= wrap - 8)
+        if (wrap && (dx >= (wrap - 8)))
         {
-            if (*(ptr + 1) > 0x20)
+            if ((*ptr > 0x20) && (*(ptr + 1) > 0x20))
                 DrawChar('-', x + dx, y + dy);
             dx = 0;
             dy += 8;

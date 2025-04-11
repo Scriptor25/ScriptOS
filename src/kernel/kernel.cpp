@@ -1,4 +1,5 @@
 #include <scriptos/kernel/acpi.hpp>
+#include <scriptos/kernel/ata.hpp>
 #include <scriptos/kernel/gdt.hpp>
 #include <scriptos/kernel/graphics.hpp>
 #include <scriptos/kernel/idt.hpp>
@@ -59,7 +60,8 @@ static void setup_graphics(const MultibootInfo &info)
     pfa.LockPages(reinterpret_cast<void *>(fb_addr), page_count);
     ptm.MapPages(reinterpret_cast<void *>(fb_addr), reinterpret_cast<void *>(fb_addr), page_count);
 
-    auto bb_addr = malloc(pitch * height);
+    auto bb_addr = pfa.RequestPages(page_count);
+    ptm.MapPages(bb_addr, bb_addr, page_count);
     graphics.Initialize(reinterpret_cast<u8 *>(fb_addr), reinterpret_cast<u8 *>(bb_addr), width, height, pitch, bpp);
 
     graphics.SetBGColor(0xff121212);
@@ -91,6 +93,12 @@ static void setup_pci(const MultibootInfo &info)
 
     auto rsdt = reinterpret_cast<ACPI::RSDT *>(rsdp->RSDTAddress);
     auto mcfg = reinterpret_cast<ACPI::MCFG_Header *>(rsdt->Find("MCFG"));
+
+    if (!mcfg)
+    {
+        puts("no mcfg in rsdp\n");
+        return;
+    }
 
     PCI::EnumeratePCI(mcfg);
 }
@@ -167,6 +175,70 @@ static void serial_exec(const string &cmd)
     Serial::Write("\r\n");
 }
 
+static void test_ata()
+{
+    u16 bus;
+    u8 device;
+
+    if (ATA::SelectDevice(ATA_BUS_PRIMARY, ATA_DEVICE_MASTER))
+    {
+        bus = ATA_BUS_PRIMARY;
+        device = ATA_DEVICE_MASTER;
+    }
+    else if (ATA::SelectDevice(ATA_BUS_PRIMARY, ATA_DEVICE_SLAVE))
+    {
+        bus = ATA_BUS_PRIMARY;
+        device = ATA_DEVICE_SLAVE;
+    }
+    else if (ATA::SelectDevice(ATA_BUS_SECONDARY, ATA_DEVICE_MASTER))
+    {
+        bus = ATA_BUS_SECONDARY;
+        device = ATA_DEVICE_MASTER;
+    }
+    else if (ATA::SelectDevice(ATA_BUS_SECONDARY, ATA_DEVICE_SLAVE))
+    {
+        bus = ATA_BUS_SECONDARY;
+        device = ATA_DEVICE_SLAVE;
+    }
+    else
+    {
+        printf("failed to select ata device\n");
+        return;
+    }
+
+    printf("select ata bus %04X device %02X\n", bus, device);
+
+    if (!ATA::Identify(bus, device))
+    {
+        printf("failed to identify ata device\n");
+        return;
+    }
+
+    u8 sector[512];
+    if (!ATA::ReadSector(bus, device, 1, sizeof(sector) / 512, sector))
+    {
+        printf("failed to read sector from ata device\n");
+        return;
+    }
+
+    for (usize j = 0; j < sizeof(sector); j += 32)
+    {
+        printf("%04X | ", j);
+        for (usize i = 0; i < 32; ++i)
+        {
+            auto c = sector[j + i];
+            printf("%02X ", c);
+        }
+        puts("| ");
+        for (usize i = 0; i < 32; ++i)
+        {
+            auto c = sector[j + i];
+            printf("%c", c < 0x20 ? '.' : c);
+        }
+        putc('\n');
+    }
+}
+
 extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 {
     InitializeStdIO();
@@ -191,12 +263,14 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     PIC::Remap(PIC1_OFFSET, PIC2_OFFSET);
     PIC::Disable();
     PIC::Clr_Mask(0);
-    PIT::Write_C0_w(PIT_DIVIDER);
+    PIT::C0_outw(PIT_DIVIDER);
     STI();
 
     setup_memory(info);
     setup_graphics(info);
     setup_pci(info);
+
+    test_ata();
 
     for (;;)
     {

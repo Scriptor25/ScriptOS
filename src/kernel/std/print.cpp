@@ -284,7 +284,7 @@ static print_result print_wstring(FILE *stream, va_list ap, int flags, int width
 }
 
 template <typename T>
-static int internal_vfprintf(FILE *stream, const T *format, va_list ap)
+static int impl_vfprintf(FILE *stream, const T *format, va_list ap)
 {
     int count = 0;
 
@@ -556,23 +556,72 @@ static int internal_vfprintf(FILE *stream, const T *format, va_list ap)
 
 int vfprintf(FILE *stream, cstr format, va_list ap)
 {
-    return internal_vfprintf(stream, format, ap);
+    return impl_vfprintf(stream, format, ap);
 }
 
 int vfprintf(FILE *stream, cwstr format, va_list ap)
 {
-    return internal_vfprintf(stream, format, ap);
+    return impl_vfprintf(stream, format, ap);
 }
 
-int putc(int c) { return fputc(c, nullptr); }
+int snprintf(str dest, usize n, cstr format, ...)
+{
+    STRING stream(dest, n);
 
-int puts(cstr s) { return fputs(s, nullptr); }
+    va_list ap;
+    va_start(ap, format);
+    auto count = vfprintf(&stream, format, ap);
+    va_end(ap);
+    return count;
+}
 
-int puts(cwstr s) { return fputs(s, nullptr); }
+int snprintf(wstr dest, usize n, cwstr format, ...)
+{
+    STRING stream(dest, n);
 
-int putn(cstr s, usize count) { return fputn(s, count, nullptr); }
+    va_list ap;
+    va_start(ap, format);
+    auto count = vfprintf(&stream, format, ap);
+    va_end(ap);
+    return count;
+}
 
-int putn(cwstr s, usize count) { return fputn(s, count, nullptr); }
+int vsnprintf(str dest, usize n, cstr format, va_list ap)
+{
+    STRING stream(dest, n);
+    return vfprintf(&stream, format, ap);
+}
+
+int vsnprintf(wstr dest, usize n, cwstr format, va_list ap)
+{
+    STRING stream(dest, n);
+    return vfprintf(&stream, format, ap);
+}
+
+int putc(int c)
+{
+    return fputc(c, nullptr);
+}
+
+int puts(cstr s)
+{
+    return fputs(s, nullptr);
+}
+
+int puts(cwstr s)
+{
+    return fputs(s, nullptr);
+}
+
+int putn(cstr s, usize count)
+{
+    return fputn(s, count, nullptr);
+}
+
+int putn(cwstr s, usize count)
+{
+    return fputn(s, count, nullptr);
+}
 
 int printf(cstr format, ...)
 {
@@ -592,6 +641,12 @@ int printf(cwstr format, ...)
     return count;
 }
 
-int vprintf(cstr format, va_list ap) { return vfprintf(nullptr, format, ap); }
+int vprintf(cstr format, va_list ap)
+{
+    return vfprintf(nullptr, format, ap);
+}
 
-int vprintf(cwstr format, va_list ap) { return vfprintf(nullptr, format, ap); }
+int vprintf(cwstr format, va_list ap)
+{
+    return vfprintf(nullptr, format, ap);
+}

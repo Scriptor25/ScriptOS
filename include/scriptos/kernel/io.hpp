@@ -34,26 +34,6 @@
  */
 #define STI() asm volatile("sti")
 
-/**
- * Write a value to a port
- */
-template <typename T>
-void out(u16 port, T value)
-{
-    asm volatile("out %0, %1" : : "r"(value), "Nd"(port));
-}
-
-/**
- * Read a value from a port
- */
-template <typename T>
-T in(u16 port)
-{
-    T value;
-    asm volatile("in %1, %0" : "=r"(value) : "Nd"(port));
-    return value;
-}
-
 void outb(u16 port, u8 value);
 void outw(u16 port, u16 value);
 void outl(u16 port, u32 value);
@@ -61,6 +41,14 @@ void outl(u16 port, u32 value);
 u8 inb(u16 port);
 u16 inw(u16 port);
 u32 inl(u16 port);
+
+void outsb(u16 port, const void *address, u16 count);
+void outsw(u16 port, const void *address, u16 count);
+void outsl(u16 port, const void *address, u16 count);
+
+void *insb(u16 port, void *address, u16 count);
+void *insw(u16 port, void *address, u16 count);
+void *insl(u16 port, void *address, u16 count);
 
 /**
  * Write something to the bus to wait one cycle

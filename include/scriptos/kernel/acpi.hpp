@@ -85,11 +85,7 @@ namespace ACPI
             auto num_entries = (Header.Length - sizeof(MCFG_Header)) / sizeof(MCFG_Entry);
 
             for (usize i = 0; i < num_entries; ++i)
-            {
-                auto &entry = Entries[i];
-                if (consumer(entry))
-                    break;
-            }
+                consumer(Entries[i]);
         }
 
         SDT_Header Header;

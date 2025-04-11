@@ -10,17 +10,52 @@ static FILE internal_stdin;
 static FILE internal_stdout;
 static FILE internal_stderr;
 
+FILE FILE::In(int (*g)())
+{
+    FILE stream;
+    stream.G = g;
+    return stream;
+}
+
+FILE FILE::Out(int (*p)(int c))
+{
+    FILE stream;
+    stream.P = p;
+    return stream;
+}
+
+int FILE::Put(int c)
+{
+    if (P)
+        return P(c);
+    return -1;
+}
+
+int FILE::Get()
+{
+    if (G)
+        return G();
+    return -1;
+}
+
 void InitializeStdIO()
 {
-    internal_stdin = {.Get = []()
-                      { return -1; }};
-    internal_stdout = {.Put = [](int c)
-                       {
-                           Graphics::GetKernelInstance().PutChar(c);
-                           return c;
-                       }};
-    internal_stderr = {.Put = [](int c)
-                       { Serial::Write(c); return c; }};
+    internal_stdin = FILE::In([]()
+                              { return -1; });
+
+    internal_stdout = FILE::Out(
+        [](int c)
+        {
+            Graphics::GetKernelInstance().PutChar(c);
+            return c;
+        });
+
+    internal_stderr = FILE::Out(
+        [](int c)
+        {
+            Serial::Write(c);
+            return c;
+        });
 
     stdin = &internal_stdin;
     stdout = &internal_stdout;

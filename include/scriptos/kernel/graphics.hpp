@@ -5,6 +5,8 @@
 
 #define CHAR_W 8
 #define CHAR_H 12
+#define CHAR_W2 (CHAR_W / 2)
+#define CHAR_H2 (CHAR_H / 2)
 
 template <typename T>
 struct Point
@@ -73,6 +75,7 @@ public:
     void DrawPixel(usize x, usize y, u32 color);
 
     void DrawChar(int c, usize x, usize y);
+    void DrawLine(usize x1, usize y1, usize x2, usize y2);
     void DrawRect(usize x1, usize y1, usize x2, usize y2);
 
     void DrawString(usize x, usize y, usize wrap, cstr data);

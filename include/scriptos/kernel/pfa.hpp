@@ -45,6 +45,8 @@ public:
      */
     void *RequestEmptyPage();
 
+    void *RequestPages(usize count);
+
     /**
      * Get a immutable view of the underlying bitmap.
      */

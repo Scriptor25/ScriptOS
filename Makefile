@@ -36,6 +36,8 @@ OSNAME = scriptos
 ISO_DIR = $(BIN_DIR)/iso
 ISO = $(BIN_DIR)/$(OSNAME).iso
 
+QEMU_FLAGS = -machine q35 -cdrom $(ISO) -serial stdio
+
 .PHONY: all clean build launch debug
 
 all: clean build launch
@@ -46,10 +48,10 @@ clean:
 build: $(ISO)
 
 launch: $(ISO)
-	$(QEMU) -machine q35 -cdrom $(ISO)
+	$(QEMU) $(QEMU_FLAGS)
 
 debug: $(ISO)
-	$(QEMU) -machine q35 -cdrom $(ISO) -s
+	$(QEMU) $(QEMU_FLAGS) -s
 
 $(BIN_DIR)/%.s.pp: $(SRC_DIR)/%.s
 	mkdir -p $(@D)

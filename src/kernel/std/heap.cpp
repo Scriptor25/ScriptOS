@@ -17,31 +17,38 @@ static heap_header *heap_root = nullptr;
 static usize heap_size()
 {
     usize size = 0;
-    for (auto ptr = heap_root; ptr; ptr = ptr->next)
-        size += ptr->length + sizeof(heap_header);
+
+    for (auto header = heap_root; header; header = header->next)
+        size += header->length + sizeof(heap_header);
+
     return size;
 }
 
 static heap_header *heap_end()
 {
-    heap_header *ptr;
-    for (ptr = heap_root; ptr->next; ptr = ptr->next)
+    heap_header *header;
+
+    for (header = heap_root; header->next; header = header->next)
         ;
-    return ptr;
+
+    return header;
 }
 
-static void init_heap(usize size = 0x100000 /* default 1MiB heap */)
+static void init_heap(usize size = 0x10000 /* default 64KiB heap */)
 {
     auto &pfa = PageFrameAllocator::GetKernelInstance();
     auto &ptm = PageTableManager::GetKernelInstance();
 
-    heap_root = reinterpret_cast<heap_header *>(pfa.RequestPage());
-    assert(heap_root && "out of memory");
-    for (usize i = PAGE_SIZE; i < size; i += PAGE_SIZE)
+    for (usize offset = 0; offset < size; offset += PAGE_SIZE)
     {
-        auto address = pfa.RequestPage();
-        assert(address && "out of memory");
-        ptm.MapPage(reinterpret_cast<void *>(reinterpret_cast<uptr>(heap_root) + i), address);
+        auto physical_address = pfa.RequestPage();
+        assert(physical_address && "out of memory");
+
+        if (!heap_root)
+            heap_root = reinterpret_cast<heap_header *>(physical_address);
+
+        auto virtual_address = reinterpret_cast<void *>(reinterpret_cast<uptr>(heap_root) + offset);
+        ptm.MapPage(virtual_address, physical_address);
     }
 
     heap_root->free = true;
@@ -57,30 +64,35 @@ static heap_header *expand_heap(usize size)
 
     auto aligned_heap_size = ceil_div(heap_size(), PAGE_SIZE) * PAGE_SIZE;
     auto total_size = aligned_heap_size + size;
-    for (usize i = aligned_heap_size; i < total_size; i += PAGE_SIZE)
+
+    for (usize offset = aligned_heap_size; offset < total_size; offset += PAGE_SIZE)
     {
         auto address = pfa.RequestPage();
         assert(address && "out of memory");
-        ptm.MapPage(reinterpret_cast<void *>(reinterpret_cast<uptr>(heap_root) + i), address);
+
+        ptm.MapPage(reinterpret_cast<void *>(reinterpret_cast<uptr>(heap_root) + offset), address);
     }
 
-    auto ptr = heap_end();
-    if (ptr->free)
-        ptr->length = ptr->length + size;
+    auto header = heap_end();
+
+    if (header->free)
+    {
+        header->length = header->length + size;
+    }
     else
     {
-        auto new_ptr = reinterpret_cast<heap_header *>(reinterpret_cast<uptr>(ptr + 1) + ptr->length);
+        auto new_header = reinterpret_cast<heap_header *>(reinterpret_cast<uptr>(header + 1) + header->length);
 
-        new_ptr->free = true;
-        new_ptr->length = size - sizeof(heap_header);
-        new_ptr->prev = ptr;
-        new_ptr->next = nullptr;
+        new_header->free = true;
+        new_header->length = size - sizeof(heap_header);
+        new_header->prev = header;
+        new_header->next = nullptr;
 
-        ptr->next = new_ptr;
-        ptr = new_ptr;
+        header->next = new_header;
+        header = new_header;
     }
 
-    return ptr;
+    return header;
 }
 
 void *malloc(usize count)
@@ -88,33 +100,36 @@ void *malloc(usize count)
     if (!heap_root)
         init_heap();
 
-    heap_header *ptr;
-    for (ptr = heap_root; ptr && !(ptr->free && ptr->length >= count); ptr = ptr->next)
+    heap_header *header;
+    for (header = heap_root; header && !(header->free && header->length >= count); header = header->next)
         ;
-    if (!ptr)
-        ptr = expand_heap(count);
-    if (!ptr)
+
+    if (!header)
+        header = expand_heap(count);
+
+    if (!header)
         return nullptr;
 
-    if (ptr->length - count <= sizeof(heap_header))
+    if (header->length - count <= sizeof(heap_header))
     {
-        ptr->free = false;
-        return ptr + 1;
+        header->free = false;
+        return header + 1;
     }
 
-    auto split = reinterpret_cast<heap_header *>(reinterpret_cast<uptr>(ptr + 1) + count);
+    auto split = reinterpret_cast<heap_header *>(reinterpret_cast<uptr>(header + 1) + count);
     split->free = true;
-    split->length = ptr->length - sizeof(heap_header) - count;
-    split->prev = ptr;
-    split->next = ptr->next;
+    split->length = header->length - sizeof(heap_header) - count;
+    split->prev = header;
+    split->next = header->next;
+
     if (split->next)
         split->next->prev = split;
 
-    ptr->free = false;
-    ptr->length = count;
-    ptr->next = split;
+    header->free = false;
+    header->length = count;
+    header->next = split;
 
-    return ptr + 1;
+    return header + 1;
 }
 
 void free(void *address)
@@ -122,24 +137,27 @@ void free(void *address)
     if (!address)
         return;
 
-    auto ptr = reinterpret_cast<heap_header *>(address) - 1;
-    ptr->free = true;
+    auto header = reinterpret_cast<heap_header *>(address) - 1;
+    header->free = true;
 
-    if (ptr->prev && ptr->prev->free)
+    if (header->prev && header->prev->free)
     {
-        ptr->prev->length = ptr->prev->length + sizeof(heap_header) + ptr->length;
-        ptr->prev->next = ptr->next;
-        if (ptr->next)
-            ptr->next->prev = ptr->prev;
-        ptr = ptr->prev;
+        header->prev->length = header->prev->length + sizeof(heap_header) + header->length;
+        header->prev->next = header->next;
+
+        if (header->next)
+            header->next->prev = header->prev;
+
+        header = header->prev;
     }
 
-    if (ptr->next && ptr->next->free)
+    if (header->next && header->next->free)
     {
-        ptr->length = ptr->length + sizeof(heap_header) + ptr->next->length;
-        ptr->next = ptr->next->next;
-        if (ptr->next)
-            ptr->next->prev = ptr;
+        header->length = header->length + sizeof(heap_header) + header->next->length;
+        header->next = header->next->next;
+
+        if (header->next)
+            header->next->prev = header;
     }
 }
 
@@ -152,12 +170,15 @@ void *realloc(void *address, usize count)
     }
 
     auto new_address = malloc(count);
+
     if (!address)
         return new_address;
 
-    auto ptr = reinterpret_cast<heap_header *>(address) - 1;
+    auto header = reinterpret_cast<heap_header *>(address) - 1;
+
     if (new_address)
-        memcpy(new_address, address, ptr->length);
+        memcpy(new_address, address, header->length);
+
     free(address);
 
     return new_address;
@@ -166,7 +187,9 @@ void *realloc(void *address, usize count)
 void *calloc(usize count, usize size)
 {
     auto address = malloc(count * size);
+
     if (address)
         memset(address, 0, count * size);
+
     return address;
 }

@@ -177,6 +177,30 @@ public:
         return m_Data + m_Size;
     }
 
+    T &front()
+    {
+        assert(m_Size > 0);
+        return m_Data[0];
+    }
+
+    const T &front() const
+    {
+        assert(m_Size > 0);
+        return m_Data[0];
+    }
+
+    T &back()
+    {
+        assert(m_Size > 0);
+        return m_Data[m_Size - 1];
+    }
+
+    const T &back() const
+    {
+        assert(m_Size > 0);
+        return m_Data[m_Size - 1];
+    }
+
     template <typename... Args>
     T &emplace_back(Args... args)
     {

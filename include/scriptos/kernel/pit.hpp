@@ -6,15 +6,11 @@
 #define PIT_TARGET_FREQUENCY 1000
 
 #if PIT_TARGET_FREQUENCY <= 18
-
 #define PIT_DIVIDER 0
 #define PIT_TICKS_PER_SECOND 18
-
 #else
-
 #define PIT_DIVIDER (PIT_BASE_FREQUENCY / PIT_TARGET_FREQUENCY)
 #define PIT_TICKS_PER_SECOND PIT_TARGET_FREQUENCY
-
 #endif
 
 namespace PIT
@@ -58,54 +54,54 @@ namespace PIT
     /**
      * Read a single byte from port C0.
      */
-    u8 Read_C0_b();
+    u8 C0_inb();
     /**
      * Read a single byte from port C1.
      */
-    u8 Read_C1_b();
+    u8 C1_inb();
     /**
      * Read a single byte from port C2.
      */
-    u8 Read_C2_b();
+    u8 C2_inb();
 
     /**
      * Write a single byte to port C0.
      */
-    void Write_C0_b(u8 data);
+    void C0_outb(u8 data);
     /**
      * Write a single byte to port C1.
      */
-    void Write_C1_b(u8 data);
+    void C1_outb(u8 data);
     /**
      * Write a single byte to port C2.
      */
-    void Write_C2_b(u8 data);
+    void C2_outb(u8 data);
 
     /**
      * Read a two-byte word from port C0.
      */
-    u16 Read_C0_w();
+    u16 C0_inw();
     /**
      * Read a two-byte word from port C1.
      */
-    u16 Read_C1_w();
+    u16 C1_inw();
     /**
      * Read a two-byte word from port C2.
      */
-    u16 Read_C2_w();
+    u16 C2_inw();
 
     /**
      * Write a two-byte word to port C0.
      */
-    void Write_C0_w(u16 data);
+    void C0_outw(u16 data);
     /**
      * Write a two-byte word to port C1.
      */
-    void Write_C1_w(u16 data);
+    void C1_outw(u16 data);
     /**
      * Write a two-byte word to port C2.
      */
-    void Write_C2_w(u16 data);
+    void C2_outw(u16 data);
 
     /**
      * Send a command to the PIT.
