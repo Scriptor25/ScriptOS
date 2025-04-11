@@ -243,9 +243,8 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
 {
     InitializeStdIO();
 
-    auto error = Serial::Initialize();
-    if (error)
-        LOOP();
+    if (Serial::Initialize())
+        Serial::Write("serial communication initialized successfully.\r\n");
 
     if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || (reinterpret_cast<uptr>(&info) & 7))
         return;
@@ -270,7 +269,8 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     setup_graphics(info);
     setup_pci(info);
 
-    test_ata();
+    // test_ata();
+    (void)test_ata;
 
     for (;;)
     {

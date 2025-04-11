@@ -9,7 +9,7 @@ namespace Serial
     /**
      * Initialize serial communication.
      */
-    int Initialize();
+    bool Initialize();
     /**
      * Check if something got written to the serial port.
      */

@@ -169,11 +169,12 @@ void PCI::EnumerateFunction(uptr device_address, uptr function)
     auto subclass_desc = GetDeviceDescriptor(class_code, subclass);
     auto prog_if_desc = GetDeviceDescriptor(class_code, subclass, prog_if);
 
-    if (class_code == 0x01 && subclass == 0x06 && prog_if == 0x01)
-    {
-        auto device = reinterpret_cast<Device_Type_0 *>(function_address);
-        enumerate_ahci(device);
-    }
+    // if (class_code == 0x01 && subclass == 0x06 && prog_if == 0x01)
+    // {
+    //     auto device = reinterpret_cast<Device_Type_0 *>(function_address);
+    //     enumerate_ahci(device);
+    // }
+    (void)enumerate_ahci;
 
     char buf[8];
     int len;

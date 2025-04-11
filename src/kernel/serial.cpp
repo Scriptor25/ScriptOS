@@ -1,7 +1,7 @@
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/serial.hpp>
 
-int Serial::Initialize()
+bool Serial::Initialize()
 {
     outb(SERIAL_PORT_COM1 + 1, 0x00);
     outb(SERIAL_PORT_COM1 + 3, 0x80);
@@ -14,10 +14,10 @@ int Serial::Initialize()
     outb(SERIAL_PORT_COM1 + 0, 0xAE);
 
     if (inb(SERIAL_PORT_COM1 + 0) != 0xAE)
-        return 1;
+        return false;
 
     outb(SERIAL_PORT_COM1 + 4, 0x0F);
-    return 0;
+    return true;
 }
 
 int Serial::Received()
@@ -27,7 +27,7 @@ int Serial::Received()
 
 char Serial::Read()
 {
-    while (Received() == 0)
+    while (!Received())
         ;
 
     return inb(SERIAL_PORT_COM1);
@@ -50,7 +50,7 @@ void Serial::Write(cstr string)
 {
     if (!string)
         return Write("(null)");
-    for (auto p = (str)string; *p; ++p)
+    for (auto p = const_cast<str>(string); *p; ++p)
         Write(*p);
 }
 
