@@ -45,6 +45,7 @@ You'll need to have following packages installed beforehand for ...
 - libgmp-dev
 - libmpfr-dev
 - libmpc-dev
+- texinfo
 
 ... building the os:
 - the toolchain
@@ -54,8 +55,8 @@ You'll need to have following packages installed beforehand for ...
 - xorriso
 
 ... testing the os:
-- qemu-system-i386
-- (optional) gdb
+- qemu-system-x86
+- (optional for debugging) gdb or gdb-multiarch
 
 I worked on the os in debian 12, so all the packages are available via apt.
 
