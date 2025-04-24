@@ -56,6 +56,15 @@
             "group": {
                 "kind": "build"
             }
+        },
+        {
+            "label": "Update Compile Commands",
+            "type": "shell",
+            "command": "bear -- make clean build",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build"
+            }
         }
     ]
 }
