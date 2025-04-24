@@ -1,7 +1,7 @@
+#include <scriptos/kernel/cr.hpp>
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/nmi.hpp>
 #include <scriptos/kernel/real.hpp>
-#include <scriptos/kernel/cr.hpp>
 
 void Jump_RealMode()
 {

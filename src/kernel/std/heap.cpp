@@ -8,11 +8,11 @@ struct heap_header
 {
     bool free;
     usize length;
-    heap_header *prev;
-    heap_header *next;
+    heap_header* prev;
+    heap_header* next;
 };
 
-static heap_header *heap_root = nullptr;
+static heap_header* heap_root = nullptr;
 
 static usize heap_size()
 {
@@ -24,9 +24,9 @@ static usize heap_size()
     return size;
 }
 
-static heap_header *heap_end()
+static heap_header* heap_end()
 {
-    heap_header *header;
+    heap_header* header;
 
     for (header = heap_root; header->next; header = header->next)
         ;
@@ -36,10 +36,10 @@ static heap_header *heap_end()
 
 static void init_heap(usize size = 0x10000 /* default 64KiB heap */)
 {
-    auto &pfa = PageFrameAllocator::GetKernelInstance();
-    auto &ptm = PageTableManager::GetKernelInstance();
+    auto& pfa = PageFrameAllocator::GetKernelInstance();
+    auto& ptm = PageTableManager::GetKernelInstance();
 
-    heap_header *chunk = nullptr;
+    heap_header* chunk = nullptr;
     for (usize offset = 0; offset < size; offset += PAGE_SIZE)
     {
         auto address = pfa.RequestPage();
@@ -47,14 +47,14 @@ static void init_heap(usize size = 0x10000 /* default 64KiB heap */)
 
         ptm.MapPage(address, address);
 
-        auto header = reinterpret_cast<heap_header *>(address);
+        auto header = reinterpret_cast<heap_header*>(address);
 
         if (!heap_root)
             heap_root = header;
 
         if (chunk)
         {
-            if (address == reinterpret_cast<void *>(reinterpret_cast<uptr>(chunk + 1) + chunk->length))
+            if (address == reinterpret_cast<void*>(reinterpret_cast<uptr>(chunk + 1) + chunk->length))
             {
                 chunk->length += PAGE_SIZE;
                 continue;
@@ -74,8 +74,8 @@ static void init_heap(usize size = 0x10000 /* default 64KiB heap */)
 
 static void expand_heap(usize size)
 {
-    auto &pfa = PageFrameAllocator::GetKernelInstance();
-    auto &ptm = PageTableManager::GetKernelInstance();
+    auto& pfa = PageFrameAllocator::GetKernelInstance();
+    auto& ptm = PageTableManager::GetKernelInstance();
 
     auto aligned_heap_size = ceil_div(heap_size(), PAGE_SIZE) * PAGE_SIZE;
     auto total_size = aligned_heap_size + size;
@@ -90,11 +90,11 @@ static void expand_heap(usize size)
 
         ptm.MapPage(address, address);
 
-        auto header = reinterpret_cast<heap_header *>(address);
+        auto header = reinterpret_cast<heap_header*>(address);
 
         if (chunk)
         {
-            if (address == reinterpret_cast<void *>(reinterpret_cast<uptr>(chunk + 1) + chunk->length))
+            if (address == reinterpret_cast<void*>(reinterpret_cast<uptr>(chunk + 1) + chunk->length))
             {
                 chunk->length += PAGE_SIZE;
                 continue;
@@ -112,12 +112,12 @@ static void expand_heap(usize size)
     }
 }
 
-void *malloc(usize count)
+void* malloc(usize count)
 {
     if (!heap_root)
         init_heap();
 
-    heap_header *header;
+    heap_header* header;
     for (header = heap_root; header && !(header->free && header->length >= count); header = header->next)
         ;
 
@@ -133,7 +133,7 @@ void *malloc(usize count)
         return header + 1;
     }
 
-    auto split_header = reinterpret_cast<heap_header *>(reinterpret_cast<uptr>(header + 1) + count);
+    auto split_header = reinterpret_cast<heap_header*>(reinterpret_cast<uptr>(header + 1) + count);
     split_header->free = true;
     split_header->length = header->length - sizeof(heap_header) - count;
     split_header->prev = header;
@@ -149,17 +149,17 @@ void *malloc(usize count)
     return header + 1;
 }
 
-static bool adjacent(heap_header *header_a, heap_header *header_b)
+static bool adjacent(heap_header* header_a, heap_header* header_b)
 {
-    return reinterpret_cast<void *>(reinterpret_cast<uptr>(header_a + 1) + header_a->length) == reinterpret_cast<void *>(header_b);
+    return reinterpret_cast<void*>(reinterpret_cast<uptr>(header_a + 1) + header_a->length) == reinterpret_cast<void*>(header_b);
 }
 
-void free(void *address)
+void free(void* address)
 {
     if (!address)
         return;
 
-    auto header = reinterpret_cast<heap_header *>(address) - 1;
+    auto header = reinterpret_cast<heap_header*>(address) - 1;
     header->free = true;
 
     if (header->prev && header->prev->free && adjacent(header->prev, header))
@@ -183,7 +183,7 @@ void free(void *address)
     }
 }
 
-void *realloc(void *address, usize count)
+void* realloc(void* address, usize count)
 {
     if (!count)
     {
@@ -196,7 +196,7 @@ void *realloc(void *address, usize count)
     if (!address)
         return new_address;
 
-    auto header = reinterpret_cast<heap_header *>(address) - 1;
+    auto header = reinterpret_cast<heap_header*>(address) - 1;
 
     if (new_address)
         memcpy(new_address, address, header->length);
@@ -206,7 +206,7 @@ void *realloc(void *address, usize count)
     return new_address;
 }
 
-void *calloc(usize count, usize size)
+void* calloc(usize count, usize size)
 {
     auto address = malloc(count * size);
 

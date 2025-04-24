@@ -7,7 +7,7 @@ bool ACPI::RSDP::Validate() const
     u8 sum = 0;
 
     for (usize i = 0; i < sizeof(RSDP); ++i)
-        sum += *(reinterpret_cast<const u8 *>(this) + i);
+        sum += *(reinterpret_cast<const u8*>(this) + i);
 
     return sum == 0;
 }
@@ -17,7 +17,7 @@ bool ACPI::XSDP::Validate() const
     u8 sum = 0;
 
     for (usize i = 0; i < sizeof(XSDP); ++i)
-        sum += *(reinterpret_cast<const u8 *>(this) + i);
+        sum += *(reinterpret_cast<const u8*>(this) + i);
 
     return sum == 0;
 }
@@ -27,12 +27,12 @@ bool ACPI::SDT_Header::Validate() const
     u8 sum = 0;
 
     for (usize i = 0; i < Length; ++i)
-        sum += *(reinterpret_cast<const u8 *>(this) + i);
+        sum += *(reinterpret_cast<const u8*>(this) + i);
 
     return sum == 0;
 }
 
-ACPI::SDT_Header *ACPI::RSDT::Find(cstr signature) const
+ACPI::SDT_Header* ACPI::RSDT::Find(cstr signature) const
 {
     auto num_entries = (Header.Length - sizeof(SDT_Header)) / 4;
 

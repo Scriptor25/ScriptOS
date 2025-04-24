@@ -1,5 +1,5 @@
-#include <scriptos/user/user.hpp>
 #include <scriptos/std/vararg.hpp>
+#include <scriptos/user/user.hpp>
 
 #define LOOP() asm volatile("jmp .")
 

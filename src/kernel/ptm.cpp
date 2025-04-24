@@ -19,18 +19,18 @@ struct page_index
     uptr pti;
 };
 
-PageTableManager &PageTableManager::GetKernelInstance()
+PageTableManager& PageTableManager::GetKernelInstance()
 {
     static PageTableManager instance;
     return instance;
 }
 
-void PageTableManager::Initialize(PageDirectoryEntry *page_directory)
+void PageTableManager::Initialize(PageDirectoryEntry* page_directory)
 {
     m_PageDirectory = page_directory;
 }
 
-bool PageTableManager::MapPage(const void *virtual_address, const void *physical_address, bool user)
+bool PageTableManager::MapPage(const void* virtual_address, const void* physical_address, bool user)
 {
     if (reinterpret_cast<uptr>(virtual_address) & (PAGE_SIZE - 1))
     {
@@ -44,21 +44,18 @@ bool PageTableManager::MapPage(const void *virtual_address, const void *physical
     }
 
     page_index index(reinterpret_cast<uptr>(virtual_address));
-    PageTableEntry *pt;
+    PageTableEntry* pt;
 
-    auto &pde = m_PageDirectory[index.pdi];
+    auto& pde = m_PageDirectory[index.pdi];
     if (pde.Present)
     {
-        pt = reinterpret_cast<PageTableEntry *>(pde.Address_31_12 << 12);
+        pt = reinterpret_cast<PageTableEntry*>(pde.Address_31_12 << 12);
 
         auto us = pde.UserSupervisor;
 
         if (us != user)
         {
-            debug("remapping page directory entry at %p from %s to %s access",
-                  virtual_address,
-                  us ? "user" : "supervisor",
-                  user ? "user" : "supervisor");
+            debug("remapping page directory entry at %p from %s to %s access", virtual_address, us ? "user" : "supervisor", user ? "user" : "supervisor");
             pde.UserSupervisor = user;
         }
     }
@@ -67,7 +64,7 @@ bool PageTableManager::MapPage(const void *virtual_address, const void *physical
         auto page = PageFrameAllocator::GetKernelInstance().RequestEmptyPage();
         assert(page && "out of memory");
 
-        pt = reinterpret_cast<PageTableEntry *>(page);
+        pt = reinterpret_cast<PageTableEntry*>(page);
 
         pde.Present = true;
         pde.ReadWrite = true;
@@ -75,10 +72,10 @@ bool PageTableManager::MapPage(const void *virtual_address, const void *physical
         pde.Address_31_12 = reinterpret_cast<uptr>(pt) >> 12;
     }
 
-    auto &pte = pt[index.pti];
+    auto& pte = pt[index.pti];
     if (pte.Present)
     {
-        auto pa = reinterpret_cast<void *>(pte.Address_31_12 << 12);
+        auto pa = reinterpret_cast<void*>(pte.Address_31_12 << 12);
         auto us = pte.UserSupervisor;
 
         if ((pa == physical_address) && (us == user))
@@ -108,11 +105,11 @@ bool PageTableManager::MapPage(const void *virtual_address, const void *physical
     return true;
 }
 
-bool PageTableManager::MapPages(const void *virtual_address, const void *physical_address, usize count, bool user)
+bool PageTableManager::MapPages(const void* virtual_address, const void* physical_address, usize count, bool user)
 {
     auto size = count * PAGE_SIZE;
     for (usize i = 0; i < size; i += PAGE_SIZE)
-        if (!MapPage(reinterpret_cast<void *>(reinterpret_cast<uptr>(virtual_address) + i), reinterpret_cast<void *>(reinterpret_cast<uptr>(physical_address) + i), user))
+        if (!MapPage(reinterpret_cast<void*>(reinterpret_cast<uptr>(virtual_address) + i), reinterpret_cast<void*>(reinterpret_cast<uptr>(physical_address) + i), user))
             return false;
     return true;
 }
@@ -126,22 +123,22 @@ void PageTableManager::SetupPaging()
     CR::CR0::W(cr0);
 }
 
-bool PageTableManager::IsMapped(const void *virtual_address) const
+bool PageTableManager::IsMapped(const void* virtual_address) const
 {
     page_index index(reinterpret_cast<uptr>(virtual_address));
 
-    auto &pde = m_PageDirectory[index.pdi];
+    auto& pde = m_PageDirectory[index.pdi];
     if (!pde.Present)
         return false;
 
-    auto &pte = reinterpret_cast<PageTableEntry *>(pde.Address_31_12 << 12)[index.pti];
+    auto& pte = reinterpret_cast<PageTableEntry*>(pde.Address_31_12 << 12)[index.pti];
     if (!pte.Present)
         return false;
 
     return true;
 }
 
-void InvalidatePage(const void *address)
+void InvalidatePage(const void* address)
 {
     asm volatile("invlpg (%0)" ::"r"(address) : "memory");
 }

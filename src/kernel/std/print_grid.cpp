@@ -6,10 +6,10 @@
 #include <scriptos/stl/string.hpp>
 #include <scriptos/stl/vector.hpp>
 
-void printg(u32 rows, u32 columns, u32 maxw, const cstr *data)
+void printg(u32 rows, u32 columns, u32 maxw, const cstr* data)
 {
-    auto minw = reinterpret_cast<u32 *>(malloc(columns * sizeof(u32)));
-    auto minh = reinterpret_cast<u32 *>(malloc(rows * sizeof(u32)));
+    auto minw = reinterpret_cast<u32*>(malloc(columns * sizeof(u32)));
+    auto minh = reinterpret_cast<u32*>(malloc(rows * sizeof(u32)));
 
     memset(minw, 0, columns * sizeof(u32));
     memset(minh, 0, rows * sizeof(u32));
@@ -34,8 +34,8 @@ void printg(u32 rows, u32 columns, u32 maxw, const cstr *data)
     for (u32 r = 0; r < rows; ++r)
         tblh += (minh[r] + 1) * CHAR_H;
 
-    auto &graphics = Graphics::GetKernelInstance();
-    auto &pos = graphics.Pos();
+    auto& graphics = Graphics::GetKernelInstance();
+    auto& pos = graphics.Pos();
 
     auto x = pos.x + CHAR_W;
     auto y = pos.y + CHAR_H;
@@ -103,7 +103,7 @@ void beg_tbl(u32 columns, u32 maxw, ...)
 void end_tbl()
 {
     vector<cstr> raw_data;
-    for (auto &s : global_tbl.data)
+    for (auto& s : global_tbl.data)
     {
         s.push_back(0);
         raw_data.push_back(s.data());

@@ -13,7 +13,7 @@ void CR::CR0::W(CR0 cr0)
 }
 
 CR::CR0::CR0(u32 value)
-    : Value(value)
+  : Value(value)
 {
 }
 
@@ -35,7 +35,7 @@ void CR::CR2::W(CR2 cr2)
 }
 
 CR::CR2::CR2(u32 value)
-    : Value(value)
+  : Value(value)
 {
 }
 
@@ -57,7 +57,7 @@ void CR::CR3::W(CR3 cr3)
 }
 
 CR::CR3::CR3(u32 value)
-    : Value(value)
+  : Value(value)
 {
 }
 
@@ -79,7 +79,7 @@ void CR::CR4::W(CR4 cr4)
 }
 
 CR::CR4::CR4(u32 value)
-    : Value(value)
+  : Value(value)
 {
 }
 
@@ -101,7 +101,7 @@ void CR::CR8::W(CR8 cr8)
 }
 
 CR::CR8::CR8(u32 value)
-    : Value(value)
+  : Value(value)
 {
 }
 

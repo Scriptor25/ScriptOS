@@ -84,7 +84,7 @@ bool ATA::Identify(u16 bus, u8 device)
     return true;
 }
 
-bool ATA::ReadSector(u16 bus, u8 device, u32 lba, u8 sector_count, void *buffer)
+bool ATA::ReadSector(u16 bus, u8 device, u32 lba, u8 sector_count, void* buffer)
 {
     if (!WaitBSY(bus))
         return false;

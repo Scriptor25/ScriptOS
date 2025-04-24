@@ -1,7 +1,7 @@
 #include <scriptos/kernel/bitmap.hpp>
 
-Bitmap::Iter::Iter(const Bitmap &bitmap, usize index)
-    : m_Bitmap(bitmap), m_Index(index)
+Bitmap::Iter::Iter(const Bitmap& bitmap, usize index)
+  : m_Bitmap(bitmap), m_Index(index)
 {
 }
 
@@ -14,7 +14,7 @@ BitEntry Bitmap::Iter::operator*() const
     };
 }
 
-Bitmap::Iter &Bitmap::Iter::operator++()
+Bitmap::Iter& Bitmap::Iter::operator++()
 {
     m_Index++;
     return *this;
@@ -27,11 +27,17 @@ Bitmap::Iter Bitmap::Iter::operator++(int)
     return old;
 }
 
-bool Bitmap::Iter::operator==(const Iter &other) const { return other.m_Index == m_Index; }
+bool Bitmap::Iter::operator==(const Iter& other) const
+{
+    return other.m_Index == m_Index;
+}
 
-bool Bitmap::Iter::operator!=(const Iter &other) const { return other.m_Index != m_Index; }
+bool Bitmap::Iter::operator!=(const Iter& other) const
+{
+    return other.m_Index != m_Index;
+}
 
-void Bitmap::Initialize(usize size, u8 *buffer)
+void Bitmap::Initialize(usize size, u8* buffer)
 {
     m_Size = size;
     m_Buffer = buffer;
@@ -42,7 +48,7 @@ usize Bitmap::Size() const
     return m_Size;
 }
 
-void *Bitmap::Buffer() const
+void* Bitmap::Buffer() const
 {
     return m_Buffer;
 }

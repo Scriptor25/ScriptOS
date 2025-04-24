@@ -17,17 +17,18 @@ extern "C"
          * Each member is at least 4 bytes large. Such that each entry is 12bytes.
          * 128 * 12 = 1.5KB exact.
          **/
-        void (*destructor_func)(void *);
-        void *obj_ptr;
-        void *dso_handle;
+        void (*destructor_func)(void*);
+        void* obj_ptr;
+        void* dso_handle;
     };
 
     atexit_func_entry_t __atexit_funcs[ATEXIT_MAX_FUNCS];
     uarch_t __atexit_func_count = 0;
 
-    void *__dso_handle = 0; // Attention! Optimally, you should remove the '= 0' part and define this in your asm script.
+    void* __dso_handle = 0; // Attention! Optimally, you should remove the '= 0' part and define this in your asm
+                            // script.
 
-    int __cxa_atexit(void (*f)(void *), void *objptr, void *dso)
+    int __cxa_atexit(void (*f)(void*), void* objptr, void* dso)
     {
         if (__atexit_func_count >= ATEXIT_MAX_FUNCS)
         {
@@ -40,7 +41,7 @@ extern "C"
         return 0; /* I would prefer if functions returned 1 on success, but the ABI says...*/
     };
 
-    void __cxa_finalize(void *f)
+    void __cxa_finalize(void* f)
     {
         uarch_t i = __atexit_func_count;
         if (!f)
@@ -127,17 +128,17 @@ namespace __cxxabiv1
     /* The ABI requires a 64-bit type.  */
     __extension__ typedef int __guard __attribute__((mode(__DI__)));
 
-    extern "C" int __cxa_guard_acquire(__guard *g)
+    extern "C" int __cxa_guard_acquire(__guard* g)
     {
-        return !*reinterpret_cast<char *>(g);
+        return !*reinterpret_cast<char*>(g);
     }
 
-    extern "C" void __cxa_guard_release(__guard *g)
+    extern "C" void __cxa_guard_release(__guard* g)
     {
-        *reinterpret_cast<char *>(g) = 1;
+        *reinterpret_cast<char*>(g) = 1;
     }
 
-    extern "C" void __cxa_guard_abort(__guard *)
+    extern "C" void __cxa_guard_abort(__guard*)
     {
     }
 }

@@ -2,7 +2,7 @@
 #include <scriptos/kernel/font8x8.hpp>
 #include <scriptos/std/memory.hpp>
 
-const u8 *Font::GetChar(int c)
+const u8* Font::GetChar(int c)
 {
     if (0x0000 <= c && c <= 0x007f)
         return font8x8::basic[c];
@@ -23,7 +23,7 @@ const u8 *Font::GetChar(int c)
     return nullptr;
 }
 
-bool Font::GetBit(const u8 *c, u8 x, u8 y)
+bool Font::GetBit(const u8* c, u8 x, u8 y)
 {
     return (c[y] >> x) & 1;
 }

@@ -2,9 +2,9 @@
 #include <scriptos/kernel/serial.hpp>
 #include <scriptos/std/stream.hpp>
 
-FILE *stdin;
-FILE *stdout;
-FILE *stderr;
+FILE* stdin;
+FILE* stdout;
+FILE* stderr;
 
 static FILE internal_stdin;
 static FILE internal_stdout;
@@ -40,22 +40,21 @@ int FILE::Get()
 
 void InitializeStdIO()
 {
-    internal_stdin = FILE::In([]()
-                              { return -1; });
+    internal_stdin = FILE::In([]() { return -1; });
 
     internal_stdout = FILE::Out(
-        [](int c)
-        {
-            Graphics::GetKernelInstance().PutChar(c);
-            return c;
-        });
+      [](int c)
+      {
+          Graphics::GetKernelInstance().PutChar(c);
+          return c;
+      });
 
     internal_stderr = FILE::Out(
-        [](int c)
-        {
-            Serial::Write(c);
-            return c;
-        });
+      [](int c)
+      {
+          Serial::Write(c);
+          return c;
+      });
 
     stdin = &internal_stdin;
     stdout = &internal_stdout;

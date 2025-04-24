@@ -2,15 +2,12 @@
 #include <scriptos/std/util.hpp>
 
 Color::Color(u32 color)
-    : a(static_cast<f32>((color >> 24) & 0xff) / 255.f),
-      r(static_cast<f32>((color >> 16) & 0xff) / 255.f),
-      g(static_cast<f32>((color >> 8) & 0xff) / 255.f),
-      b(static_cast<f32>(color & 0xff) / 255.f)
+  : a(static_cast<f32>((color >> 24) & 0xff) / 255.f), r(static_cast<f32>((color >> 16) & 0xff) / 255.f), g(static_cast<f32>((color >> 8) & 0xff) / 255.f), b(static_cast<f32>(color & 0xff) / 255.f)
 {
 }
 
 Color::Color(f32 a, f32 r, f32 g, f32 b)
-    : a(a), r(r), g(g), b(b)
+  : a(a), r(r), g(g), b(b)
 {
 }
 
@@ -24,7 +21,7 @@ Color::operator u32() const
     return (ia & 0xff) << 24 | (ir & 0xff) << 16 | (ig & 0xff) << 8 | (ib & 0xff);
 }
 
-Color operator*(const Color &lhs, f32 rhs)
+Color operator*(const Color& lhs, f32 rhs)
 {
     return {
         lhs.a * rhs,
@@ -34,12 +31,12 @@ Color operator*(const Color &lhs, f32 rhs)
     };
 }
 
-Color operator*(f32 lhs, const Color &rhs)
+Color operator*(f32 lhs, const Color& rhs)
 {
     return rhs * lhs;
 }
 
-Color operator+(const Color &lhs, const Color &rhs)
+Color operator+(const Color& lhs, const Color& rhs)
 {
     return {
         lhs.a + rhs.a,
@@ -49,7 +46,7 @@ Color operator+(const Color &lhs, const Color &rhs)
     };
 }
 
-Graphics &Graphics::GetKernelInstance()
+Graphics& Graphics::GetKernelInstance()
 {
     static Graphics instance;
     return instance;
@@ -66,7 +63,7 @@ u32 Graphics::Blend(u32 src, u32 dst)
     return src_color * src_factor + dst_color * dst_factor;
 }
 
-void Graphics::Initialize(u8 *fb_addr, u8 *bb_addr, u32 width, u32 height, u32 pitch, u8 bpp)
+void Graphics::Initialize(u8* fb_addr, u8* bb_addr, u32 width, u32 height, u32 pitch, u8 bpp)
 {
     m_Dirty = false;
 
@@ -84,12 +81,12 @@ u32 Graphics::Height() const
     return m_FrontBuffer.Height();
 }
 
-Point<usize> &Graphics::Pos()
+Point<usize>& Graphics::Pos()
 {
     return m_Pos;
 }
 
-const Point<usize> &Graphics::Pos() const
+const Point<usize>& Graphics::Pos() const
 {
     return m_Pos;
 }
@@ -239,7 +236,7 @@ void Graphics::DrawString(usize x, usize y, usize wrap, cwstr data)
     }
 }
 
-void Graphics::DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y2, f32 u2, f32 v2, usize width, usize height, bool filter, const u32 *data)
+void Graphics::DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y2, f32 u2, f32 v2, usize width, usize height, bool filter, const u32* data)
 {
     for (usize y = y1; y < y2; ++y)
         for (usize x = x1; x < x2; ++x)
@@ -324,14 +321,14 @@ void Graphics::PutChar(int c)
     {
         switch (c)
         {
-        case '\n':
-            m_Pos.x = 0;
-            if ((m_Pos.y += CHAR_H) >= fbh)
-                m_Pos.y = 0;
-            break;
-        case '\r':
-            m_Pos.x = 0;
-            break;
+            case '\n':
+                m_Pos.x = 0;
+                if ((m_Pos.y += CHAR_H) >= fbh)
+                    m_Pos.y = 0;
+                break;
+            case '\r':
+                m_Pos.x = 0;
+                break;
         }
         return;
     }

@@ -36,34 +36,34 @@ u32 inl(u16 port)
     return value;
 }
 
-void outsb(u16 port, const void *address, u16 count)
+void outsb(u16 port, const void* address, u16 count)
 {
     asm volatile("rep outsb" : "+S"(address), "+c"(count) : "d"(port));
 }
 
-void outsw(u16 port, const void *address, u16 count)
+void outsw(u16 port, const void* address, u16 count)
 {
     asm volatile("rep outsw" : "+S"(address), "+c"(count) : "d"(port));
 }
 
-void outsl(u16 port, const void *address, u16 count)
+void outsl(u16 port, const void* address, u16 count)
 {
     asm volatile("rep outsl" : "+S"(address), "+c"(count) : "d"(port));
 }
 
-void *insb(u16 port, void *address, u16 count)
+void* insb(u16 port, void* address, u16 count)
 {
     asm volatile("rep insb" : "+D"(address), "+c"(count) : "d"(port) : "memory");
     return address;
 }
 
-void *insw(u16 port, void *address, u16 count)
+void* insw(u16 port, void* address, u16 count)
 {
     asm volatile("rep insw" : "+D"(address), "+c"(count) : "d"(port) : "memory");
     return address;
 }
 
-void *insl(u16 port, void *address, u16 count)
+void* insl(u16 port, void* address, u16 count)
 {
     asm volatile("rep insl" : "+D"(address), "+c"(count) : "d"(port) : "memory");
     return address;

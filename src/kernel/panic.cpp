@@ -7,7 +7,7 @@ NORET void Panic(cstr format, ...)
 {
     CLI();
 
-    auto &graphics = Graphics::GetKernelInstance();
+    auto& graphics = Graphics::GetKernelInstance();
     graphics.SetFGColor(0xffffffff);
     graphics.SetBGColor(0x00000000);
     graphics.Reset();
@@ -21,6 +21,8 @@ NORET void Panic(cstr format, ...)
     putc('\n');
 
     graphics.SwapBuffers();
+
+    HLT();
 
     for (;;)
         ;

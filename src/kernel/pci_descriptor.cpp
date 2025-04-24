@@ -39,9 +39,11 @@ cstr PCI::GetDeviceDescriptor(u8 class_code, u8 subclass, u8 prog_if)
             case 0x85:
                 return "PCI Native Mode-Only Controller with Bus Mastering";
             case 0x8A:
-                return "ISA Compatibility Mode Controller with Dual-Channel PCI Native Mode and Bus Mastering Support";
+                return "ISA Compatibility Mode Controller with Dual-Channel PCI Native Mode and Bus "
+                       "Mastering Support";
             case 0x8F:
-                return "PCI Native Mode Controller with Dual-Channel ISA Compatibility Mode and Bus Mastering Support";
+                return "PCI Native Mode Controller with Dual-Channel ISA Compatibility Mode and Bus "
+                       "Mastering Support";
             case 0xFF:
                 return "IDE Interface";
             default:

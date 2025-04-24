@@ -1,6 +1,6 @@
 #include <scriptos/std/memory.hpp>
 
-void *memcpy(void *dst, const void *src, usize count)
+void* memcpy(void* dst, const void* src, usize count)
 {
     if (!dst)
         return nullptr;
@@ -12,14 +12,14 @@ void *memcpy(void *dst, const void *src, usize count)
     auto end = count - rem;
 
     for (usize i = 0; i < end; i += sizeof(int))
-        *reinterpret_cast<int *>(reinterpret_cast<uptr>(dst) + i) = *reinterpret_cast<const int *>(reinterpret_cast<uptr>(src) + i);
+        *reinterpret_cast<int*>(reinterpret_cast<uptr>(dst) + i) = *reinterpret_cast<const int*>(reinterpret_cast<uptr>(src) + i);
     for (usize i = end; i < count; ++i)
-        *(reinterpret_cast<u8 *>(dst) + i) = *(reinterpret_cast<const u8 *>(src) + i);
+        *(reinterpret_cast<u8*>(dst) + i) = *(reinterpret_cast<const u8*>(src) + i);
 
     return dst;
 }
 
-void *memset(void *dst, int src, usize count)
+void* memset(void* dst, int src, usize count)
 {
     if (!dst)
         return nullptr;
@@ -37,14 +37,14 @@ void *memset(void *dst, int src, usize count)
         src |= byte << i;
 
     for (usize i = 0; i < end; i += sizeof(int))
-        *reinterpret_cast<int *>(reinterpret_cast<uptr>(dst) + i) = src;
+        *reinterpret_cast<int*>(reinterpret_cast<uptr>(dst) + i) = src;
     for (usize i = end; i < count; ++i)
-        *(reinterpret_cast<u8 *>(dst) + i) = static_cast<u8>(src);
+        *(reinterpret_cast<u8*>(dst) + i) = static_cast<u8>(src);
 
     return dst;
 }
 
-void *memset(void *dst, int src, usize size, usize count)
+void* memset(void* dst, int src, usize size, usize count)
 {
     if (!dst)
         return nullptr;
@@ -53,12 +53,12 @@ void *memset(void *dst, int src, usize size, usize count)
         return dst;
 
     for (usize i = 0; i < count * size; i += size)
-        *reinterpret_cast<int *>(reinterpret_cast<uptr>(dst) + i) = src;
+        *reinterpret_cast<int*>(reinterpret_cast<uptr>(dst) + i) = src;
 
     return dst;
 }
 
-int memcmp(const void *ptr1, const void *ptr2, usize count)
+int memcmp(const void* ptr1, const void* ptr2, usize count)
 {
     if (ptr1 == ptr2)
         return 0;
@@ -70,7 +70,7 @@ int memcmp(const void *ptr1, const void *ptr2, usize count)
 
     for (usize i = 0; i < count; ++i)
     {
-        auto diff = reinterpret_cast<const u8 *>(ptr1)[i] - reinterpret_cast<const u8 *>(ptr2)[i];
+        auto diff = reinterpret_cast<const u8*>(ptr1)[i] - reinterpret_cast<const u8*>(ptr2)[i];
         if (diff)
             return diff;
     }

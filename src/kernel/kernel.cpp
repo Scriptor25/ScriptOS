@@ -25,17 +25,17 @@
 #include <scriptos/stl/string.hpp>
 #include <scriptos/stl/string_view.hpp>
 
-static void setup_memory(const MultibootInfo &info)
+static void setup_memory(const MultibootInfo& info)
 {
-    auto &pfa = PageFrameAllocator::GetKernelInstance();
-    auto &ptm = PageTableManager::GetKernelInstance();
+    auto& pfa = PageFrameAllocator::GetKernelInstance();
+    auto& ptm = PageTableManager::GetKernelInstance();
 
     auto mmap = info.GetMMap();
 
     pfa.Initialize(mmap);
     pfa.LockPages(KERNEL_START, ceil_div(KERNEL_SIZE, PAGE_SIZE));
 
-    auto page_directory = reinterpret_cast<PageDirectoryEntry *>(pfa.RequestEmptyPage());
+    auto page_directory = reinterpret_cast<PageDirectoryEntry*>(pfa.RequestEmptyPage());
     assert(page_directory && "out of memory");
 
     ptm.Initialize(page_directory);
@@ -43,11 +43,11 @@ static void setup_memory(const MultibootInfo &info)
     ptm.SetupPaging();
 }
 
-static void setup_graphics(const MultibootInfo &info)
+static void setup_graphics(const MultibootInfo& info)
 {
-    auto &pfa = PageFrameAllocator::GetKernelInstance();
-    auto &ptm = PageTableManager::GetKernelInstance();
-    auto &graphics = Graphics::GetKernelInstance();
+    auto& pfa = PageFrameAllocator::GetKernelInstance();
+    auto& ptm = PageTableManager::GetKernelInstance();
+    auto& graphics = Graphics::GetKernelInstance();
 
     auto tag = info.at<multiboot_tag_framebuffer>(MULTIBOOT_TAG_TYPE_FRAMEBUFFER);
     auto fb_addr = tag->framebuffer_addr_lo;
@@ -57,12 +57,12 @@ static void setup_graphics(const MultibootInfo &info)
     auto bpp = tag->framebuffer_bpp;
 
     auto page_count = ceil_div(pitch * height, PAGE_SIZE);
-    pfa.LockPages(reinterpret_cast<void *>(fb_addr), page_count);
-    ptm.MapPages(reinterpret_cast<void *>(fb_addr), reinterpret_cast<void *>(fb_addr), page_count);
+    pfa.LockPages(reinterpret_cast<void*>(fb_addr), page_count);
+    ptm.MapPages(reinterpret_cast<void*>(fb_addr), reinterpret_cast<void*>(fb_addr), page_count);
 
     auto bb_addr = pfa.RequestPages(page_count);
     ptm.MapPages(bb_addr, bb_addr, page_count);
-    graphics.Initialize(reinterpret_cast<u8 *>(fb_addr), reinterpret_cast<u8 *>(bb_addr), width, height, pitch, bpp);
+    graphics.Initialize(reinterpret_cast<u8*>(fb_addr), reinterpret_cast<u8*>(bb_addr), width, height, pitch, bpp);
 
     graphics.SetBGColor(0xff121212);
     graphics.SetFGColor(0xfffefefe);
@@ -70,14 +70,14 @@ static void setup_graphics(const MultibootInfo &info)
     graphics.Clear();
 }
 
-static void setup_pci(const MultibootInfo &info)
+static void setup_pci(const MultibootInfo& info)
 {
-    const ACPI::RSDP *rsdp = nullptr;
+    const ACPI::RSDP* rsdp = nullptr;
 
     if (auto tag = info.at<multiboot_tag_new_acpi>(MULTIBOOT_TAG_TYPE_ACPI_NEW); tag && !rsdp)
-        rsdp = reinterpret_cast<const ACPI::RSDP *>(tag->rsdp);
+        rsdp = reinterpret_cast<const ACPI::RSDP*>(tag->rsdp);
     if (auto tag = info.at<multiboot_tag_old_acpi>(MULTIBOOT_TAG_TYPE_ACPI_OLD); tag && !rsdp)
-        rsdp = reinterpret_cast<const ACPI::RSDP *>(tag->rsdp);
+        rsdp = reinterpret_cast<const ACPI::RSDP*>(tag->rsdp);
 
     if (!rsdp)
     {
@@ -91,8 +91,8 @@ static void setup_pci(const MultibootInfo &info)
         return;
     }
 
-    auto rsdt = reinterpret_cast<ACPI::RSDT *>(rsdp->RSDTAddress);
-    auto mcfg = reinterpret_cast<ACPI::MCFG_Header *>(rsdt->Find("MCFG"));
+    auto rsdt = reinterpret_cast<ACPI::RSDT*>(rsdp->RSDTAddress);
+    auto mcfg = reinterpret_cast<ACPI::MCFG_Header*>(rsdt->Find("MCFG"));
 
     if (!mcfg)
     {
@@ -110,34 +110,34 @@ static void __attribute__((aligned(PAGE_SIZE))) user_main()
 
 static void setup_user()
 {
-    auto &pfa = PageFrameAllocator::GetKernelInstance();
-    auto &ptm = PageTableManager::GetKernelInstance();
+    auto& pfa = PageFrameAllocator::GetKernelInstance();
+    auto& ptm = PageTableManager::GetKernelInstance();
 
     auto stack = pfa.RequestPage();
     assert(stack && "out of memory");
-    auto main = reinterpret_cast<void *>(::user_main);
+    auto main = reinterpret_cast<void*>(::user_main);
 
-    auto mapped_stack = reinterpret_cast<void *>(0xE0000000);
-    auto mapped_main = reinterpret_cast<void *>(0xF0000000);
+    auto mapped_stack = reinterpret_cast<void*>(0xE0000000);
+    auto mapped_main = reinterpret_cast<void*>(0xF0000000);
 
     ptm.MapPage(mapped_stack, stack, true);
     ptm.MapPage(mapped_main, main, true);
 
     // TODO: load user code into memory and map the used memory regions to be accessible by user mode
 
-    jump_user(reinterpret_cast<void *>(reinterpret_cast<uptr>(mapped_stack) + PAGE_SIZE), mapped_main);
+    jump_user(reinterpret_cast<void*>(reinterpret_cast<uptr>(mapped_stack) + PAGE_SIZE), mapped_main);
 }
 
-static void serial_exec(const string &cmd)
+static void serial_exec(const string& cmd)
 {
     auto args = string_view(cmd).split(',');
-    for (auto &arg : args)
+    for (auto& arg : args)
         arg = arg.trim();
     auto command = args.pop_front();
 
     if (command == "print")
     {
-        for (auto &arg : args)
+        for (auto& arg : args)
         {
             putn(arg.data(), arg.size());
             putc(' ');
@@ -149,7 +149,7 @@ static void serial_exec(const string &cmd)
     {
         string message;
         bool first = true;
-        for (auto &arg : args)
+        for (auto& arg : args)
         {
             if (first)
                 first = false;
@@ -166,7 +166,7 @@ static void serial_exec(const string &cmd)
     Serial::Write('\'');
     if (!args.empty())
         Serial::Write(", args");
-    for (auto &arg : args)
+    for (auto& arg : args)
     {
         Serial::Write(" '");
         Serial::Write(arg.data(), arg.size());
@@ -239,7 +239,7 @@ static void test_ata()
     }
 }
 
-extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
+extern "C" void kernel_main(u32 magic, const MultibootInfo& info)
 {
     InitializeStdIO();
 
@@ -252,7 +252,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     /**
      * Get the current kernel stack address for initializing the GDT
      */
-    void *kernel_stack;
+    void* kernel_stack;
     asm volatile("mov %%esp, %0" : "=g"(kernel_stack));
 
     GDT::Initialize(kernel_stack);
@@ -270,7 +270,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
     setup_pci(info);
 
     // test_ata();
-    (void)test_ata;
+    (void) test_ata;
 
     for (;;)
     {
@@ -289,27 +289,27 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo &info)
         auto c = Serial::Read();
         switch (c)
         {
-        case 0x08:
-            if (buffer.empty())
+            case 0x08:
+                if (buffer.empty())
+                    break;
+                buffer.pop_back();
+                Serial::Write(0x08);
+                Serial::Write(' ');
+                Serial::Write(0x08);
                 break;
-            buffer.pop_back();
-            Serial::Write(0x08);
-            Serial::Write(' ');
-            Serial::Write(0x08);
-            break;
-        case 0x0D:
-            Serial::Write("\r\n");
-            serial_exec(buffer);
-            buffer.clear();
-            Serial::Write("> ");
-            break;
-        default:
-            if (c >= 0x20)
-            {
-                buffer.push_back(c);
-                Serial::Write(c);
-            }
-            break;
+            case 0x0D:
+                Serial::Write("\r\n");
+                serial_exec(buffer);
+                buffer.clear();
+                Serial::Write("> ");
+                break;
+            default:
+                if (c >= 0x20)
+                {
+                    buffer.push_back(c);
+                    Serial::Write(c);
+                }
+                break;
         }
     }
 }

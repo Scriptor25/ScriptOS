@@ -2,22 +2,22 @@
 #include <scriptos/stl/string_view.hpp>
 
 string::string()
-    : vector()
+  : vector()
 {
 }
 
 string::string(cstr data)
-    : vector(data, strlen(data))
+  : vector(data, strlen(data))
 {
 }
 
-string::string(const string_view &data)
-    : vector(data.begin(), data.end())
+string::string(const string_view& data)
+  : vector(data.begin(), data.end())
 {
 }
 
 string::string(cstr begin, cstr end)
-    : vector(begin, end)
+  : vector(begin, end)
 {
 }
 
