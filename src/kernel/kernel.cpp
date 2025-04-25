@@ -274,7 +274,12 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo& info)
 
     for (;;)
     {
-        printf("\rUptime: %us                                     ", PIT::TicksSinceBoot / PIT_TICKS_PER_SECOND);
+        auto time = PIT::TicksSinceBoot / PIT_TICKS_PER_SECOND;
+        auto seconds = time % 60;
+        auto minutes = (time % (60 * 60)) / 60;
+        auto hours = (time % (60 * 60 * 24)) / (60 * 60);
+
+        printf("\rUptime: %02u:%02u:%02u", hours, minutes, seconds);
         sleep(100);
     }
 
@@ -289,27 +294,27 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo& info)
         auto c = Serial::Read();
         switch (c)
         {
-            case 0x08:
-                if (buffer.empty())
-                    break;
-                buffer.pop_back();
-                Serial::Write(0x08);
-                Serial::Write(' ');
-                Serial::Write(0x08);
+        case 0x08:
+            if (buffer.empty())
                 break;
-            case 0x0D:
-                Serial::Write("\r\n");
-                serial_exec(buffer);
-                buffer.clear();
-                Serial::Write("> ");
-                break;
-            default:
-                if (c >= 0x20)
-                {
-                    buffer.push_back(c);
-                    Serial::Write(c);
-                }
-                break;
+            buffer.pop_back();
+            Serial::Write(0x08);
+            Serial::Write(' ');
+            Serial::Write(0x08);
+            break;
+        case 0x0D:
+            Serial::Write("\r\n");
+            serial_exec(buffer);
+            buffer.clear();
+            Serial::Write("> ");
+            break;
+        default:
+            if (c >= 0x20)
+            {
+                buffer.push_back(c);
+                Serial::Write(c);
+            }
+            break;
         }
     }
 }
