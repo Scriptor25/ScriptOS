@@ -19,6 +19,10 @@ namespace Serial
      */
     char Read();
     /**
+     * Read a single byte from the serial port, without blocking execution.
+     */
+    char ReadNoBlock();
+    /**
      * Check if nothing got written to the serial port.
      */
     int Transmit_Empty();

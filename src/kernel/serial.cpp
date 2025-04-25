@@ -33,6 +33,11 @@ char Serial::Read()
     return inb(SERIAL_PORT_COM1);
 }
 
+char Serial::ReadNoBlock()
+{
+    return inb(SERIAL_PORT_COM1);
+}
+
 int Serial::Transmit_Empty()
 {
     return inb(SERIAL_PORT_COM1 + 5) & 0x20;

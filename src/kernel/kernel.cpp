@@ -271,27 +271,28 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo& info)
 
     // test_ata();
     (void) test_ata;
-
-    for (;;)
-    {
-        auto time = PIT::TicksSinceBoot / PIT_TICKS_PER_SECOND;
-        auto seconds = time % 60;
-        auto minutes = (time % (60 * 60)) / 60;
-        auto hours = (time % (60 * 60 * 24)) / (60 * 60);
-
-        printf("\rUptime: %02u:%02u:%02u", hours, minutes, seconds);
-        sleep(100);
-    }
-
-    setup_user();
+    // setup_user();
+    (void) setup_user;
 
     Serial::Write("Hello Serial Terminal!\r\n");
     Serial::Write("> ");
 
     string buffer;
-    while (true)
+
+    for (;;)
     {
-        auto c = Serial::Read();
+        while (!Serial::Received())
+        {
+            auto time = PIT::TicksSinceBoot / PIT_TICKS_PER_SECOND;
+            auto seconds = time % 60;
+            auto minutes = (time % (60 * 60)) / 60;
+            auto hours = (time % (60 * 60 * 24)) / (60 * 60);
+
+            printf("\rUptime: %02u:%02u:%02u", hours, minutes, seconds);
+            sleep(100);
+        }
+
+        auto c = Serial::ReadNoBlock();
         switch (c)
         {
         case 0x08:
