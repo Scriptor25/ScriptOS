@@ -27,13 +27,13 @@ namespace CR
             bool ET : 1;
             /** numeric error */
             bool NE : 1;
-            u32 : 10;
+            u32     : 10;
             /** write protect */
             bool WP : 1;
-            u32 : 1;
+            u32     : 1;
             /** alignment mask */
             bool AM : 1;
-            u32 : 10;
+            u32     : 10;
             /** not write-through */
             bool NW : 1;
             /** cache disable */
@@ -79,7 +79,7 @@ namespace CR
             bool PWT : 1;
             /** page-level cache disable */
             bool PCD : 1;
-            u32 : 7;
+            u32      : 7;
             /** page directory base register */
             u32 PDBR : 20;
         };
@@ -128,14 +128,14 @@ namespace CR
             bool VMXE : 1;
             /** safer mode extension enable */
             bool SMXE : 1;
-            u32 : 1;
+            u32       : 1;
             /** enable instructions RDFSBASE, RDGSBASE, WRFSBASE, WRGSBASE */
             bool FSGSBASE : 1;
             /** PCID enable */
             bool PCIDE : 1;
             /** XSAVE and processor extended state enable */
             bool OSXSAVE : 1;
-            u32 : 1;
+            u32          : 1;
             /** supervisor mode execution protection enable */
             bool SMEP : 1;
             /** supervisor mode access prevention enable */
@@ -146,7 +146,7 @@ namespace CR
             bool CET : 1;
             /** enable protection keys for supervisor mode pages */
             bool PKS : 1;
-            u32 : 7;
+            u32      : 7;
         };
 
         u32 Value;

@@ -46,43 +46,43 @@ extern u32 __kernel_end;
 /**
  * kernel start address
  */
-#define KERNEL_START (reinterpret_cast<void *>(&__kernel_start))
+#define KERNEL_START (reinterpret_cast<void*>(&__kernel_start))
 /**
  * text start address
  */
-#define TEXT_START (reinterpret_cast<void *>(&__text_start))
+#define TEXT_START (reinterpret_cast<void*>(&__text_start))
 /**
  * text end address
  */
-#define TEXT_END (reinterpret_cast<void *>(&__text_end))
+#define TEXT_END (reinterpret_cast<void*>(&__text_end))
 /**
  * read-only data start address
  */
-#define RODATA_START (reinterpret_cast<void *>(&__rodata_start))
+#define RODATA_START (reinterpret_cast<void*>(&__rodata_start))
 /**
  * read-only data end address
  */
-#define RODATA_END (reinterpret_cast<void *>(&__rodata_end))
+#define RODATA_END (reinterpret_cast<void*>(&__rodata_end))
 /**
  * data start address
  */
-#define DATA_START (reinterpret_cast<void *>(&__data_start))
+#define DATA_START (reinterpret_cast<void*>(&__data_start))
 /**
  * data end address
  */
-#define DATA_END (reinterpret_cast<void *>(&__data_end))
+#define DATA_END (reinterpret_cast<void*>(&__data_end))
 /**
  * bss start address
  */
-#define BSS_START (reinterpret_cast<void *>(&__bss_start))
+#define BSS_START (reinterpret_cast<void*>(&__bss_start))
 /**
  * bss end address
  */
-#define BSS_END (reinterpret_cast<void *>(&__bss_end))
+#define BSS_END (reinterpret_cast<void*>(&__bss_end))
 /**
  * kernel end address
  */
-#define KERNEL_END (reinterpret_cast<void *>(&__kernel_end))
+#define KERNEL_END (reinterpret_cast<void*>(&__kernel_end))
 
 /**
  * kernel size

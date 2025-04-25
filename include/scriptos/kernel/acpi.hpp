@@ -48,9 +48,9 @@ namespace ACPI
 
     struct RSDT
     {
-        SDT_Header *Find(cstr signature) const;
+        SDT_Header* Find(cstr signature) const;
 
-        template <typename T>
+        template<typename T>
         void ForEach(T consumer) const
         {
             auto num_entries = (Header.Length - sizeof(SDT_Header)) / 4;
@@ -64,7 +64,7 @@ namespace ACPI
         }
 
         SDT_Header Header;
-        SDT_Header *Entries[0];
+        SDT_Header* Entries[0];
     } __attribute__((packed));
 
     struct MCFG_Entry
@@ -79,7 +79,7 @@ namespace ACPI
 
     struct MCFG_Header
     {
-        template <typename T>
+        template<typename T>
         void ForEach(T consumer) const
         {
             auto num_entries = (Header.Length - sizeof(MCFG_Header)) / sizeof(MCFG_Entry);

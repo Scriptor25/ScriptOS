@@ -8,30 +8,32 @@ public:
     /**
      * Utility function to blit the contents of a framebuffer onto another one.
      */
-    static void Blit(Framebuffer &dst, const Framebuffer &src);
+    static void Blit(Framebuffer& dst, const Framebuffer& src);
 
     /**
      * Initialize this framebuffer.
      */
-    void Initialize(u8 *base, u32 width, u32 height, u32 pitch, u8 bpp);
+    void Initialize(u8* base, u32 width, u32 height, u32 pitch, u8 bpp);
 
     /**
      * Write a color value at a row-column addressed pixel.
      */
     void Write(u32 x, u32 y, u32 value);
     /**
-     * Write a two-dimensional array of colors starting at a row-column addressed pixel using the specified width and height.
+     * Write a two-dimensional array of colors starting at a row-column addressed pixel using the specified width and
+     * height.
      */
-    void WriteArray(u32 x, u32 y, u32 width, u32 height, const void *src);
+    void WriteArray(u32 x, u32 y, u32 width, u32 height, const void* src);
 
     /**
      * Read a color value at a row-column addressed pixel.
      */
     u32 Read(u32 x, u32 y);
     /**
-     * Read a two-dimensional array of colors starting at a row-column addressed pixel using the specified width and height.
+     * Read a two-dimensional array of colors starting at a row-column addressed pixel using the specified width and
+     * height.
      */
-    void *ReadArray(u32 x, u32 y, u32 width, u32 height, void *dst);
+    void* ReadArray(u32 x, u32 y, u32 width, u32 height, void* dst);
 
     /**
      * Clear the framebuffer using the given color value.
@@ -56,7 +58,7 @@ public:
     u8 BPP() const;
 
 private:
-    u8 *m_Base;
+    u8* m_Base;
     u32 m_Width;
     u32 m_Height;
     u32 m_Pitch;

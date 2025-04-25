@@ -27,37 +27,37 @@ f64 floor(f64 x);
 f32 ceil(f32 x);
 f64 ceil(f64 x);
 
-template <typename V, typename T>
+template<typename V, typename T>
 V lerp(V a, V b, T t)
 {
     return (1 - t) * a + t * b;
 }
 
-template <typename T, typename U>
+template<typename T, typename U>
 auto ceil_div(T divisor, U dividend)
 {
     return (divisor / dividend) + !!(divisor % dividend);
 }
 
-template <typename T, typename U>
+template<typename T, typename U>
 auto min(T lhs, U rhs)
 {
     return lhs < rhs ? lhs : rhs;
 }
 
-template <typename T, typename U>
+template<typename T, typename U>
 auto max(T lhs, U rhs)
 {
     return lhs > rhs ? lhs : rhs;
 }
 
-template <typename T, typename U, typename V>
+template<typename T, typename U, typename V>
 auto clamp(T min, U max, V x)
 {
     return ::max(::min(x, max), min);
 }
 
-template <typename T>
+template<typename T>
 auto abs(T val)
 {
     return val < 0 ? -val : val;

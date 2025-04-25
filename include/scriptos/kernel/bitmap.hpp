@@ -22,24 +22,24 @@ public:
     class Iter
     {
     public:
-        explicit Iter(const Bitmap &bitmap, usize index);
+        explicit Iter(const Bitmap& bitmap, usize index);
 
         BitEntry operator*() const;
-        Iter &operator++();
+        Iter& operator++();
         Iter operator++(int);
 
-        bool operator==(const Iter &other) const;
-        bool operator!=(const Iter &other) const;
+        bool operator==(const Iter& other) const;
+        bool operator!=(const Iter& other) const;
 
     private:
-        const Bitmap &m_Bitmap;
+        const Bitmap& m_Bitmap;
         usize m_Index;
     };
 
     /**
      * Initialize the bitmap with a size (in byte) and a pre-allocated buffer.
      */
-    void Initialize(usize size, u8 *buffer);
+    void Initialize(usize size, u8* buffer);
 
     /**
      * Get the size (in byte).
@@ -48,7 +48,7 @@ public:
     /**
      * Get the underlying buffer.
      */
-    void *Buffer() const;
+    void* Buffer() const;
 
     /**
      * Get a bit.
@@ -78,5 +78,5 @@ public:
 
 private:
     usize m_Size;
-    u8 *m_Buffer;
+    u8* m_Buffer;
 };

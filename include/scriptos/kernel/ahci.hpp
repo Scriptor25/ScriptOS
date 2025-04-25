@@ -9,8 +9,8 @@
 /** Port multiplier */
 #define SATA_SIG_PM 0x96690101
 
-#define AHCI_DEV_NULL 0
-#define AHCI_DEV_SATA 1
-#define AHCI_DEV_SEMB 2
-#define AHCI_DEV_PM 3
+#define AHCI_DEV_NULL   0
+#define AHCI_DEV_SATA   1
+#define AHCI_DEV_SEMB   2
+#define AHCI_DEV_PM     3
 #define AHCI_DEV_SATAPI 4

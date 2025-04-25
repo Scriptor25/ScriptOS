@@ -213,7 +213,8 @@ namespace FIS
         /** 0x02 ~ 0x03, Reserved */
         u8 _1[2];
 
-        /** 0x04, DMA Buffer Identifier. Used to Identify DMA buffer in host memory. SATA Spec says host specific and not in Spec. Trying AHCI spec might work */
+        /** 0x04, DMA Buffer Identifier. Used to Identify DMA buffer in host memory. SATA Spec says host specific and
+         * not in Spec. Trying AHCI spec might work */
         u64 DMABufferID;
 
         /** 0x0C ~ 0x0F, Reserved */

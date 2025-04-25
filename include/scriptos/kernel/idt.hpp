@@ -46,7 +46,7 @@ namespace IDT
     struct Descriptor
     {
         u16 Size;
-        Entry *Offset;
+        Entry* Offset;
     } __attribute__((packed));
 
     /**
@@ -57,5 +57,5 @@ namespace IDT
     /**
      * Load an IDT from a descriptor
      */
-    void LoadIDT(const Descriptor *descriptor);
+    void LoadIDT(const Descriptor* descriptor);
 }

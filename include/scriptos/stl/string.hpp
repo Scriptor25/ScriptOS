@@ -10,7 +10,7 @@ class string : public vector<char>
 public:
     string();
     string(cstr data);
-    string(const string_view &data);
+    string(const string_view& data);
     string(cstr begin, cstr end);
 
     vector<string> split(char value) const;

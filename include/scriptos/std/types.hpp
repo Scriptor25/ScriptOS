@@ -18,7 +18,7 @@ using f32 = float;
 using f64 = double;
 using f128 = long double;
 
-using str = char *;
-using cstr = const char *;
-using wstr = wchar_t *;
-using cwstr = const wchar_t *;
+using str = char*;
+using cstr = const char*;
+using wstr = wchar_t*;
+using cwstr = const wchar_t*;

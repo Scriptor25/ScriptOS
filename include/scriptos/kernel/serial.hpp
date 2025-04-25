@@ -31,7 +31,8 @@ namespace Serial
      */
     void Write(cstr string);
     /**
-     * Write a string to the serial port. This function writes to the port until either the count or a null-terminator is reached.
+     * Write a string to the serial port. This function writes to the port until either the count or a null-terminator
+     * is reached.
      */
     void Write(cstr string, usize count);
 }

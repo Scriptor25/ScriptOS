@@ -2,10 +2,10 @@
 
 #include <scriptos/std/types.hpp>
 
-#define GDT_CODE_SEGMENT 0x08
-#define GDT_DATA_SEGMENT 0x10
-#define GDT_USER_CODE_SEGMENT 0x18
-#define GDT_USER_DATA_SEGMENT 0x20
+#define GDT_CODE_SEGMENT       0x08
+#define GDT_DATA_SEGMENT       0x10
+#define GDT_USER_CODE_SEGMENT  0x18
+#define GDT_USER_DATA_SEGMENT  0x20
 #define GDT_TASK_STATE_SEGMENT 0x28
 
 namespace GDT
@@ -59,7 +59,7 @@ namespace GDT
         u8 BaseMi;
         u8 Access;
         u8 LimitHi : 4;
-        u8 Flags : 4;
+        u8 Flags   : 4;
         u8 BaseHi;
     } __attribute__((packed));
 
@@ -71,21 +71,21 @@ namespace GDT
     struct Descriptor
     {
         u16 Size;
-        Entry *Offset;
+        Entry* Offset;
     } __attribute__((packed));
 
     /**
      * Initialize the kernel protected mode GDT
      */
-    void Initialize(void *kernel_stack);
+    void Initialize(void* kernel_stack);
 
     /**
      * Load a GDT descriptor into the GDTR
      */
-    extern "C" void LoadGDT(const Descriptor *descriptor, u16 code_segment, u16 data_segment);
+    extern "C" void LoadGDT(const Descriptor* descriptor, u16 code_segment, u16 data_segment);
 
     /**
      * Load a LDT descriptor into the LDTR
      */
-    extern "C" void LoadLDT(const Descriptor *descriptor);
+    extern "C" void LoadLDT(const Descriptor* descriptor);
 }

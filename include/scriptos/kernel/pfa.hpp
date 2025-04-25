@@ -12,45 +12,45 @@ public:
     /**
      * Get the kernel managed instance of the page frame allocator.
      */
-    static PageFrameAllocator &GetKernelInstance();
+    static PageFrameAllocator& GetKernelInstance();
 
     /**
      * Initialize this page frame allocator with a memory map.
      */
-    void Initialize(const MemoryMap &mmap);
+    void Initialize(const MemoryMap& mmap);
 
     /**
      * Mark a single addressed page as free.
      */
-    void FreePage(void *address);
+    void FreePage(void* address);
     /**
      * Mark multiple pages starting at the address as free.
      */
-    void FreePages(void *address, usize count);
+    void FreePages(void* address, usize count);
     /**
      * Mark a single addressed page as locked.
      */
-    void LockPage(void *address);
+    void LockPage(void* address);
     /**
      * Mark multiple pages starting at the address as locked.
      */
-    void LockPages(void *address, usize count);
+    void LockPages(void* address, usize count);
 
     /**
      * Request a single free page.
      */
-    void *RequestPage();
+    void* RequestPage();
     /**
      * Request a single free page with all zeros.
      */
-    void *RequestEmptyPage();
+    void* RequestEmptyPage();
 
-    void *RequestPages(usize count);
+    void* RequestPages(usize count);
 
     /**
      * Get a immutable view of the underlying bitmap.
      */
-    const Bitmap &PageMap() const;
+    const Bitmap& PageMap() const;
 
     /**
      * Get the amount of free memory (in byte).
@@ -69,24 +69,24 @@ private:
     /**
      * Initialize the underlying page bitmap.
      */
-    void InitBitmap(usize bitmap_size, u8 *buffer);
+    void InitBitmap(usize bitmap_size, u8* buffer);
 
     /**
      * Mark a single addressed page as reserved.
      */
-    void ReservePage(void *address);
+    void ReservePage(void* address);
     /**
      * Mark multiple pages starting at the address as reserved.
      */
-    void ReservePages(void *address, usize count);
+    void ReservePages(void* address, usize count);
     /**
      * Mark a single addressed page as unreserved.
      */
-    void UnreservePage(void *address);
+    void UnreservePage(void* address);
     /**
      * Mark multiple pages starting at the address as unreserved.
      */
-    void UnreservePages(void *address, usize count);
+    void UnreservePages(void* address, usize count);
 
     Bitmap m_PageMap;
 

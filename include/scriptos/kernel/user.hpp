@@ -6,4 +6,4 @@
 /**
  * Jump from kernel to user mode.
  */
-extern "C" NORET void jump_user(void *user_stack, void *user_main);
+extern "C" NORET void jump_user(void* user_stack, void* user_main);

@@ -3,12 +3,12 @@
 #include <scriptos/kernel/font.hpp>
 #include <scriptos/kernel/framebuffer.hpp>
 
-#define CHAR_W 8
-#define CHAR_H 12
+#define CHAR_W  8
+#define CHAR_H  12
 #define CHAR_W2 (CHAR_W / 2)
 #define CHAR_H2 (CHAR_H / 2)
 
-template <typename T>
+template<typename T>
 struct Point
 {
     T x, y;
@@ -43,9 +43,9 @@ struct Color
     };
 };
 
-Color operator*(const Color &lhs, f32 rhs);
-Color operator*(f32 lhs, const Color &rhs);
-Color operator+(const Color &lhs, const Color &rhs);
+Color operator*(const Color& lhs, f32 rhs);
+Color operator*(f32 lhs, const Color& rhs);
+Color operator+(const Color& lhs, const Color& rhs);
 
 class Graphics
 {
@@ -53,20 +53,20 @@ public:
     /**
      * Get the kernel graphics instance
      */
-    static Graphics &GetKernelInstance();
+    static Graphics& GetKernelInstance();
 
     /**
      * Blend two colors together using a linear interpolation function.
      */
     static u32 Blend(u32 src, u32 dst);
 
-    void Initialize(u8 *fb_addr, u8 *bb_addr, u32 width, u32 height, u32 pitch, u8 bpp);
+    void Initialize(u8* fb_addr, u8* bb_addr, u32 width, u32 height, u32 pitch, u8 bpp);
 
     u32 Width() const;
     u32 Height() const;
 
-    Point<usize> &Pos();
-    const Point<usize> &Pos() const;
+    Point<usize>& Pos();
+    const Point<usize>& Pos() const;
 
     void SwapBuffers();
 
@@ -81,7 +81,7 @@ public:
     void DrawString(usize x, usize y, usize wrap, cstr data);
     void DrawString(usize x, usize y, usize wrap, cwstr data);
 
-    void DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y2, f32 u2, f32 v2, usize width, usize height, bool filter, const u32 *data);
+    void DrawTexture(usize x1, usize y1, f32 u1, f32 v1, usize x2, usize y2, f32 u2, f32 v2, usize width, usize height, bool filter, const u32* data);
 
     void ClearRainbow(usize offset = 0, usize scale = 1);
 

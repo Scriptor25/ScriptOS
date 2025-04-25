@@ -1,5 +1,7 @@
 #pragma once
 
+#include <scriptos/std/types.hpp>
+
 struct FILE
 {
     static FILE In(int (*g)());
@@ -14,11 +16,11 @@ struct FILE
     int (*G)() = nullptr;
 };
 
-template <typename T>
+template<typename T>
 struct STRING : FILE
 {
-    STRING(T *buffer, usize length)
-        : FILE(), Buffer(buffer), Length(length), Index(0)
+    STRING(T* buffer, usize length)
+      : FILE(), Buffer(buffer), Length(length), Index(0)
     {
     }
 
@@ -36,13 +38,13 @@ struct STRING : FILE
         return -1;
     }
 
-    T *Buffer;
+    T* Buffer;
     usize Length;
     usize Index;
 };
 
-extern FILE *stdin;
-extern FILE *stdout;
-extern FILE *stderr;
+extern FILE* stdin;
+extern FILE* stdout;
+extern FILE* stderr;
 
 void InitializeStdIO();

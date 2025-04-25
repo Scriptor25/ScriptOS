@@ -12,18 +12,18 @@ public:
     class Iter
     {
     public:
-        Iter(const multiboot_mmap_entry *ptr, usize entry_size);
+        Iter(const multiboot_mmap_entry* ptr, usize entry_size);
 
-        const multiboot_mmap_entry &operator*() const;
+        const multiboot_mmap_entry& operator*() const;
 
-        Iter &operator++();
+        Iter& operator++();
         Iter operator++(int);
 
-        bool operator==(const Iter &other) const;
-        bool operator!=(const Iter &other) const;
+        bool operator==(const Iter& other) const;
+        bool operator!=(const Iter& other) const;
 
     private:
-        const multiboot_mmap_entry *m_Ptr;
+        const multiboot_mmap_entry* m_Ptr;
         usize m_EntrySize;
     };
 
@@ -34,7 +34,7 @@ public:
     /**
      * Create a memory map wrapping around a multiboot memory map with the given entry size.
      */
-    MemoryMap(const multiboot_mmap_entry *beg, const multiboot_mmap_entry *end, usize entry_size);
+    MemoryMap(const multiboot_mmap_entry* beg, const multiboot_mmap_entry* end, usize entry_size);
 
     /**
      * Get the total memory size in bytes.
@@ -51,8 +51,8 @@ public:
     Iter end() const;
 
 private:
-    const multiboot_mmap_entry *m_Beg;
-    const multiboot_mmap_entry *m_End;
+    const multiboot_mmap_entry* m_Beg;
+    const multiboot_mmap_entry* m_End;
 
     usize m_EntrySize;
     usize m_Size;
