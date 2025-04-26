@@ -110,12 +110,12 @@ For debugging you can use any tool that uses gdb for debugging and can connect t
         {
             "type": "gdb",
             "request": "attach",
-            "name": "Attach to Qemu",
+            "name": "Attach to QEMU",
             "executable": "./bin/kernel.sym",
-            "target": "localhost:1234",
+            "target": ":1234",
             "remote": true,
             "cwd": "${workspaceRoot}",
-            "valuesFormatting": "disabled"
+            "valuesFormatting": "prettyPrinters"
         }
     ]
 }
