@@ -4,6 +4,7 @@
 #include <scriptos/std/memory.hpp>
 #include <scriptos/std/types.hpp>
 #include <scriptos/std/util.hpp>
+#include <scriptos/stl/util.hpp>
 
 template<typename T>
 class view;
@@ -175,7 +176,7 @@ public:
     }
 
     template<typename... Args>
-    T& emplace_back(Args... args)
+    T& emplace_back(Args&&... args)
     {
         return push_back(T(args...));
     }
@@ -187,7 +188,7 @@ public:
             m_Reserved += m_Reserved;
             m_Data = reinterpret_cast<T*>(realloc(m_Data, m_Reserved * sizeof(T)));
         }
-        return m_Data[m_Size++] = e;
+        return m_Data[m_Size++] = move(e);
     }
 
     T& push_back(const T& e)

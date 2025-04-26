@@ -145,6 +145,13 @@ static void serial_exec(const string& cmd)
         putc('\n');
         return;
     }
+    if (command == "clear")
+    {
+        auto& graphics = Graphics::GetKernelInstance();
+        graphics.Reset();
+        graphics.Clear();
+        return;
+    }
     if (command == "panic")
     {
         string message;
