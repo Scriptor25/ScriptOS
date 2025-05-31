@@ -296,7 +296,7 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo& info)
             auto hours = (time % (60 * 60 * 24)) / (60 * 60);
 
             printf("\rUptime: %02u:%02u:%02u", hours, minutes, seconds);
-            sleep(100);
+            sleep(20);
         }
 
         auto c = Serial::ReadNoBlock();
