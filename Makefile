@@ -1,44 +1,46 @@
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-TARGET = i686-elf
-AS = $(TARGET)-as
-CC = $(TARGET)-g++
-PP = $(TARGET)-cpp
-QEMU = qemu-system-i386
+CROSS_COMPILE = x86_64-w64-mingw32-
 
-OPT = -O0 -g -ggdb -g3
-CFLAGS = $(OPT) -std=c++20 -ffreestanding -mno-red-zone -Wall -Wextra -Werror -fno-exceptions -fno-rtti
-LDFLAGS = $(OPT) -ffreestanding -nostdlib
+AS = $(CROSS_COMPILE)as
+CC = $(CROSS_COMPILE)gcc
+CXXC = $(CROSS_COMPILE)g++
+PP = $(CROSS_COMPILE)cpp
+LD = $(CROSS_COMPILE)ld
+CPY = objcopy
+
+QEMU = qemu-system-x86_64
+
+GRUB_CFG = grub.cfg
+
+GNU_EFI_DIR = gnu-efi
+
+INCLUDE = -I include -I $(GNU_EFI_DIR)/inc
+ASFLAGS =
+CFLAGS = -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -Wall -Wextra -Werror
+CXXFLAGS = -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -Wall -Wextra -Werror -fno-exceptions -fno-rtti -std=c++20
+LDFLAGS = -shared -Bsymbolic -nostdlib -L $(GNU_EFI_DIR)/x86_64/lib -L $(GNU_EFI_DIR)/x86_64/gnuefi -T $(GNU_EFI_DIR)/gnuefi/elf_x86_64_efi.lds
+CPYFLAGS = -j .text -j .sdata -j .data -j .rodata -j .dynamic -j dynsym -j .rel -j .rela -j .rel.* -j .rela.* -j .reloc --output-target=efi-app-x86_64 --subsystem=10
 
 SRC_DIR = src
 BIN_DIR = bin
 
-INCLUDE = -I include
+CRT0 = $(GNU_EFI_DIR)/x86_64/gnuefi/crt0-efi-x86_64.o
 
-KERNEL_SRC_DIR = $(SRC_DIR)/kernel
-KERNEL_BIN = $(BIN_DIR)/kernel.elf
-KERNEL_SYM = $(BIN_DIR)/kernel.sym
-KERNEL_ASM_SRC = $(call rwildcard,$(KERNEL_SRC_DIR),*.s)
-KERNEL_CPP_SRC = $(call rwildcard,$(KERNEL_SRC_DIR),*.cpp)
-KERNEL_ASM_OBJ = $(patsubst $(SRC_DIR)/%.s,$(BIN_DIR)/%.s.o,$(KERNEL_ASM_SRC))
-KERNEL_CPP_OBJ = $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.cpp.o,$(KERNEL_CPP_SRC))
-KERNEL_OBJ = $(KERNEL_ASM_OBJ) $(KERNEL_CPP_OBJ)
+SRC = $(call rwildcard,$(SRC_DIR),*.s) $(call rwildcard,$(SRC_DIR),*.c) $(call rwildcard,$(SRC_DIR),*.cpp)
+OBJ = $(CRT0) $(patsubst $(SRC_DIR)/%,$(BIN_DIR)/%.o,$(SRC))
 
-USER_SRC_DIR = $(SRC_DIR)/user
-USER_BIN = $(BIN_DIR)/user.elf
-USER_SRC = $(call rwildcard,$(USER_SRC_DIR),*.s) $(call rwildcard,$(USER_SRC_DIR),*.cpp)
-USER_OBJ = $(patsubst $(SRC_DIR)/%,$(BIN_DIR)/%.o,$(USER_SRC))
-
-GRUB_CFG = $(KERNEL_SRC_DIR)/grub.cfg
+TARGET_SO = $(BIN_DIR)/kernel.so
+TARGET_EFI = $(BIN_DIR)/kernel.efi
 
 OSNAME = scriptos
 
 ISO_DIR = $(BIN_DIR)/iso
 ISO = $(BIN_DIR)/$(OSNAME).iso
 
-QEMU_FLAGS = -machine q35 -cdrom $(ISO) -serial stdio
+QEMU_FLAGS = -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE.fd -drive if=pflash,format=raw,file=bin/OVMF_VARS.fd -cdrom $(ISO) -m 512
 
-.PHONY: all clean build launch debug
+.PHONY: all clean build launch debug gnuefi
 
 all: clean build launch
 
@@ -53,35 +55,36 @@ launch: $(ISO)
 debug: $(ISO)
 	$(QEMU) $(QEMU_FLAGS) -s
 
+gnuefi:
+	$(MAKE) -C $(GNU_EFI_DIR) CROSS_COMPILE=$(CROSS_COMPILE) clean gnuefi lib
+
 $(BIN_DIR)/%.s.pp: $(SRC_DIR)/%.s
 	mkdir -p $(@D)
-	$(PP) -o $@ $(INCLUDE) $<
+	$(PP) $(INCLUDE) -o $@ $<
 
 $(BIN_DIR)/%.s.o: $(BIN_DIR)/%.s.pp
 	mkdir -p $(@D)
-	$(AS) -o $@ $<
+	$(AS) $(ASFLAGS) -o $@ $<
 
-$(BIN_DIR)/kernel/interrupts.cpp.o: $(SRC_DIR)/kernel/interrupts.cpp
+$(BIN_DIR)/%.c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
-	$(CC) $(CFLAGS) -mgeneral-regs-only -o $@ $(INCLUDE) -c $<
+	$(CC) $(INCLUDE) $(CFLAGS) -o $@ -c $<
 
 $(BIN_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(@D)
-	$(CC) $(CFLAGS) -o $@ $(INCLUDE) -c $<
+	$(CXXC) $(INCLUDE) $(CXXFLAGS) -o $@ -c $<
 
-$(KERNEL_BIN): $(KERNEL_SRC_DIR)/linker.ld $(KERNEL_OBJ)
-	$(CC) $(LDFLAGS) -o $@ -T $^
-	objcopy --only-keep-debug $@ $(KERNEL_SYM)
-	objcopy --strip-debug $@
-	grub-file --is-x86-multiboot2 $@
+$(TARGET_SO): $(OBJ)
+	mkdir -p $(@D)
+	$(LD) $(LDFLAGS) -o $@ $^ -lgnuefi -lefi
 
-$(USER_BIN): $(USER_SRC_DIR)/linker.ld $(USER_OBJ)
-	$(CC) $(LDFLAGS) -o $@ -T $^
-	objcopy --strip-debug $@
+$(TARGET_EFI): $(TARGET_SO)
+	mkdir -p $(@D)
+	$(CPY) $(CPYFLAGS) $< $@
 
-$(ISO): $(KERNEL_BIN) $(USER_BIN) $(GRUB_CFG)
+$(ISO): $(TARGET_EFI)
+	mkdir -p $(ISO_DIR)/EFI/BOOT
 	mkdir -p $(ISO_DIR)/boot/grub
-	cp $(KERNEL_BIN) $(ISO_DIR)/boot/kernel.elf
-	cp $(USER_BIN) $(ISO_DIR)/boot/user.elf
+	cp $< $(ISO_DIR)/EFI/BOOT/BOOTX64.EFI
 	cp $(GRUB_CFG) $(ISO_DIR)/boot/grub/grub.cfg
 	grub-mkrescue -o $@ $(ISO_DIR)

@@ -22,7 +22,7 @@ BINUTILS_SRC_DIR = $(SRC_DIR)/$(BINUTILS_NAME)
 GCC_SRC_DIR = $(SRC_DIR)/$(GCC_NAME)
 
 PREFIX = /usr/local
-TARGET = i686-elf
+TARGET = x86_64-w64-mingw32
 
 .PHONY: all binutils gcc build unpack cleanbuild clean test
 
@@ -51,7 +51,7 @@ binutils: $(BINUTILS_SRC_DIR)
 	@ (mkdir -p $(BINUTILS_BUILD);\
 	cd $(BINUTILS_BUILD);\
 	$(BINUTILS_SRC_DIR)/configure --target=$(TARGET) --prefix=$(PREFIX) --with-sysroot --disable-nls --disable-werror;\
-	make -j 8;\
+	make -j 14;\
 	sudo make install)
 
 gcc: $(GCC_SRC_DIR)
@@ -59,8 +59,8 @@ gcc: $(GCC_SRC_DIR)
 	@ (mkdir -p $(GCC_BUILD);\
 	cd $(GCC_BUILD);\
 	$(GCC_SRC_DIR)/configure --target=$(TARGET) --prefix=$(PREFIX) --disable-nls --enable-languages=c,c++ --without-headers;\
-	make -j 8 all-gcc;\
-	make -j 8 all-target;\
+	make -j 14 all-gcc;\
+	make -j 14 all-target;\
 	sudo make install-gcc;\
 	sudo make install-target-libgcc)
 
