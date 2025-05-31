@@ -77,7 +77,7 @@ $(BIN_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
 
 $(TARGET_SO): $(OBJ) $(LIB_GNU_EFI) $(LIB_EFI)
 	mkdir -p $(@D)
-	$(LD) $(LDFLAGS) -o $@ $(OBJ) -l:$(LIB_GNU_EFI) -l:$(LIB_EFI)
+	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(LIB_GNU_EFI) $(LIB_EFI)
 
 $(TARGET_EFI): $(TARGET_SO)
 	mkdir -p $(@D)
