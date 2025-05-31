@@ -22,7 +22,7 @@ BINUTILS_SRC_DIR = $(SRC_DIR)/$(BINUTILS_NAME)
 GCC_SRC_DIR = $(SRC_DIR)/$(GCC_NAME)
 
 PREFIX = /usr/local
-TARGET = x86_64-w64-mingw32
+TARGET = x86_64-elf
 
 .PHONY: all binutils gcc build unpack cleanbuild clean test
 
