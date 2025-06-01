@@ -376,5 +376,11 @@ typedef struct
     u32 load_base_addr;
 } multiboot_tag_load_base_addr;
 
+typedef struct
+{
+    u32 total_size;
+    u32 reserved;
+} multiboot_info;
+
 #endif
 #endif

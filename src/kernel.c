@@ -2,28 +2,74 @@
 #include <scriptos/multiboot2.h>
 #include <scriptos/types.h>
 
-void kernel_main(u32 magic, u8* info)
+typedef int bool;
+
+#define false ((bool) 0)
+#define true  ((bool) 1)
+
+#define SERIAL_PORT_COM1 0x3f8
+
+void outb(u16 port, u8 data)
 {
-    if (magic != MULTIBOOT2_BOOTLOADER_MAGIC)
-        return;
+    asm volatile("outb %0, %1" ::"a"(data), "Nd"(port));
+}
 
-    (void) info;
+u8 inb(u16 port)
+{
+    u8 data;
+    asm volatile("inb %1, %0" : "=a"(data) : "Nd"(port));
+    return data;
+}
 
-    for (multiboot_tag* tag = (multiboot_tag*) (info + 8); tag->type != MULTIBOOT_TAG_TYPE_END;
-         tag = (multiboot_tag*) ((u8*) tag + ((tag->size + 7) & ~7)))
+u8 serial_transmit_empty()
+{
+    return inb(SERIAL_PORT_COM1 + 5) & 0x20;
+}
+
+void serial_write(char data)
+{
+    while (!serial_transmit_empty())
+        ;
+
+    outb(SERIAL_PORT_COM1, data);
+}
+
+void serial_write_string(cstr data)
+{
+    for (str ptr = (str) data; *ptr; ++ptr)
+        serial_write(*ptr);
+}
+
+bool serial_initialize()
+{
+    outb(SERIAL_PORT_COM1 + 1, 0x00);
+    outb(SERIAL_PORT_COM1 + 3, 0x80);
+    outb(SERIAL_PORT_COM1 + 0, 0x03);
+    outb(SERIAL_PORT_COM1 + 1, 0x00);
+    outb(SERIAL_PORT_COM1 + 3, 0x03);
+    outb(SERIAL_PORT_COM1 + 2, 0xC7);
+    outb(SERIAL_PORT_COM1 + 4, 0x0B);
+    outb(SERIAL_PORT_COM1 + 4, 0x1E);
+    outb(SERIAL_PORT_COM1 + 0, 0xAE);
+
+    if (inb(SERIAL_PORT_COM1 + 0) != 0xAE)
+        return false;
+
+    outb(SERIAL_PORT_COM1 + 4, 0x0F);
+    return true;
+}
+
+__attribute__((sysv_abi)) void kernel_main(u32 magic, u64 info)
+{
+    serial_initialize();
+
+    if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || (info & 7))
     {
-        if (tag->type == MULTIBOOT_TAG_TYPE_EFI64)
-        {
-            multiboot_tag_efi64* efi_tag = (multiboot_tag_efi64*) tag;
-            EFI_SYSTEM_TABLE* efi_table = (EFI_SYSTEM_TABLE*) efi_tag->pointer;
-
-            cstr vendor = (cstr) efi_table->FirmwareVendor;
-            (void) vendor;
-
-            void* runtime_services = efi_table->RuntimeServices;
-            (void) runtime_services;
-        }
+        serial_write_string("invalid bootloader magic or misaligned info structure\r\n");
+        return;
     }
+
+    serial_write_string("successfully loaded kernel\r\n");
 
     for (;;)
         ;

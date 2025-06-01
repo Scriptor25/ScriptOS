@@ -7,10 +7,14 @@
 .set CHECKSUM,      -(MAGIC + ARCHITECTURE + HEADER_LENGTH)
 .set STACK_SIZE,    0x4000
 
-.section .multiboot
+.section .text
+.global _start
+_start:
+    jmp multiboot_entry
+
+    # HEADER
     .align MULTIBOOT_TAG_ALIGN
 multiboot_header:
-    # HEADER
     .long MAGIC
     .long ARCHITECTURE
     .long HEADER_LENGTH
@@ -34,26 +38,20 @@ multiboot_header:
     .long multiboot_entry
 
     # EFI64 ENTRY ADDRESS
-    .align MULTIBOOT_TAG_ALIGN
-    .short MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI64
-    .short 0
-    .long 12
-    .long multiboot_entry
+    #.align MULTIBOOT_TAG_ALIGN
+    #.short MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI64
+    #.short 0
+    #.long 12
+    #.long multiboot_entry
 
     # FRAMEBUFFER
     .align MULTIBOOT_TAG_ALIGN
     .short MULTIBOOT_HEADER_TAG_FRAMEBUFFER
-    .short MULTIBOOT_HEADER_TAG_OPTIONAL
+    .short 0
     .long 20
-    .long 1024
+    .long 1200
     .long 768
     .long 32
-
-    # MODULE ALIGNMENT
-    .align MULTIBOOT_TAG_ALIGN
-    .short MULTIBOOT_HEADER_TAG_MODULE_ALIGN
-    .short 0
-    .long 8
 
     # END TAG
     .align MULTIBOOT_TAG_ALIGN
@@ -62,28 +60,22 @@ multiboot_header:
     .long 8
 multiboot_header_end:
 
-.section .text
-.global multiboot_entry
-.type multiboot_entry, @function
 multiboot_entry:
     # SETUP STACK
-    mov $stack_top, %esp
+    mov $stack_top, %rsp
+    xor %rbp, %rbp
 
-    # CLEAR FLAGS
-    push $0
-    popf
+    # SETUP ARGUMENTS
+    mov %eax, %edi
+    mov %rbx, %rsi
 
-    # SETUP START ARGUMENTS
-    push %rbx # BOOT INFO STRUCT
-    push %rax # MAGIC
-
-    # JUMP TO MAIN
+    # JUMP TO KERNEL
     call kernel_main
 
-.halt: # HALT SYSTEM ON STOP
+.loop: # HALT SYSTEM
     cli
     hlt
-    jmp .halt
+    jmp .loop
 
 .section .bss
 .align 8

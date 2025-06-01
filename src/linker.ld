@@ -1,55 +1,44 @@
 OUTPUT_FORMAT(elf64-x86-64)
 
-ENTRY(multiboot_entry)
+ENTRY(_start)
 
 SECTIONS
 {
-    . = 1M;
+    . = 2M;
 
-    .multiboot : {
-        __multiboot = .;
-        
-        KEEP(*(.multiboot))
-
-        __multiboot_end = .;
-    }
-
-    .text : {
+    .text BLOCK(4K) : ALIGN(4K)
+    {
         __text = .;
-        
-        *(.text*)
-        
+        *(.text)
         __text_end = .;
-    }
+    } : text
 
-    .rodata : {
+    .rodata BLOCK(4K) : ALIGN(4K)
+    {
         __rodata = .;
-
-        *(.rodata*)
-
+        *(.rodata)
         __rodata_end = .;
-    }
+    } : rodata
 
-    .data : {
+    .data BLOCK(4K) : ALIGN(4K)
+    {
         __data = .;
-
-        *(.data*)
-
+        *(.data)
         __data_end = .;
-    }
+    } : data
 
-    .bss : {
+    .bss BLOCK(4K) : ALIGN(4K)
+    {
         __bss = .;
-
-        *(.bss*)
         *(COMMON)
-
+        *(.bss)
         __bss_end = .;
-    }
+    } : data
+}
 
-    /DISCARD/ : {
-        *(.note*)
-        *(.eh_frame*)
-        *(.comment)
-    }
+PHDRS
+{
+    text   PT_LOAD FLAGS(5);
+    rodata PT_LOAD FLAGS(4);
+    data   PT_LOAD FLAGS(6);
 }
