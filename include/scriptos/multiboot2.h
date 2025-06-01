@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef MULTIBOOT2_H
+#define MULTIBOOT2_H
+
 #define MULTIBOOT_SEARCH            32768
 #define MULTIBOOT_HEADER_ALIGN      8
 #define MULTIBOOT2_HEADER_MAGIC     0xe85250d6
@@ -66,32 +69,32 @@
 
 #ifndef ASM_FILE
 
-#include <scriptos/types.hpp>
+#include <scriptos/types.h>
 
-struct multiboot_header
+typedef struct
 {
     u32 magic;
     u32 architecture;
     u32 header_length;
     u32 checksum;
-};
+} multiboot_header;
 
-struct multiboot_header_tag
+typedef struct
 {
     u16 type;
     u16 flags;
     u32 size;
-};
+} multiboot_header_tag;
 
-struct multiboot_header_tag_information_request
+typedef struct
 {
     u16 type;
     u16 flags;
     u32 size;
     u32 requests[0];
-};
+} multiboot_header_tag_information_request;
 
-struct multiboot_header_tag_address
+typedef struct
 {
     u16 type;
     u16 flags;
@@ -100,25 +103,25 @@ struct multiboot_header_tag_address
     u32 load_addr;
     u32 load_end_addr;
     u32 bss_end_addr;
-};
+} multiboot_header_tag_address;
 
-struct multiboot_header_tag_entry_address
+typedef struct
 {
     u16 type;
     u16 flags;
     u32 size;
     u32 entry_addr;
-};
+} multiboot_header_tag_entry_address;
 
-struct multiboot_header_tag_console_flags
+typedef struct
 {
     u16 type;
     u16 flags;
     u32 size;
     u32 console_flags;
-};
+} multiboot_header_tag_console_flags;
 
-struct multiboot_header_tag_framebuffer
+typedef struct
 {
     u16 type;
     u16 flags;
@@ -126,16 +129,16 @@ struct multiboot_header_tag_framebuffer
     u32 width;
     u32 height;
     u32 depth;
-};
+} multiboot_header_tag_framebuffer;
 
-struct multiboot_header_tag_module_align
+typedef struct
 {
     u16 type;
     u16 flags;
     u32 size;
-};
+} multiboot_header_tag_module_align;
 
-struct multiboot_header_tag_relocatable
+typedef struct
 {
     u16 type;
     u16 flags;
@@ -144,40 +147,38 @@ struct multiboot_header_tag_relocatable
     u32 max_addr;
     u32 align;
     u32 preference;
-};
+} multiboot_header_tag_relocatable;
 
-struct multiboot_color
+typedef struct
 {
     u8 red;
     u8 green;
     u8 blue;
-};
+} multiboot_color;
 
-struct multiboot_mmap_entry
+typedef struct
 {
-    u32 base_addr_lo;
-    u32 base_addr_hi;
-    u32 length_lo;
-    u32 length_hi;
+    u64 base_addr;
+    u64 length;
     u32 type;
     u32 reserved;
-};
+} multiboot_mmap_entry;
 
-struct multiboot_tag
+typedef struct
 {
     u32 type;
     u32 size;
-};
+} multiboot_tag;
 
-struct multiboot_tag_string
+typedef struct
 {
     u32 type;
     u32 size;
 
     char string[0];
-};
+} multiboot_tag_string;
 
-struct multiboot_tag_module
+typedef struct
 {
     u32 type;
     u32 size;
@@ -185,18 +186,18 @@ struct multiboot_tag_module
     u32 mod_start;
     u32 mod_end;
     char string[0];
-};
+} multiboot_tag_module;
 
-struct multiboot_tag_basic_meminfo
+typedef struct
 {
     u32 type;
     u32 size;
 
     u32 mem_lower;
     u32 mem_upper;
-};
+} multiboot_tag_basic_meminfo;
 
-struct multiboot_tag_bootdev
+typedef struct
 {
     u32 type;
     u32 size;
@@ -204,9 +205,9 @@ struct multiboot_tag_bootdev
     u32 biosdev;
     u32 slice;
     u32 part;
-};
+} multiboot_tag_bootdev;
 
-struct multiboot_tag_mmap
+typedef struct
 {
     u32 type;
     u32 size;
@@ -214,9 +215,9 @@ struct multiboot_tag_mmap
     u32 entry_size;
     u32 entry_version;
     multiboot_mmap_entry entries[0];
-};
+} multiboot_tag_mmap;
 
-struct multiboot_tag_vbe
+typedef struct
 {
     u32 type;
     u32 size;
@@ -228,15 +229,14 @@ struct multiboot_tag_vbe
 
     u8 vbe_control_info[512];
     u8 vbe_mode_info[256];
-};
+} multiboot_tag_vbe;
 
-struct multiboot_tag_framebuffer
+typedef struct
 {
     u32 type;
     u32 size;
 
-    u32 framebuffer_addr_lo;
-    u32 framebuffer_addr_hi;
+    u64 framebuffer_addr;
     u32 framebuffer_pitch;
     u32 framebuffer_width;
     u32 framebuffer_height;
@@ -261,9 +261,9 @@ struct multiboot_tag_framebuffer
             u8 framebuffer_blue_mask_size;
         };
     };
-};
+} multiboot_tag_framebuffer;
 
-struct multiboot_tag_elf_sections
+typedef struct
 {
     u32 type;
     u32 size;
@@ -273,9 +273,9 @@ struct multiboot_tag_elf_sections
     u16 shndx;
     u16 reserved;
     char sections[0];
-};
+} multiboot_tag_elf_sections;
 
-struct multiboot_tag_apm
+typedef struct
 {
     u32 type;
     u32 size;
@@ -289,26 +289,25 @@ struct multiboot_tag_apm
     u16 cseg_len;
     u16 cseg_16_len;
     u16 dseg_len;
-};
+} multiboot_tag_apm;
 
-struct multiboot_tag_efi32
+typedef struct
 {
     u32 type;
     u32 size;
 
     u32 pointer;
-};
+} multiboot_tag_efi32;
 
-struct multiboot_tag_efi64
+typedef struct
 {
     u32 type;
     u32 size;
 
-    u32 pointer_lo;
-    u32 pointer_hi;
-};
+    u64 pointer;
+} multiboot_tag_efi64;
 
-struct multiboot_tag_smbios
+typedef struct
 {
     u32 type;
     u32 size;
@@ -317,33 +316,33 @@ struct multiboot_tag_smbios
     u8 minor;
     u8 reserved[6];
     u8 tables[0];
-};
+} multiboot_tag_smbios;
 
-struct multiboot_tag_old_acpi
+typedef struct
 {
     u32 type;
     u32 size;
 
     u8 rsdp[0];
-};
+} multiboot_tag_old_acpi;
 
-struct multiboot_tag_new_acpi
+typedef struct
 {
     u32 type;
     u32 size;
 
     u8 rsdp[0];
-};
+} multiboot_tag_new_acpi;
 
-struct multiboot_tag_network
+typedef struct
 {
     u32 type;
     u32 size;
 
     cstr dhcpack;
-};
+} multiboot_tag_network;
 
-struct multiboot_tag_efi_mmap
+typedef struct
 {
     u32 type;
     u32 size;
@@ -351,31 +350,31 @@ struct multiboot_tag_efi_mmap
     u32 descr_size;
     u32 descr_vers;
     u8 efi_mmap[0];
-};
+} multiboot_tag_efi_mmap;
 
-struct multiboot_tag_efi32_ih
+typedef struct
 {
     u32 type;
     u32 size;
 
     u32 pointer;
-};
+} multiboot_tag_efi32_ih;
 
-struct multiboot_tag_efi64_ih
+typedef struct
 {
     u32 type;
     u32 size;
 
-    u32 pointer_lo;
-    u32 pointer_hi;
-};
+    u64 pointer;
+} multiboot_tag_efi64_ih;
 
-struct multiboot_tag_load_base_addr
+typedef struct
 {
     u32 type;
     u32 size;
 
     u32 load_base_addr;
-};
+} multiboot_tag_load_base_addr;
 
+#endif
 #endif

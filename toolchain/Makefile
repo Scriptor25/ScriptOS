@@ -1,7 +1,8 @@
-TMP_DIR = /tmp/toolchain
-SRC_DIR = $(TMP_DIR)/src
-BINUTILS_BUILD = $(TMP_DIR)/build/binutils
-GCC_BUILD = $(TMP_DIR)/build/gcc
+SOURCE_DIR = src
+BUILD_DIR = build
+
+BINUTILS_BUILD_DIR = $(BUILD_DIR)/binutils
+GCC_BUILD_DIR = $(BUILD_DIR)/gcc
 
 BINUTILS_VERSION = 2.43.1
 GCC_VERSION = 14.2.0
@@ -15,11 +16,11 @@ GCC_FILENAME = $(GCC_NAME).tar.gz
 BINUTILS_URL = https://ftp.gnu.org/gnu/binutils/$(BINUTILS_FILENAME)
 GCC_URL = https://ftp.gnu.org/gnu/gcc/$(GCC_NAME)/$(GCC_FILENAME)
 
-BINUTILS_SRC_FILE = $(SRC_DIR)/$(BINUTILS_FILENAME)
-GCC_SRC_FILE = $(SRC_DIR)/$(GCC_FILENAME)
+BINUTILS_SOURCE = $(SOURCE_DIR)/$(BINUTILS_FILENAME)
+GCC_SOURCE = $(SOURCE_DIR)/$(GCC_FILENAME)
 
-BINUTILS_SRC_DIR = $(SRC_DIR)/$(BINUTILS_NAME)
-GCC_SRC_DIR = $(SRC_DIR)/$(GCC_NAME)
+BINUTILS_SOURCE_DIR = $(SOURCE_DIR)/$(BINUTILS_NAME)
+GCC_SOURCE_DIR = $(SOURCE_DIR)/$(GCC_NAME)
 
 PREFIX = /usr/local
 TARGET = x86_64-elf
@@ -28,37 +29,37 @@ TARGET = x86_64-elf
 
 all: cleanbuild build test clean
 
-$(BINUTILS_SRC_FILE):
+$(BINUTILS_SOURCE):
 	@ echo ======== Downloading - Binutils ========
-	@ mkdir -p $(SRC_DIR)
-	@ curl $(BINUTILS_URL) --output $(BINUTILS_SRC_FILE) --progress-bar
+	@ mkdir -p $(@D)
+	@ curl $(BINUTILS_URL) --output $(BINUTILS_SOURCE) --progress-bar
 
-$(GCC_SRC_FILE):
+$(GCC_SOURCE):
 	@ echo ======== Downloading - GCC =============
-	@ mkdir -p $(SRC_DIR)
-	@ curl $(GCC_URL) --output $(GCC_SRC_FILE) --progress-bar
+	@ mkdir -p $(@D)
+	@ curl $(GCC_URL) --output $(GCC_SOURCE) --progress-bar
 
-$(BINUTILS_SRC_DIR): $(BINUTILS_SRC_FILE)
+$(BINUTILS_SOURCE_DIR): $(BINUTILS_SOURCE)
 	@ echo ======== Unpacking - Binutils ==========
-	@ tar -xzf $(BINUTILS_SRC_FILE) -C $(SRC_DIR)
+	@ tar -xzf $(BINUTILS_SOURCE) -C $(SOURCE_DIR)
 
-$(GCC_SRC_DIR): $(GCC_SRC_FILE)
+$(GCC_SOURCE_DIR): $(GCC_SOURCE)
 	@ echo ======== Unpacking - GCC ===============
-	@ tar -xzf $(GCC_SRC_FILE) -C $(SRC_DIR)
+	@ tar -xzf $(GCC_SOURCE) -C $(SOURCE_DIR)
 
-binutils: $(BINUTILS_SRC_DIR)
+binutils: $(BINUTILS_SOURCE_DIR)
 	@ echo ======== Building - Binutils ===========
-	@ (mkdir -p $(BINUTILS_BUILD);\
-	cd $(BINUTILS_BUILD);\
-	$(BINUTILS_SRC_DIR)/configure --target=$(TARGET) --prefix=$(PREFIX) --with-sysroot --disable-nls --disable-werror;\
+	@ (mkdir -p $(BINUTILS_BUILD_DIR);\
+	cd $(BINUTILS_BUILD_DIR);\
+	$(BINUTILS_SOURCE_DIR)/configure --target=$(TARGET) --prefix=$(PREFIX) --with-sysroot --disable-nls --disable-werror;\
 	make -j 14;\
 	sudo make install)
 
-gcc: $(GCC_SRC_DIR)
+gcc: $(GCC_SOURCE_DIR)
 	@ echo ======== Building - GCC ================
-	@ (mkdir -p $(GCC_BUILD);\
-	cd $(GCC_BUILD);\
-	$(GCC_SRC_DIR)/configure --target=$(TARGET) --prefix=$(PREFIX) --disable-nls --enable-languages=c,c++ --without-headers;\
+	@ (mkdir -p $(GCC_BUILD_DIR);\
+	cd $(GCC_BUILD_DIR);\
+	$(GCC_SOURCE_DIR)/configure --target=$(TARGET) --prefix=$(PREFIX) --disable-nls --enable-languages=c,c++ --without-headers;\
 	make -j 14 all-gcc;\
 	make -j 14 all-target;\
 	sudo make install-gcc;\
@@ -66,15 +67,14 @@ gcc: $(GCC_SRC_DIR)
 
 build: binutils gcc
 
-unpack: $(BINUTILS_SRC_DIR) $(GCC_SRC_DIR)
+unpack: $(BINUTILS_SOURCE_DIR) $(GCC_SOURCE_DIR)
 
 cleanbuild:
 	@ echo ======== Cleaning - Build Files ========
-	@ rm -rf $(TMP_DIR)/build
+	@ rm -rf $(BUILD_DIR)
 
 clean:
 	@ echo ======== Cleaning ======================
-	@ rm -rf $(TMP_DIR)
-
+	@ rm -rf $(SOURCE_DIR) $(BUILD_DIR)
 test:
 	@ $(TARGET)-gcc --version

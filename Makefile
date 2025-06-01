@@ -7,41 +7,38 @@ CC = $(CROSS_COMPILE)gcc
 CXXC = $(CROSS_COMPILE)g++
 PP = $(CROSS_COMPILE)cpp
 LD = $(CROSS_COMPILE)ld
-CPY = objcopy
+CPY = $(CROSS_COMPILE)objcopy
 
 QEMU = qemu-system-x86_64
-
-GRUB_CFG = grub.cfg
-
-GNU_EFI_DIR = gnu-efi
-CRT0 = $(GNU_EFI_DIR)/x86_64/gnuefi/crt0-efi-x86_64.o
-LIB_GNU_EFI = $(GNU_EFI_DIR)/x86_64/gnuefi/libgnuefi.a
-LIB_EFI = $(GNU_EFI_DIR)/x86_64/lib/libefi.a
-
-INCLUDE = -I include -I $(GNU_EFI_DIR)/inc
-ASFLAGS =
-CFLAGS = -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -Wall -Wextra -Werror
-CXXFLAGS = -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -Wall -Wextra -Werror -fno-exceptions -fno-rtti -std=c++20
-LDFLAGS = -shared -Bsymbolic -nostdlib -znocombreloc -T $(GNU_EFI_DIR)/gnuefi/elf_x86_64_efi.lds
-CPYFLAGS = -j .text -j .sdata -j .data -j .rodata -j .dynamic -j dynsym -j .rel -j .rela -j .rel.* -j .rela.* -j .reloc --output-target=efi-app-x86_64 --subsystem=10
 
 SRC_DIR = src
 BIN_DIR = bin
 
+GRUB_CFG = $(SRC_DIR)/grub.cfg
+LINKER_LD = $(SRC_DIR)/linker.ld
+
 SRC = $(call rwildcard,$(SRC_DIR),*.s) $(call rwildcard,$(SRC_DIR),*.c) $(call rwildcard,$(SRC_DIR),*.cpp)
 OBJ = $(CRT0) $(patsubst $(SRC_DIR)/%,$(BIN_DIR)/%.o,$(SRC))
 
-TARGET_SO = $(BIN_DIR)/kernel.so
-TARGET_EFI = $(BIN_DIR)/kernel.efi
+KERNEL_ELF = $(BIN_DIR)/kernel.elf
 
 OSNAME = scriptos
 
 ISO_DIR = $(BIN_DIR)/iso
 ISO = $(BIN_DIR)/$(OSNAME).iso
 
-QEMU_FLAGS = -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE.fd -drive if=pflash,format=raw,file=bin/OVMF_VARS.fd -cdrom $(ISO) -m 512 -net none
+INCLUDE = -I include
+ASFLAGS =
+CFLAGS = -ffreestanding -fno-stack-protector -fno-stack-check -fno-pic -mno-red-zone -m64 -Wall -Wextra -Werror
+CXXFLAGS = -ffreestanding -fno-stack-protector -fno-stack-check -fno-pic -mno-red-zone -m64 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -std=c++20
+LDFLAGS = -nostdlib -static -zmax-page-size=0x1000
+QEMU_FLAGS = -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE.fd\
+             -drive if=pflash,format=raw,file=/usr/share/OVMF/OVMF_VARS.fd\
+			 -cdrom $(ISO)\
+			 -m 512\
+			 -net none
 
-.PHONY: all clean build launch debug gnuefi
+.PHONY: all clean build launch debug
 
 all: clean build launch
 
@@ -51,13 +48,10 @@ clean:
 build: $(ISO)
 
 launch: $(ISO)
-	$(QEMU) $(QEMU_FLAGS)
+	sudo $(QEMU) $(QEMU_FLAGS)
 
 debug: $(ISO)
-	$(QEMU) $(QEMU_FLAGS) -s
-
-$(CRT0) $(LIB_GNU_EFI) $(LIB_EFI):
-	$(MAKE) -C $(GNU_EFI_DIR) CROSS_COMPILE=$(CROSS_COMPILE) clean gnuefi lib
+	sudo $(QEMU) $(QEMU_FLAGS) -s
 
 $(BIN_DIR)/%.s.pp: $(SRC_DIR)/%.s
 	mkdir -p $(@D)
@@ -75,17 +69,13 @@ $(BIN_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(@D)
 	$(CXXC) $(INCLUDE) $(CXXFLAGS) -o $@ -c $<
 
-$(TARGET_SO): $(OBJ) $(LIB_GNU_EFI) $(LIB_EFI)
+$(KERNEL_ELF): $(OBJ) $(LINKER_LD)
 	mkdir -p $(@D)
-	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(LIB_GNU_EFI) $(LIB_EFI)
+	$(LD) $(LDFLAGS) -o $@ $(OBJ) -T $(LINKER_LD)
+	grub-file --is-x86-multiboot2 $@
 
-$(TARGET_EFI): $(TARGET_SO)
-	mkdir -p $(@D)
-	$(CPY) $(CPYFLAGS) $< $@
-
-$(ISO): $(TARGET_EFI) $(GRUB_CFG)
-	mkdir -p $(ISO_DIR)/efi/boot
+$(ISO): $(KERNEL_ELF) $(GRUB_CFG)
 	mkdir -p $(ISO_DIR)/boot/grub
-	cp $(TARGET_EFI) $(ISO_DIR)/efi/boot/kernel.efi
+	cp $(KERNEL_ELF) $(ISO_DIR)/boot/kernel.elf
 	cp $(GRUB_CFG) $(ISO_DIR)/boot/grub/grub.cfg
 	grub-mkrescue -o $@ $(ISO_DIR)

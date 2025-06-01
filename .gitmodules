@@ -1,3 +1,0 @@
-[submodule "gnu-efi"]
-	path = gnu-efi
-	url = https://github.com/Scriptor25/gnu-efi.git
