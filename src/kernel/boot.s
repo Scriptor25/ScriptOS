@@ -39,12 +39,20 @@ entry_address_tag_start:
 entry_address_tag_end:
 
         .align 8
+entry_address_efi32_tag_start:
+        .short MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI32
+        .short MULTIBOOT_HEADER_TAG_OPTIONAL
+        .long entry_address_efi32_tag_end - entry_address_efi32_tag_start
+        .long _start
+entry_address_efi32_tag_end:
+
+        .align 8
 framebuffer_tag_start:
         .short MULTIBOOT_HEADER_TAG_FRAMEBUFFER
         .short MULTIBOOT_HEADER_TAG_OPTIONAL
         .long framebuffer_tag_end - framebuffer_tag_start
-        .long 1200
-        .long 768
+        .long 1024
+        .long 786
         .long 32
 framebuffer_tag_end:
 

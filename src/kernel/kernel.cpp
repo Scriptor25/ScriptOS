@@ -7,6 +7,7 @@
 #include <scriptos/kernel/interrupts.hpp>
 #include <scriptos/kernel/io.hpp>
 #include <scriptos/kernel/mb_info.hpp>
+#include <scriptos/kernel/multiboot2.hpp>
 #include <scriptos/kernel/nmi.hpp>
 #include <scriptos/kernel/panic.hpp>
 #include <scriptos/kernel/pci.hpp>
@@ -16,6 +17,7 @@
 #include <scriptos/kernel/ptm.hpp>
 #include <scriptos/kernel/serial.hpp>
 #include <scriptos/kernel/user.hpp>
+#include <scriptos/std/debug.hpp>
 #include <scriptos/std/memory.hpp>
 #include <scriptos/std/print.hpp>
 #include <scriptos/std/stream.hpp>
@@ -254,7 +256,16 @@ extern "C" void kernel_main(u32 magic, const MultibootInfo& info)
         Serial::Write("serial communication initialized successfully.\r\n");
 
     if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || (reinterpret_cast<uptr>(&info) & 7))
+    {
+        debug("invalid multiboot2 magic (%08X) or misaligned info structure (%p)", magic, &info);
         return;
+    }
+
+    if (auto tag = info.at<multiboot_tag_efi32>(MULTIBOOT_TAG_TYPE_EFI32))
+        debug("efi32 = %p", tag->pointer);
+
+    if (auto tag = info.at<multiboot_tag_efi32_ih>(MULTIBOOT_TAG_TYPE_EFI32))
+        debug("efi32_ih = %p", tag->pointer);
 
     /**
      * Get the current kernel stack address for initializing the GDT
