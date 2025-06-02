@@ -1,0 +1,23 @@
+#include <scriptos/memory.h>
+
+void memory::fill(void* dst, int value, usize count)
+{
+    auto word_count = (count / sizeof(int)) * sizeof(int);
+
+    usize i;
+    for (i = 0; i < word_count; i += sizeof(int))
+        *reinterpret_cast<int*>(reinterpret_cast<uptr>(dst) + i) = value;
+    for (; i < count; ++i)
+        *reinterpret_cast<u8*>(reinterpret_cast<uptr>(dst) + i) = value;
+}
+
+void memory::copy(void* dst, const void* src, usize count)
+{
+    auto word_count = (count / sizeof(int)) * sizeof(int);
+
+    usize i;
+    for (i = 0; i < word_count; i += sizeof(int))
+        *reinterpret_cast<int*>(reinterpret_cast<uptr>(dst) + i) = *reinterpret_cast<const int*>(reinterpret_cast<uptr>(src) + i);
+    for (; i < count; ++i)
+        *reinterpret_cast<u8*>(reinterpret_cast<uptr>(dst) + i) = *reinterpret_cast<const u8*>(reinterpret_cast<uptr>(src) + i);
+}
