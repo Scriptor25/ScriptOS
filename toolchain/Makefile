@@ -1,5 +1,6 @@
-SOURCE_DIR = src
-BUILD_DIR = build
+TEMP_DIR = /tmp/toolchain
+SOURCE_DIR = $(TEMP_DIR)/src
+BUILD_DIR = $(TEMP_DIR)/build
 
 BINUTILS_BUILD_DIR = $(BUILD_DIR)/binutils
 GCC_BUILD_DIR = $(BUILD_DIR)/gcc
@@ -31,12 +32,12 @@ all: cleanbuild build test clean
 
 $(BINUTILS_SOURCE):
 	@ echo ======== Downloading - Binutils ========
-	@ mkdir -p $(@D)
+	@ mkdir -p $(SOURCE_DIR)
 	@ curl $(BINUTILS_URL) --output $(BINUTILS_SOURCE) --progress-bar
 
 $(GCC_SOURCE):
 	@ echo ======== Downloading - GCC =============
-	@ mkdir -p $(@D)
+	@ mkdir -p $(SOURCE_DIR)
 	@ curl $(GCC_URL) --output $(GCC_SOURCE) --progress-bar
 
 $(BINUTILS_SOURCE_DIR): $(BINUTILS_SOURCE)
@@ -75,6 +76,6 @@ cleanbuild:
 
 clean:
 	@ echo ======== Cleaning ======================
-	@ rm -rf $(SOURCE_DIR) $(BUILD_DIR)
+	@ rm -rf $(TEMP_DIR)
 test:
 	@ $(TARGET)-gcc --version
