@@ -2,24 +2,27 @@
 #include <scriptos/efi.h>
 #include <scriptos/types.h>
 
-__attribute__((used, section(".limine_requests"))) static volatile LIMINE_BASE_REVISION(3);
+#define LIMINE_REQUEST       __attribute__((used, section(".limine_requests"))) static volatile
+#define LIMINE_REQUEST_START __attribute__((used, section(".limine_requests_start"))) static volatile
+#define LIMINE_REQUEST_END   __attribute__((used, section(".limine_requests_end"))) static volatile
 
-__attribute__((used, section(".limine_requests"))) static volatile struct limine_framebuffer_request framebuffer_request = {
-    .id = LIMINE_FRAMEBUFFER_REQUEST,
-    .revision = 0,
-};
-
-__attribute__((used, section(".limine_requests_start"))) static volatile LIMINE_REQUESTS_START_MARKER;
-
-__attribute__((used, section(".limine_requests_end"))) static volatile LIMINE_REQUESTS_END_MARKER;
-
-typedef int bool;
+#define NORETURN __attribute__((noreturn))
 
 #define NULL  ((void*) 0)
 #define false ((bool) 0)
 #define true  ((bool) 1)
 
 #define SERIAL_PORT_COM1 0x3f8
+
+LIMINE_REQUEST_START LIMINE_REQUESTS_START_MARKER;
+LIMINE_REQUEST LIMINE_BASE_REVISION(3);
+LIMINE_REQUEST struct limine_framebuffer_request framebuffer_request = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .revision = 0,
+};
+LIMINE_REQUEST_END LIMINE_REQUESTS_END_MARKER;
+
+typedef int bool;
 
 void outb(u16 port, u8 data)
 {
@@ -71,21 +74,27 @@ bool serial_initialize()
     return true;
 }
 
-__attribute__((noreturn)) static void hcf(void)
+NORETURN static void hcf(void)
 {
     for (;;)
         asm volatile("hlt");
 }
 
-__attribute__((noreturn)) void kmain(void)
+NORETURN void kmain(void)
 {
     serial_initialize();
 
-    if (LIMINE_BASE_REVISION_SUPPORTED == false)
+    if (!LIMINE_BASE_REVISION_SUPPORTED)
+    {
+        serial_write_string("limine base revision not supported\r\n");
         hcf();
+    }
 
-    if (framebuffer_request.response == NULL || framebuffer_request.response->framebuffer_count < 1)
+    if (!framebuffer_request.response || !framebuffer_request.response->framebuffer_count)
+    {
+        serial_write_string("no framebuffer response or no framebuffers\r\n");
         hcf();
+    }
 
     struct limine_framebuffer* framebuffer = framebuffer_request.response->framebuffers[0];
 
