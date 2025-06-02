@@ -4,41 +4,52 @@ ENTRY(_start)
 
 SECTIONS
 {
-    . = 2M;
+    . = 1M;
+
+    __load = .;
+
+    .multiboot :
+    {
+        __multiboot = .;
+        *(.multiboot)
+        __multiboot_end = .;
+    }
 
     .text BLOCK(4K) : ALIGN(4K)
     {
         __text = .;
-        *(.text)
+        *(.text*)
         __text_end = .;
     } : text
 
     .rodata BLOCK(4K) : ALIGN(4K)
     {
         __rodata = .;
-        *(.rodata)
+        *(.rodata*)
         __rodata_end = .;
     } : rodata
 
     .data BLOCK(4K) : ALIGN(4K)
     {
         __data = .;
-        *(.data)
+        *(.data*)
         __data_end = .;
     } : data
+
+    __load_end = .;
 
     .bss BLOCK(4K) : ALIGN(4K)
     {
         __bss = .;
         *(COMMON)
-        *(.bss)
+        *(.bss*)
         __bss_end = .;
     } : data
 }
 
 PHDRS
 {
-    text   PT_LOAD FLAGS(5);
-    rodata PT_LOAD FLAGS(4);
-    data   PT_LOAD FLAGS(6);
+    text   PT_LOAD FLAGS(101b); /* rx */
+    rodata PT_LOAD FLAGS(100b); /* ro */
+    data   PT_LOAD FLAGS(110b); /* rw */
 }

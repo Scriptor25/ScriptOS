@@ -52,7 +52,7 @@ launch: $(ISO)
 	sudo $(QEMU) $(QEMU_FLAGS)
 
 debug: $(ISO)
-	sudo $(QEMU) $(QEMU_FLAGS) -s
+	sudo $(QEMU) $(QEMU_FLAGS) -s -S
 
 $(BIN_DIR)/%.s.pp: $(SRC_DIR)/%.s
 	mkdir -p $(@D)

@@ -7,13 +7,9 @@
 .set CHECKSUM,      -(MAGIC + ARCHITECTURE + HEADER_LENGTH)
 .set STACK_SIZE,    0x4000
 
-.section .text
-.global _start
-_start:
-    jmp multiboot_entry
-
+.section .multiboot
     # HEADER
-    .align MULTIBOOT_TAG_ALIGN
+    .align MULTIBOOT_HEADER_ALIGN
 multiboot_header:
     .long MAGIC
     .long ARCHITECTURE
@@ -26,8 +22,8 @@ multiboot_header:
     .short 0
     .long 24
     .long multiboot_header
-    .long __text
-    .long __data_end
+    .long __load
+    .long __load_end
     .long __bss_end
 
     # ENTRY ADDRESS
@@ -35,14 +31,14 @@ multiboot_header:
     .short MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS
     .short 0
     .long 12
-    .long multiboot_entry
+    .long _start
 
     # EFI64 ENTRY ADDRESS
-    #.align MULTIBOOT_TAG_ALIGN
-    #.short MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI64
-    #.short 0
-    #.long 12
-    #.long multiboot_entry
+    .align MULTIBOOT_TAG_ALIGN
+    .short MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI64
+    .short 0
+    .long 12
+    .long _start
 
     # FRAMEBUFFER
     .align MULTIBOOT_TAG_ALIGN
@@ -60,7 +56,11 @@ multiboot_header:
     .long 8
 multiboot_header_end:
 
-multiboot_entry:
+.section .text
+.global _start
+.type _start, @function
+.align 16
+_start:
     # SETUP STACK
     mov $stack_top, %rsp
     xor %rbp, %rbp
@@ -78,6 +78,6 @@ multiboot_entry:
     jmp .loop
 
 .section .bss
-.align 8
+.align 16
 .skip STACK_SIZE
 stack_top:
