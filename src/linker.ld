@@ -1,19 +1,17 @@
 OUTPUT_FORMAT(elf64-x86-64)
 
-ENTRY(_start)
+ENTRY(kmain)
 
 SECTIONS
 {
-    . = 1M;
+    . = 0xffffffff80000000;
 
-    __load = .;
-
-    .multiboot :
+    .limine_requests :
     {
-        __multiboot = .;
-        *(.multiboot)
-        __multiboot_end = .;
-    }
+        KEEP(*(.limine_requests_start))
+        KEEP(*(.limine_requests))
+        KEEP(*(.limine_requests_end))
+    } : limine_requests
 
     .text BLOCK(4K) : ALIGN(4K)
     {
@@ -41,15 +39,22 @@ SECTIONS
     .bss BLOCK(4K) : ALIGN(4K)
     {
         __bss = .;
-        *(COMMON)
         *(.bss*)
+        *(COMMON)
         __bss_end = .;
     } : data
+
+    /DISCARD/ :
+    {
+        *(.eh_frame*)
+        *(.note*)
+    }
 }
 
 PHDRS
 {
-    text   PT_LOAD FLAGS(101b); /* rx */
-    rodata PT_LOAD FLAGS(100b); /* ro */
-    data   PT_LOAD FLAGS(110b); /* rw */
+    limine_requests PT_LOAD            ;
+    text            PT_LOAD FLAGS(101b); /* rx */
+    rodata          PT_LOAD FLAGS(100b); /* ro */
+    data            PT_LOAD FLAGS(110b); /* rw */
 }

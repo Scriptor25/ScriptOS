@@ -1,9 +1,21 @@
+#include <limine.h>
 #include <scriptos/efi.h>
-#include <scriptos/multiboot2.h>
 #include <scriptos/types.h>
+
+__attribute__((used, section(".limine_requests"))) static volatile LIMINE_BASE_REVISION(3);
+
+__attribute__((used, section(".limine_requests"))) static volatile struct limine_framebuffer_request framebuffer_request = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .revision = 0,
+};
+
+__attribute__((used, section(".limine_requests_start"))) static volatile LIMINE_REQUESTS_START_MARKER;
+
+__attribute__((used, section(".limine_requests_end"))) static volatile LIMINE_REQUESTS_END_MARKER;
 
 typedef int bool;
 
+#define NULL  ((void*) 0)
 #define false ((bool) 0)
 #define true  ((bool) 1)
 
@@ -59,18 +71,30 @@ bool serial_initialize()
     return true;
 }
 
-__attribute__((sysv_abi)) void kernel_main(u32 magic, u64 info)
+__attribute__((noreturn)) static void hcf(void)
+{
+    for (;;)
+        asm volatile("hlt");
+}
+
+__attribute__((noreturn)) void kmain(void)
 {
     serial_initialize();
 
-    if ((magic != MULTIBOOT2_BOOTLOADER_MAGIC) || (info & 7))
+    if (LIMINE_BASE_REVISION_SUPPORTED == false)
+        hcf();
+
+    if (framebuffer_request.response == NULL || framebuffer_request.response->framebuffer_count < 1)
+        hcf();
+
+    struct limine_framebuffer* framebuffer = framebuffer_request.response->framebuffers[0];
+
+    for (u64 i = 0; i < 100; ++i)
     {
-        serial_write_string("invalid bootloader magic or misaligned info structure\r\n");
-        return;
+        volatile u32* fb_ptr = framebuffer->address;
+        fb_ptr[i * (framebuffer->pitch / 4) + i] = 0xffffff;
     }
 
     serial_write_string("successfully loaded kernel\r\n");
-
-    for (;;)
-        ;
+    hcf();
 }
