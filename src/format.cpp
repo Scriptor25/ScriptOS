@@ -1,7 +1,7 @@
 #include <scriptos/format.h>
 #include <scriptos/types.h>
 
-int print(out_stream stream, cstr format, ...)
+unsigned print(out_stream stream, cstr format, ...)
 {
     va_list ap;
     va_start(ap, format);
@@ -10,13 +10,14 @@ int print(out_stream stream, cstr format, ...)
     return count;
 }
 
-static int isdigit(int c)
+static bool isdigit(int c)
 {
     return '0' <= c && c <= '9';
 }
 
 enum
 {
+    flags_none,
     flags_left_justify,
     flags_force_sign,
     flags_sign_space,
@@ -24,7 +25,7 @@ enum
     flags_pad_zero,
 };
 
-static int print_int(out_stream stream, u64 value, unsigned base, bool uppercase, bool is_signed, unsigned flags, int width, int precision)
+static unsigned print_int(out_stream stream, u64 value, unsigned base, bool uppercase, bool is_signed, unsigned flags, unsigned width, unsigned precision)
 {
     (void) precision;
 
@@ -40,7 +41,7 @@ static int print_int(out_stream stream, u64 value, unsigned base, bool uppercase
         value = static_cast<u64>(-static_cast<i64>(value));
 
     char buffer[128];
-    int count = 0;
+    unsigned count = 0;
 
     do
     {
@@ -82,11 +83,25 @@ static int print_int(out_stream stream, u64 value, unsigned base, bool uppercase
     return count;
 }
 
-int vprint(out_stream stream, cstr format, va_list ap)
+static unsigned print_float(out_stream stream, f64 value, unsigned base, bool uppercase, bool scientific, unsigned flags, unsigned width, unsigned precision)
+{
+    (void) stream;
+    (void) value;
+    (void) base;
+    (void) uppercase;
+    (void) scientific;
+    (void) flags;
+    (void) width;
+    (void) precision;
+
+    return 0;
+}
+
+unsigned vprint(out_stream stream, cstr format, va_list ap)
 {
     // %[flags][width][.precision][length]specifier
 
-    int count = 0;
+    unsigned count = 0;
 
     enum
     {
@@ -97,8 +112,7 @@ int vprint(out_stream stream, cstr format, va_list ap)
         state_specifier,
     } state = state_print;
 
-    unsigned flags;
-    int width, precision;
+    unsigned flags, width, precision;
 
     for (str ptr = const_cast<str>(format); *ptr;)
     {
@@ -190,7 +204,7 @@ int vprint(out_stream stream, cstr format, va_list ap)
             case 'I':
             {
                 auto value = va_arg(ap, u64);
-                count += print_int(stream, value, 10, 0, 1, flags, width, precision);
+                count += print_int(stream, value, 10, false, true, flags, width, precision);
                 break;
             }
 
@@ -198,7 +212,7 @@ int vprint(out_stream stream, cstr format, va_list ap)
             case 'U':
             {
                 auto value = va_arg(ap, u64);
-                count += print_int(stream, value, 10, 0, 0, flags, width, precision);
+                count += print_int(stream, value, 10, false, false, flags, width, precision);
                 break;
             }
 
@@ -206,21 +220,21 @@ int vprint(out_stream stream, cstr format, va_list ap)
             case 'O':
             {
                 auto value = va_arg(ap, u64);
-                count += print_int(stream, value, 8, 0, 0, flags, width, precision);
+                count += print_int(stream, value, 8, false, false, flags, width, precision);
                 break;
             }
 
             case 'x':
             {
                 auto value = va_arg(ap, u64);
-                count += print_int(stream, value, 16, 0, 0, flags, width, precision);
+                count += print_int(stream, value, 16, false, false, flags, width, precision);
                 break;
             }
 
             case 'X':
             {
                 auto value = va_arg(ap, u64);
-                count += print_int(stream, value, 16, 1, 0, flags, width, precision);
+                count += print_int(stream, value, 16, true, false, flags, width, precision);
                 break;
             }
 
@@ -228,49 +242,35 @@ int vprint(out_stream stream, cstr format, va_list ap)
             case 'F':
             {
                 auto value = va_arg(ap, f64);
-                (void) value;
+                count += print_float(stream, value, 10, false, false, flags, width, precision);
                 break;
             }
 
             case 'e':
             {
                 auto value = va_arg(ap, f64);
-                (void) value;
+                count += print_float(stream, value, 10, false, true, flags, width, precision);
                 break;
             }
 
             case 'E':
             {
                 auto value = va_arg(ap, f64);
-                (void) value;
-                break;
-            }
-
-            case 'g':
-            {
-                auto value = va_arg(ap, f64);
-                (void) value;
-                break;
-            }
-
-            case 'G':
-            {
-                auto value = va_arg(ap, f64);
-                (void) value;
+                count += print_float(stream, value, 10, true, true, flags, width, precision);
                 break;
             }
 
             case 'a':
             {
                 auto value = va_arg(ap, f64);
-                (void) value;
+                count += print_float(stream, value, 16, false, false, flags, width, precision);
                 break;
             }
 
             case 'A':
             {
                 auto value = va_arg(ap, f64);
-                (void) value;
+                count += print_float(stream, value, 16, true, false, flags, width, precision);
                 break;
             }
 
@@ -303,8 +303,8 @@ int vprint(out_stream stream, cstr format, va_list ap)
             case 'n':
             case 'N':
             {
-                auto np = va_arg(ap, int*);
-                *np = count;
+                auto p = va_arg(ap, int*);
+                *p = count;
                 break;
             }
 

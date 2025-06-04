@@ -32,9 +32,3 @@ void serial::Write(int data)
 
     io::outb(SERIAL_PORT_COM1, data);
 }
-
-void serial::Write(cstr data)
-{
-    for (str ptr = (str) data; *ptr; ++ptr)
-        Write(*ptr);
-}

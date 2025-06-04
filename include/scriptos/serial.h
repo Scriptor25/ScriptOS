@@ -11,5 +11,4 @@ namespace serial
     u8 TransmitEmpty();
 
     void Write(int data);
-    void Write(cstr data);
 }

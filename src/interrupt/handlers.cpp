@@ -1,11 +1,11 @@
+#include <scriptos/format.h>
 #include <scriptos/interrupt.h>
 #include <scriptos/serial.h>
 #include <scriptos/types.h>
 
 static void panic(cstr message)
 {
-    serial::Write(message);
-    serial::Write("\r\n");
+    print(serial::Write, "%s\r\n", message);
 
     for (;;)
         asm volatile("cli; hlt");
