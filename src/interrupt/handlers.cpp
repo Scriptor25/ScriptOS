@@ -158,3 +158,10 @@ INTERRUPT void interrupt::CP_Handler(StackFrame* stack_frame, u64 error_code)
 
     panic("Control Protection Exception");
 }
+
+INTERRUPT void interrupt::KE_Handler(StackFrame* stack_frame)
+{
+    (void) stack_frame;
+
+    panic("Kernel Exception");
+}

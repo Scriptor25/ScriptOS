@@ -90,43 +90,43 @@ extern "C" NORETURN void kmain(void)
     if (!LIMINE_BASE_REVISION_SUPPORTED)
     {
         serial::Write("limine base revision not supported\r\n");
-        freeze();
+        asm volatile("int $0x69");
     }
 
     if (!bootloader_info_request.response)
     {
         serial::Write("no bootloader info response\r\n");
-        freeze();
+        asm volatile("int $0x69");
     }
 
     if (!firmware_type_request.response)
     {
         serial::Write("no firmware type response\r\n");
-        freeze();
+        asm volatile("int $0x69");
     }
 
     if (!hhdm_request.response)
     {
         serial::Write("no hhdm response\r\n");
-        freeze();
+        asm volatile("int $0x69");
     }
 
     if (!framebuffer_request.response)
     {
         serial::Write("no framebuffer response\r\n");
-        freeze();
+        asm volatile("int $0x69");
     }
 
     if (!memmap_request.response)
     {
         serial::Write("no memmap response\r\n");
-        freeze();
+        asm volatile("int $0x69");
     }
 
     if (!mp_request.response)
     {
         serial::Write("no mp response\r\n");
-        freeze();
+        asm volatile("int $0x69");
     }
 
     serial::Write("bootloader: ");

@@ -35,4 +35,6 @@ namespace interrupt
     void XM_Handler(StackFrame* stack_frame);
     void VE_Handler(StackFrame* stack_frame);
     void CP_Handler(StackFrame* stack_frame, u64 error_code);
+ 
+    void KE_Handler(StackFrame* stack_frame);
 }

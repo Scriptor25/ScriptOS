@@ -34,6 +34,8 @@ void idt::Initialize()
     entries[0x14] = { reinterpret_cast<uptr>(interrupt::VE_Handler), 0x0008, 0b000, 0xe, 0b00 };
     entries[0x15] = { reinterpret_cast<uptr>(interrupt::CP_Handler), 0x0008, 0b000, 0xf, 0b00 };
 
+    entries[0x69] = { reinterpret_cast<uptr>(interrupt::KE_Handler), 0x0008, 0b000, 0xe, 0b00 };
+
     Descriptor descriptor{
         static_cast<u16>(sizeof(entries) - 1),
         entries,
