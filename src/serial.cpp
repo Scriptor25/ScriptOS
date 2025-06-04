@@ -25,7 +25,7 @@ u8 serial::TransmitEmpty()
     return io::inb(SERIAL_PORT_COM1 + 5) & 0x20;
 }
 
-void serial::Write(char data)
+void serial::Write(int data)
 {
     while (!TransmitEmpty())
         ;

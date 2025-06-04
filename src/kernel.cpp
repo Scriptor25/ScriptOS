@@ -1,3 +1,5 @@
+#include "scriptos/format.h"
+
 #include <limine.h>
 #include <scriptos/bitmap.h>
 #include <scriptos/fpu.h>
@@ -46,33 +48,6 @@ LIMINE_REQUEST limine_mp_request mp_request = {
     .flags = LIMINE_MP_X2APIC,
 };
 LIMINE_REQUEST_END LIMINE_REQUESTS_END_MARKER;
-
-unsigned to_string(void (*stream)(char), u64 value, bool is_signed, unsigned base, bool pad_zero, unsigned width)
-{
-    char buf[128];
-    unsigned i = 0;
-
-    if (is_signed && static_cast<i64>(value) < 0)
-    {
-        buf[i++] = '-';
-        value = static_cast<u64>(-static_cast<i64>(value));
-    }
-
-    do
-    {
-        unsigned rem = value % base;
-        value /= base;
-        buf[i++] = (rem + ((rem < 10) ? 0x30 : (0x41 - 10)));
-    } while (value > 0);
-
-    while (i < width)
-        buf[i++] = (pad_zero ? '0' : ' ');
-
-    for (unsigned j = i; j > 0; --j)
-        stream(buf[j - 1]);
-
-    return i;
-}
 
 NORETURN static void freeze(void)
 {
@@ -129,11 +104,10 @@ extern "C" NORETURN void kmain(void)
         asm volatile("int $0x69");
     }
 
-    serial::Write("bootloader: ");
-    serial::Write(bootloader_info_request.response->name);
-    serial::Write(", ");
-    serial::Write(bootloader_info_request.response->version);
-    serial::Write("\r\n");
+    print(serial::Write,
+          "bootloader: %s, %s\r\n",
+          bootloader_info_request.response->name,
+          bootloader_info_request.response->version);
 
     serial::Write("firmware type: ");
     switch (firmware_type_request.response->firmware_type)
@@ -184,10 +158,7 @@ extern "C" NORETURN void kmain(void)
         if ((type == LIMINE_MEMMAP_USABLE || type == LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE) && (end_address < (base + length)))
             end_address = base + length;
 
-        to_string(serial::Write, base, false, 16, true, 16);
-        serial::Write(", ");
-        to_string(serial::Write, length, false, 16, true, 16);
-        serial::Write(", ");
+        print(serial::Write, "%016X, %016X, ", base, length);
         switch (type)
         {
         case LIMINE_MEMMAP_USABLE:
@@ -218,11 +189,7 @@ extern "C" NORETURN void kmain(void)
         serial::Write("\r\n");
     }
 
-    serial::Write("memory size: ");
-    to_string(serial::Write, end_address, false, 16, true, 16);
-    serial::Write(" (");
-    to_string(serial::Write, end_address / 1024, false, 10, false, 0);
-    serial::Write(" KiB)\r\n");
+    print(serial::Write, "memory size: %016X (%u KiB)\r\n", end_address, end_address / 1024);
 
     u8* bitmap_buffer = nullptr;
     usize largest_region_length = 0;

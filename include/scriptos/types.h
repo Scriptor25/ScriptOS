@@ -26,11 +26,6 @@ typedef const char* cstr;
 typedef int* wstr;
 typedef const int* cwstr;
 
-typedef void (*out_stream)(char);
-
-typedef char* arg_ptr;
-
-#define arg_start(PTR, ARG) ((void) (PTR = (arg_ptr) (&ARG + 1)))
-#define arg_get(PTR, TYPE)  (PTR += sizeof(TYPE), *(TYPE*) (PTR - sizeof(TYPE)))
+typedef void (*out_stream)(int);
 
 #endif
