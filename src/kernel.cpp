@@ -1,3 +1,5 @@
+#include "scriptos/gdt.h"
+
 #include <limine.h>
 #include <scriptos/bitmap.h>
 #include <scriptos/fpu.h>
@@ -19,6 +21,11 @@ LIMINE_REQUEST limine_bootloader_info_request bootloader_info_request = {
 };
 LIMINE_REQUEST limine_firmware_type_request firmware_type_request = {
     .id = LIMINE_FIRMWARE_TYPE_REQUEST,
+    .revision = 0,
+    .response = nullptr,
+};
+LIMINE_REQUEST limine_hhdm_request hhdm_request = {
+    .id = LIMINE_HHDM_REQUEST,
     .revision = 0,
     .response = nullptr,
 };
@@ -75,8 +82,9 @@ NORETURN static void freeze(void)
 
 extern "C" NORETURN void kmain(void)
 {
-    fpu::initialize();
     serial::initialize();
+    fpu::initialize();
+    gdt::Initialize();
 
     if (!LIMINE_BASE_REVISION_SUPPORTED)
     {
@@ -93,6 +101,12 @@ extern "C" NORETURN void kmain(void)
     if (!firmware_type_request.response)
     {
         serial::write("no firmware type response\r\n");
+        freeze();
+    }
+
+    if (!hhdm_request.response)
+    {
+        serial::write("no hhdm response\r\n");
         freeze();
     }
 
@@ -209,10 +223,9 @@ extern "C" NORETURN void kmain(void)
     to_string(serial::write, end_address / 1024, false, 10, false, 0);
     serial::write(" KiB)\r\n");
 
-    auto page_count = end_address / 0x1000;
-    auto bitmap_size = page_count / 8;
-
     u8* bitmap_buffer = nullptr;
+    usize largest_region_length = 0;
+
     for (usize i = 0; i < memmap_request.response->entry_count; ++i)
     {
         auto [base, length, type] = *memmap_request.response->entries[i];
@@ -220,14 +233,16 @@ extern "C" NORETURN void kmain(void)
         if (type != LIMINE_MEMMAP_USABLE)
             continue;
 
-        if (length < bitmap_size)
+        if (length < largest_region_length)
             continue;
 
         bitmap_buffer = reinterpret_cast<u8*>(base);
-        break;
+        largest_region_length = length;
     }
 
-    Bitmap bitmap(bitmap_buffer, page_count);
+    auto page_count = end_address / 0x1000;
+
+    Bitmap bitmap(bitmap_buffer + hhdm_request.response->offset, page_count);
     bitmap.Clear();
 
     for (usize i = 0; i < memmap_request.response->entry_count; ++i)

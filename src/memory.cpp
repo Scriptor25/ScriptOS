@@ -4,6 +4,9 @@ void memory::fill(void* dst, int value, usize count)
 {
     auto word_count = (count / sizeof(int)) * sizeof(int);
 
+    for (unsigned i = 0; i < sizeof(int) * 8; i += 8)
+        value |= ((value & 0xff) << i);
+
     usize i;
     for (i = 0; i < word_count; i += sizeof(int))
         *reinterpret_cast<int*>(reinterpret_cast<uptr>(dst) + i) = value;

@@ -13,6 +13,9 @@ void Bitmap::Clear()
 
 void Bitmap::Set(usize index, bool state)
 {
+    if (index >= m_SizeInBits)
+        return;
+
     auto byte_index = index / 8;
     auto bit_index = index % 8;
     u8 mask = 1 << bit_index;
@@ -25,6 +28,12 @@ void Bitmap::Set(usize index, bool state)
 
 void Bitmap::Fill(usize index, usize count, bool state)
 {
+    if (index >= m_SizeInBits)
+        return;
+
+    if (index + count >= m_SizeInBits)
+        count = m_SizeInBits - index;
+
     for (usize i = 0; i < count; ++i)
         Set(index + i, state);
 }

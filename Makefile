@@ -54,7 +54,7 @@ launch: $(ISO)
 	sudo $(QEMU) $(QEMU_FLAGS)
 
 debug: $(ISO)
-	sudo $(QEMU) $(QEMU_FLAGS) -s -S
+	sudo $(QEMU) $(QEMU_FLAGS) -s -S -no-reboot -d int,cpu_reset
 
 $(BIN_DIR)/%.s.pp: $(SRC_DIR)/%.s
 	mkdir -p $(@D)
