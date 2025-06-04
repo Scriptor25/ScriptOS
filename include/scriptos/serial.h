@@ -6,10 +6,10 @@
 
 namespace serial
 {
-    bool initialize();
+    bool Initialize();
 
-    u8 transmit_empty();
+    u8 TransmitEmpty();
 
-    void write(char data);
-    void write(cstr data);
+    void Write(char data);
+    void Write(cstr data);
 }

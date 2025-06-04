@@ -72,6 +72,14 @@ $(BIN_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(@D)
 	$(CXXC) $(INCLUDE) $(CXXFLAGS) -o $@ -c $<
 
+$(BIN_DIR)/interrupt/%.c.o: $(SRC_DIR)/interrupt/%.c
+	mkdir -p $(@D)
+	$(CC) $(INCLUDE) $(CFLAGS) -mgeneral-regs-only -o $@ -c $<
+
+$(BIN_DIR)/interrupt/%.cpp.o: $(SRC_DIR)/interrupt/%.cpp
+	mkdir -p $(@D)
+	$(CXXC) $(INCLUDE) $(CXXFLAGS) -mgeneral-regs-only -o $@ -c $<
+
 $(KERNEL_ELF): $(OBJ) $(LINKER_LD)
 	mkdir -p $(@D)
 	$(LD) $(LDFLAGS) -o $(KERNEL_ELF) $(OBJ) -T $(LINKER_LD)

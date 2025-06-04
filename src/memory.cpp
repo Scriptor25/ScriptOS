@@ -1,6 +1,6 @@
 #include <scriptos/memory.h>
 
-void memory::fill(void* dst, int value, usize count)
+void memory::Fill(void* dst, int value, usize count)
 {
     auto word_count = (count / sizeof(int)) * sizeof(int);
 
@@ -14,7 +14,7 @@ void memory::fill(void* dst, int value, usize count)
         *reinterpret_cast<u8*>(reinterpret_cast<uptr>(dst) + i) = value;
 }
 
-void memory::copy(void* dst, const void* src, usize count)
+void memory::Copy(void* dst, const void* src, usize count)
 {
     auto word_count = (count / sizeof(int)) * sizeof(int);
 

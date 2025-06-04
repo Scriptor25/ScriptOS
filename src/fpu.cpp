@@ -1,14 +1,6 @@
 #include <scriptos/fpu.h>
 
-void fpu::initialize()
+void fpu::Initialize()
 {
-    asm volatile("mov %cr0,   %rax;"
-                 "or  $0x20,  %rax;"
-                 "mov %rax,   %cr0;"
-                 ""
-                 "mov %cr4,   %rax;"
-                 "or  $0x600, %rax;"
-                 "mov %rax,   %cr4;"
-                 ""
-                 "fninit;");
+    __enable_fpu();
 }

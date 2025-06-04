@@ -8,7 +8,7 @@ Bitmap::Bitmap(u8* buffer, usize size_in_bits)
 
 void Bitmap::Clear()
 {
-    memory::fill(m_Buffer, 0, m_SizeInBits / 8);
+    memory::Fill(m_Buffer, 0, m_SizeInBits / 8);
 }
 
 void Bitmap::Set(usize index, bool state)

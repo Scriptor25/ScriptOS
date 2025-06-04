@@ -1,7 +1,7 @@
 #include <scriptos/io.h>
 #include <scriptos/serial.h>
 
-bool serial::initialize()
+bool serial::Initialize()
 {
     io::outb(SERIAL_PORT_COM1 + 1, 0x00);
     io::outb(SERIAL_PORT_COM1 + 3, 0x80);
@@ -20,21 +20,21 @@ bool serial::initialize()
     return true;
 }
 
-u8 serial::transmit_empty()
+u8 serial::TransmitEmpty()
 {
     return io::inb(SERIAL_PORT_COM1 + 5) & 0x20;
 }
 
-void serial::write(char data)
+void serial::Write(char data)
 {
-    while (!transmit_empty())
+    while (!TransmitEmpty())
         ;
 
     io::outb(SERIAL_PORT_COM1, data);
 }
 
-void serial::write(cstr data)
+void serial::Write(cstr data)
 {
     for (str ptr = (str) data; *ptr; ++ptr)
-        write(*ptr);
+        Write(*ptr);
 }

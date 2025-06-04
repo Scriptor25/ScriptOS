@@ -69,5 +69,5 @@ namespace gdt
     usize Insert(void* buffer, usize offset, const SegmentDescriptor& desc);
     usize Insert(void* buffer, usize offset, const SystemSegmentDescriptor& desc);
 
-    extern "C" void __load_gdt(const gdt::Descriptor* descriptor, u16 code_segment, u16 data_segment);
+    extern "C" void __load_gdt(const Descriptor* descriptor, u16 code_segment, u16 data_segment);
 }

@@ -4,6 +4,6 @@
 
 namespace memory
 {
-    void fill(void* dst, int value, usize count);
-    void copy(void* dst, const void* src, usize count);
+    void Fill(void* dst, int value, usize count);
+    void Copy(void* dst, const void* src, usize count);
 }

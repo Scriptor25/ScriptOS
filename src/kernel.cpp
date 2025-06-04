@@ -1,8 +1,8 @@
-#include "scriptos/gdt.h"
-
 #include <limine.h>
 #include <scriptos/bitmap.h>
 #include <scriptos/fpu.h>
+#include <scriptos/gdt.h>
+#include <scriptos/idt.h>
 #include <scriptos/serial.h>
 #include <scriptos/types.h>
 
@@ -82,78 +82,79 @@ NORETURN static void freeze(void)
 
 extern "C" NORETURN void kmain(void)
 {
-    serial::initialize();
-    fpu::initialize();
+    serial::Initialize();
+    fpu::Initialize();
     gdt::Initialize();
+    idt::Initialize();
 
     if (!LIMINE_BASE_REVISION_SUPPORTED)
     {
-        serial::write("limine base revision not supported\r\n");
+        serial::Write("limine base revision not supported\r\n");
         freeze();
     }
 
     if (!bootloader_info_request.response)
     {
-        serial::write("no bootloader info response\r\n");
+        serial::Write("no bootloader info response\r\n");
         freeze();
     }
 
     if (!firmware_type_request.response)
     {
-        serial::write("no firmware type response\r\n");
+        serial::Write("no firmware type response\r\n");
         freeze();
     }
 
     if (!hhdm_request.response)
     {
-        serial::write("no hhdm response\r\n");
+        serial::Write("no hhdm response\r\n");
         freeze();
     }
 
     if (!framebuffer_request.response)
     {
-        serial::write("no framebuffer response\r\n");
+        serial::Write("no framebuffer response\r\n");
         freeze();
     }
 
     if (!memmap_request.response)
     {
-        serial::write("no memmap response\r\n");
+        serial::Write("no memmap response\r\n");
         freeze();
     }
 
     if (!mp_request.response)
     {
-        serial::write("no mp response\r\n");
+        serial::Write("no mp response\r\n");
         freeze();
     }
 
-    serial::write("bootloader: ");
-    serial::write(bootloader_info_request.response->name);
-    serial::write(", ");
-    serial::write(bootloader_info_request.response->version);
-    serial::write("\r\n");
+    serial::Write("bootloader: ");
+    serial::Write(bootloader_info_request.response->name);
+    serial::Write(", ");
+    serial::Write(bootloader_info_request.response->version);
+    serial::Write("\r\n");
 
-    serial::write("firmware type: ");
+    serial::Write("firmware type: ");
     switch (firmware_type_request.response->firmware_type)
     {
     case LIMINE_FIRMWARE_TYPE_X86BIOS:
-        serial::write("X86BIOS");
+        serial::Write("X86BIOS");
         break;
     case LIMINE_FIRMWARE_TYPE_UEFI32:
-        serial::write("UEFI32");
+        serial::Write("UEFI32");
         break;
     case LIMINE_FIRMWARE_TYPE_UEFI64:
-        serial::write("UEFI64");
+        serial::Write("UEFI64");
         break;
     case LIMINE_FIRMWARE_TYPE_SBI:
-        serial::write("SBI");
+        serial::Write("SBI");
         break;
     default:
-        serial::write("?");
+        serial::Write("?");
         break;
     }
-    serial::write("\r\n");
+    serial::Write("\r\n");
 
     auto framebuffer = framebuffer_request.response->framebuffers[0];
     auto framebuffer_address = static_cast<u32*>(framebuffer->address);
@@ -183,45 +184,45 @@ extern "C" NORETURN void kmain(void)
         if ((type == LIMINE_MEMMAP_USABLE || type == LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE) && (end_address < (base + length)))
             end_address = base + length;
 
-        to_string(serial::write, base, false, 16, true, 16);
-        serial::write(", ");
-        to_string(serial::write, length, false, 16, true, 16);
-        serial::write(", ");
+        to_string(serial::Write, base, false, 16, true, 16);
+        serial::Write(", ");
+        to_string(serial::Write, length, false, 16, true, 16);
+        serial::Write(", ");
         switch (type)
         {
         case LIMINE_MEMMAP_USABLE:
-            serial::write("USABLE");
+            serial::Write("USABLE");
             break;
         case LIMINE_MEMMAP_RESERVED:
-            serial::write("RESERVED");
+            serial::Write("RESERVED");
             break;
         case LIMINE_MEMMAP_ACPI_RECLAIMABLE:
-            serial::write("ACPI RECLAIMABLE");
+            serial::Write("ACPI RECLAIMABLE");
             break;
         case LIMINE_MEMMAP_ACPI_NVS:
-            serial::write("ACPI NVS");
+            serial::Write("ACPI NVS");
             break;
         case LIMINE_MEMMAP_BAD_MEMORY:
-            serial::write("BAD MEMORY");
+            serial::Write("BAD MEMORY");
             break;
         case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
-            serial::write("BOOTLOADER RECLAIMABLE");
+            serial::Write("BOOTLOADER RECLAIMABLE");
             break;
         case LIMINE_MEMMAP_EXECUTABLE_AND_MODULES:
-            serial::write("EXECUTABLE AND MODULES");
+            serial::Write("EXECUTABLE AND MODULES");
             break;
         case LIMINE_MEMMAP_FRAMEBUFFER:
-            serial::write("FRAMEBUFFER");
+            serial::Write("FRAMEBUFFER");
             break;
         }
-        serial::write("\r\n");
+        serial::Write("\r\n");
     }
 
-    serial::write("memory size: ");
-    to_string(serial::write, end_address, false, 16, true, 16);
-    serial::write(" (");
-    to_string(serial::write, end_address / 1024, false, 10, false, 0);
-    serial::write(" KiB)\r\n");
+    serial::Write("memory size: ");
+    to_string(serial::Write, end_address, false, 16, true, 16);
+    serial::Write(" (");
+    to_string(serial::Write, end_address / 1024, false, 10, false, 0);
+    serial::Write(" KiB)\r\n");
 
     u8* bitmap_buffer = nullptr;
     usize largest_region_length = 0;
