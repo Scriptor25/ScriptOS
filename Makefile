@@ -38,7 +38,7 @@ CFLAGS = -DLIMINE_API_REVISION=3 -g -g3 -ggdb -O0 -ffreestanding -fno-stack-prot
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti -std=c++20
 LDFLAGS = -nostdlib -static
 
-QEMUFLAGS = -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE.fd -drive if=pflash,format=raw,file=/usr/share/OVMF/OVMF_VARS.fd -cdrom $(ISO) -net none -serial stdio -smp 8
+QEMUFLAGS = -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE.fd -drive if=pflash,format=raw,file=/usr/share/OVMF/OVMF_VARS.fd -cdrom $(ISO) -net none -serial stdio -smp 4
 
 .PHONY: all clean build launch debug
 

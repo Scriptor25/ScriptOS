@@ -1,3 +1,5 @@
+#include "scriptos/range.h"
+
 #include <limine.h>
 #include <scriptos/bitmap.h>
 #include <scriptos/format.h>
@@ -50,6 +52,11 @@ LIMINE_REQUEST limine_mp_request mp_request = {
     .revision = 0,
     .response = nullptr,
     .flags = LIMINE_MP_X2APIC,
+};
+LIMINE_REQUEST limine_efi_system_table_request efi_system_table_request = {
+    .id = LIMINE_EFI_SYSTEM_TABLE_REQUEST,
+    .revision = 0,
+    .response = nullptr,
 };
 LIMINE_REQUEST_END LIMINE_REQUESTS_END_MARKER;
 
@@ -105,30 +112,39 @@ static void print_system_information()
 
     Print(write_char, "\r\n");
 
-    Print(write_char, "framebuffers:\r\n");
+    Print(write_char, " address          | bpp | width | height | pitch | model \r\n");
+    Print(write_char, "------------------+-----+-------+--------+-------+-------\r\n");
 
-    for (usize i = 0; i < framebuffer_request.response->framebuffer_count; ++i)
+    Range framebuffers(framebuffer_request.response->framebuffers,
+                       framebuffer_request.response->framebuffer_count);
+    for (auto framebuffer : framebuffers)
     {
-        auto framebuffer = framebuffer_request.response->framebuffers[i];
-
         Print(write_char,
-              " %4d: %016X, %dx%d\r\n",
-              i,
-              framebuffer->address,
-              framebuffer->width,
-              framebuffer->height);
+              " %016X |     |       |        |       |       \r\n",
+              framebuffer->address);
+
+        Range modes(framebuffer->modes, framebuffer->mode_count);
+        for (auto mode : modes)
+        {
+            auto active = mode->bpp == framebuffer->bpp
+                       && mode->width == framebuffer->width
+                       && mode->height == framebuffer->height
+                       && mode->pitch == framebuffer->pitch
+                       && mode->memory_model == framebuffer->memory_model;
+            Print(write_char, "              [%c] | %-3u | %-5u | %-6u | %-5u | %02X    \r\n", active ? '*' : ' ', mode->bpp, mode->width, mode->height, mode->pitch, mode->memory_model);
+        }
     }
 
     Print(write_char, "\r\n");
 
-    Print(write_char, "memory:\r\n");
+    Print(write_char, " base             | length           | type                   \r\n");
+    Print(write_char, "------------------+------------------+------------------------\r\n");
 
     usize end_address = 0;
 
-    for (usize i = 0; i < memmap_request.response->entry_count; ++i)
+    Range memmap(memmap_request.response->entries, memmap_request.response->entry_count);
+    for (auto entry : memmap)
     {
-        auto entry = memmap_request.response->entries[i];
-
         if ((entry->type == LIMINE_MEMMAP_USABLE || entry->type == LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE)
             && (end_address < (entry->base + entry->length)))
             end_address = entry->base + entry->length;
@@ -162,29 +178,27 @@ static void print_system_information()
             break;
         }
 
-        Print(write_char, " %016X, %016X, %s\r\n", entry->base, entry->length, type_string);
+        Print(write_char, " %016X | %016X | %-22s \r\n", entry->base, entry->length, type_string);
     }
+
+    Print(write_char, "\r\n");
 
     Print(write_char, "total size: %016X (%u KiB)\r\n", end_address, end_address / 1024);
 
     Print(write_char, "\r\n");
 
-    Print(write_char, " index | processor_id | lapic_id | goto_address     \r\n");
-    Print(write_char, "-------+--------------+----------+------------------\r\n");
+    Print(write_char, " processor id | lapic id | goto address     \r\n");
+    Print(write_char, "--------------+----------+------------------\r\n");
 
-    for (usize i = 0; i < mp_request.response->cpu_count; ++i)
-    {
-        auto cpu = mp_request.response->cpus[i];
+    Range cpus(mp_request.response->cpus, mp_request.response->cpu_count);
+    for (auto cpu : cpus)
+        Print(write_char, " %-4u         | %-4u     | %016X \r\n", cpu->processor_id, cpu->lapic_id, cpu->goto_address);
 
-        Print(write_char, " %-4d  | %-4d         | %-4d     | %016X \r\n", i, cpu->processor_id, cpu->lapic_id, cpu->goto_address);
-    }
+    Print(write_char, "\r\n");
+
+    auto efi_system_table = efi_system_table_request.response->address;
+    Print(write_char, "efi system table: %016X\r\n", efi_system_table);
 }
-
-struct control_block
-{
-    void (*target)(void*);
-    void* data;
-};
 
 extern "C" NORETURN void kmain()
 {
@@ -214,6 +228,9 @@ extern "C" NORETURN void kmain()
     if (!mp_request.response)
         error("no mp response");
 
+    if (!efi_system_table_request.response)
+        error("no efi system table response");
+
     {
         auto framebuffer = framebuffer_request.response->framebuffers[0];
         renderer.Initialize({
@@ -234,10 +251,10 @@ extern "C" NORETURN void kmain()
 
     usize end_address = 0;
 
-    for (usize i = 0; i < memmap_request.response->entry_count; ++i)
-    {
-        auto entry = memmap_request.response->entries[i];
+    Range memmap(memmap_request.response->entries, memmap_request.response->entry_count);
 
+    for (auto entry : memmap)
+    {
         if (entry->type != LIMINE_MEMMAP_USABLE && entry->type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE)
             continue;
 
@@ -256,14 +273,8 @@ extern "C" NORETURN void kmain()
     Bitmap bitmap(bitmap_buffer + hhdm_request.response->offset, page_count);
     bitmap.Clear();
 
-    for (usize i = 0; i < memmap_request.response->entry_count; ++i)
-    {
-        auto entry = memmap_request.response->entries[i];
-
+    for (auto entry : memmap)
         bitmap.Fill(entry->base, entry->length / 0x1000, entry->type == LIMINE_MEMMAP_USABLE);
-    }
-
-    Print(write_char, "generated memory bitmap\r\n");
 
     halt();
 }
