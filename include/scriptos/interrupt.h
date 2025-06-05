@@ -15,6 +15,8 @@ namespace interrupt
         u64 SS;
     } __attribute__((packed));
 
+    void Panic(cstr format, ...);
+
     void DE_Handler(StackFrame* stack_frame);
     void DB_Handler(StackFrame* stack_frame);
     void NI_Handler(StackFrame* stack_frame);
@@ -35,6 +37,6 @@ namespace interrupt
     void XM_Handler(StackFrame* stack_frame);
     void VE_Handler(StackFrame* stack_frame);
     void CP_Handler(StackFrame* stack_frame, u64 error_code);
- 
+
     void KE_Handler(StackFrame* stack_frame);
 }

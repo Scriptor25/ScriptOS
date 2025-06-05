@@ -1,12 +1,12 @@
 #include <scriptos/gdt.h>
 
 gdt::SegmentDescriptor::SegmentDescriptor(u32 base, u32 limit, u8 access, u8 flags)
-  : LimitLo(limit & 0xffff), BaseLo(base & 0xffffff), Access(access), LimitHi((limit & 0xf0000) >> 16), Flags(flags & 0xf), BaseHi((base & 0xff000000) >> 24)
+    : LimitLo(limit & 0xffff), BaseLo(base & 0xffffff), Access(access), LimitHi((limit & 0xf0000) >> 16), Flags(flags & 0xf), BaseHi((base & 0xff000000) >> 24)
 {
 }
 
 gdt::SystemSegmentDescriptor::SystemSegmentDescriptor(u64 base, u32 limit, u8 access, u8 flags)
-  : LimitLo(limit & 0xffff), BaseLo(base & 0xffffff), Access(access), LimitHi((limit & 0xf0000) >> 16), Flags(flags & 0xf), BaseHi((base & 0xffff'ffff'ff00'0000) >> 24)
+    : LimitLo(limit & 0xffff), BaseLo(base & 0xffffff), Access(access), LimitHi((limit & 0xf0000) >> 16), Flags(flags & 0xf), BaseHi((base & 0xffff'ffff'ff00'0000) >> 24)
 {
 }
 
@@ -22,7 +22,10 @@ void gdt::Initialize()
     offset = Insert(entries, offset, SegmentDescriptor(0x00000000, 0xfffff, GDT_PRESENT | GDT_LEVEL_3 | GDT_CODE_DATA | GDT_READABLE_WRITEABLE, GDT_PAGE_GRANULARITY | GDT_32_BIT_SEGMENT));
 
     // TODO: tss
-    // offset += insert(entries, offset, system_segment_descriptor(TODO, TODO, TODO, TODO));
+    // offset = Insert(
+    //  entries,
+    //  offset,
+    //  SystemSegmentDescriptor(TODO, TODO, TODO, TODO));
 
     Descriptor descriptor{
         static_cast<u16>(offset - 1),

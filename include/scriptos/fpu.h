@@ -2,7 +2,7 @@
 
 namespace fpu
 {
-    extern "C" void __enable_fpu();
-
     void Initialize();
+
+    extern "C" void __enable_fpu();
 }

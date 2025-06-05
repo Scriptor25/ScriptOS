@@ -1,11 +1,11 @@
 #include <scriptos/format.h>
 #include <scriptos/types.h>
 
-unsigned print(out_stream stream, cstr format, ...)
+unsigned Print(out_stream stream, cstr format, ...)
 {
     va_list ap;
     va_start(ap, format);
-    auto count = vprint(stream, format, ap);
+    auto count = PrintV(stream, format, ap);
     va_end(ap);
     return count;
 }
@@ -97,7 +97,7 @@ static unsigned print_float(out_stream stream, f64 value, unsigned base, bool up
     return 0;
 }
 
-unsigned vprint(out_stream stream, cstr format, va_list ap)
+unsigned PrintV(out_stream stream, cstr format, va_list ap)
 {
     // %[flags][width][.precision][length]specifier
 

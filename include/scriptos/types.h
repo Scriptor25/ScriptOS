@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef TYPES_H
-#define TYPES_H
-
 typedef __INT8_TYPE__ i8;
 typedef __UINT8_TYPE__ u8;
 typedef __INT16_TYPE__ i16;
@@ -27,5 +24,3 @@ typedef int* wstr;
 typedef const int* cwstr;
 
 typedef void (*out_stream)(int);
-
-#endif

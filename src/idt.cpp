@@ -3,7 +3,7 @@
 #include <scriptos/memory.h>
 
 idt::GateDescriptor::GateDescriptor(u64 offset, u16 segment_selector, u8 interrupt_stack_table, u8 gate_type, u8 privilege_level)
-  : OffsetLo(offset & 0xffff), SegmentSelector(segment_selector), InterruptStackTable(interrupt_stack_table), GateType(gate_type), PrivilegeLevel(privilege_level), Present(1), OffsetHi((offset & 0xffff'ffff'ffff'0000) >> 16)
+    : OffsetLo(offset & 0xffff), SegmentSelector(segment_selector), InterruptStackTable(interrupt_stack_table), GateType(gate_type), PrivilegeLevel(privilege_level), Present(1), OffsetHi((offset & 0xffff'ffff'ffff'0000) >> 16)
 {
 }
 

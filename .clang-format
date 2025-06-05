@@ -55,15 +55,15 @@ BreakInheritanceList: AfterComma
 BreakStringLiterals: true
 BreakTemplateDeclarations: Yes
 
-ColumnLimit: 120
+ColumnLimit: 80
 
 CommentPragmas: false
 
 CompactNamespaces: false
 
-ConstructorInitializerIndentWidth: 2
+ConstructorInitializerIndentWidth: 4
 
-ContinuationIndentWidth: 2
+ContinuationIndentWidth: 4
 
 Cpp11BracedListStyle: false
 
@@ -124,17 +124,17 @@ PPIndentWidth: -1
 
 PackConstructorInitializers: NextLineOnly
 
-PenaltyBreakAssignment: 0
+PenaltyBreakAssignment: 1000
 PenaltyBreakBeforeFirstCallParameter: 0
 PenaltyBreakComment: 0
-PenaltyBreakFirstLessLess: 0
-PenaltyBreakOpenParenthesis: 0
-PenaltyBreakScopeResolution: 0
+PenaltyBreakFirstLessLess: 1000
+PenaltyBreakOpenParenthesis: 1000
+PenaltyBreakScopeResolution: 1000
 PenaltyBreakString: 0
 PenaltyBreakTemplateDeclaration: 0
 PenaltyExcessCharacter: 0
 PenaltyIndentedWhitespace: 0
-PenaltyReturnTypeOnItsOwnLine: 0
+PenaltyReturnTypeOnItsOwnLine: 10000
 
 PointerAlignment: Left
 

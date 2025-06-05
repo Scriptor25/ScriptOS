@@ -17,6 +17,7 @@ public:
     void SetBackground(u32 color);
 
     void Clear();
+    void ShiftFramebuffer(usize up);
     void DrawChar(int c, usize x, usize y);
 
     void Reset();

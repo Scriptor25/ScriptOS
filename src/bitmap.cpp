@@ -2,7 +2,7 @@
 #include <scriptos/memory.h>
 
 Bitmap::Bitmap(u8* buffer, usize size_in_bits)
-  : m_Buffer(buffer), m_SizeInBits(size_in_bits & ~7)
+    : m_Buffer(buffer), m_SizeInBits(size_in_bits & ~7)
 {
 }
 
