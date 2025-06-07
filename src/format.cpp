@@ -292,6 +292,15 @@ unsigned PrintV(out_stream stream, cstr format, va_list ap)
                 break;
             }
 
+            case 'h':
+            case 'H':
+            {
+                auto value = va_arg(ap, u16*);
+                for (; *value; ++value, ++count)
+                    stream(*value);
+                break;
+            }
+
             case 'w':
             case 'W':
             {

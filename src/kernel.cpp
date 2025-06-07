@@ -238,9 +238,7 @@ extern "C" NORETURN void kmain()
     if (!efi_system_table_request.response)
         error("no efi system table response");
 
-    auto hhdm_offset = hhdm_request.response->offset;
-
-    paging::Initialize();
+    paging::Initialize(hhdm_request.response->offset);
 
     u8* bitmap_buffer = nullptr;
     usize max_length = 0;
@@ -265,7 +263,7 @@ extern "C" NORETURN void kmain()
     {
         auto page_count = end_address / PAGE_SIZE;
 
-        Bitmap bitmap(bitmap_buffer + hhdm_offset, page_count);
+        Bitmap bitmap(reinterpret_cast<u8*>(paging::PhysicalToVirtual(bitmap_buffer)), page_count);
         bitmap.Clear();
         for (auto entry : memmap)
             bitmap.Fill(entry->base / PAGE_SIZE, entry->length / PAGE_SIZE, entry->type != LIMINE_MEMMAP_USABLE);
@@ -283,9 +281,9 @@ extern "C" NORETURN void kmain()
         auto page_count = (buffer_size / PAGE_SIZE) + 1;
 
         auto buffer_physical = allocator.AllocatePhysicalPages(page_count);
-        auto buffer_virtual = paging::PhysicalToVirtual(buffer_physical, hhdm_offset);
+        auto buffer_virtual = paging::PhysicalToVirtual(buffer_physical);
 
-        paging::MapPages(allocator, buffer_virtual, buffer_physical, page_count, hhdm_offset, true, true);
+        paging::MapPages(allocator, buffer_virtual, buffer_physical, page_count, true, true);
 
         renderer.Initialize(framebuffer->address,
                             buffer_virtual,
@@ -302,18 +300,18 @@ extern "C" NORETURN void kmain()
     {
         auto physical_system_table = reinterpret_cast<void*>(efi_system_table_request
                                                                  .response->address);
-        auto virtual_system_table = reinterpret_cast<EFI_SYSTEM_TABLE*>(paging::PhysicalToVirtual(physical_system_table, hhdm_offset));
+        auto virtual_system_table = reinterpret_cast<EFI_SYSTEM_TABLE*>(paging::PhysicalToVirtual(physical_system_table));
 
-        paging::MapPage(allocator, virtual_system_table, physical_system_table, hhdm_offset);
+        paging::MapPage(allocator, virtual_system_table, physical_system_table);
 
         Print(write_char, "efi system table: %016X\r\n", virtual_system_table);
 
         auto physical_firmware_vendor = virtual_system_table->FirmwareVendor;
-        auto virtual_firmware_vendor = reinterpret_cast<CHAR16*>(paging::PhysicalToVirtual(physical_firmware_vendor, hhdm_offset));
+        auto virtual_firmware_vendor = reinterpret_cast<CHAR16*>(paging::PhysicalToVirtual(physical_firmware_vendor));
 
-        paging::MapPage(allocator, virtual_firmware_vendor, physical_firmware_vendor, hhdm_offset);
+        paging::MapPage(allocator, virtual_firmware_vendor, physical_firmware_vendor);
 
-        Print(write_char, "firmware vendor: %w\r\n", virtual_firmware_vendor);
+        Print(write_char, "firmware vendor: %h\r\n", virtual_firmware_vendor);
     }
 
     renderer.SwapBuffers();

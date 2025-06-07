@@ -55,18 +55,19 @@ namespace paging
 
     typedef PageTableEntry* PageTable;
 
+    extern uptr HHDM_Offset;
     extern PageTable PML4_Base;
 
     bool IsPhysical(void* maybe_physical_address);
-    void* PhysicalToVirtual(void* physical_address, uptr offset);
+    void* PhysicalToVirtual(void* physical_address);
 
-    void Initialize();
+    void Initialize(uptr hhdm_offset);
 
-    void WalkTable(out_stream stream, PageTable table, uptr offset, uptr virtual_base = 0, u8 level = 4);
+    void WalkTable(out_stream stream, PageTable table, uptr virtual_base = 0, u8 level = 4);
 
-    bool MapPage(PageFrameAllocator& allocator, void* virtual_address, void* physical_address, uptr virtual_offset, bool present = true, bool read_write = false, bool user_supervisor = false, bool write_through = false, bool cache_disable = false, bool accessed = false);
-    bool MapPages(PageFrameAllocator& allocator, void* virtual_address, void* physical_address, usize count, uptr virtual_offset, bool present = true, bool read_write = false, bool user_supervisor = false, bool write_through = false, bool cache_disable = false, bool accessed = false);
-    PageTable GetOrCreateNextLevel(PageFrameAllocator& allocator, PageTable table, uptr virtual_offset, usize index, bool create = true);
+    bool MapPage(PageFrameAllocator& allocator, void* virtual_address, void* physical_address, bool present = true, bool read_write = false, bool user_supervisor = false, bool write_through = false, bool cache_disable = false, bool accessed = false);
+    bool MapPages(PageFrameAllocator& allocator, void* virtual_address, void* physical_address, usize count, bool present = true, bool read_write = false, bool user_supervisor = false, bool write_through = false, bool cache_disable = false, bool accessed = false);
+    PageTable GetOrCreateNextLevel(PageFrameAllocator& allocator, PageTable table, usize index, bool create = true);
 
     void FlushPage(void* virtual_address);
 }
