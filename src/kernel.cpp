@@ -59,6 +59,14 @@ LIMINE_REQUEST limine_efi_system_table_request efi_system_table_request = {
     .revision = 0,
     .response = nullptr,
 };
+LIMINE_REQUEST limine_paging_mode_request paging_mode_request = {
+    .id = LIMINE_PAGING_MODE_REQUEST,
+    .revision = 0,
+    .response = nullptr,
+    .mode = LIMINE_PAGING_MODE_X86_64_4LVL,
+    .max_mode = LIMINE_PAGING_MODE_X86_64_4LVL,
+    .min_mode = LIMINE_PAGING_MODE_X86_64_4LVL,
+};
 LIMINE_REQUEST_END LIMINE_REQUESTS_END_MARKER;
 
 NORETURN static void halt()
@@ -197,10 +205,6 @@ static void print_system_information()
         Print(write_char, " %-4u         | %-4u     | %016X \r\n", cpu->processor_id, cpu->lapic_id, cpu->goto_address);
 
     Print(write_char, "\r\n");
-
-    auto efi_system_table = reinterpret_cast<EFI_SYSTEM_TABLE*>(efi_system_table_request
-                                                                    .response->address);
-    Print(write_char, "efi system table: %016X\r\n", efi_system_table);
 }
 
 extern "C" NORETURN void kmain()
@@ -238,11 +242,9 @@ extern "C" NORETURN void kmain()
 
     paging::Initialize();
 
-    Print(serial::Write, "pml4 base: %016X\r\n", paging::PML4_Base);
-
     u8* bitmap_buffer = nullptr;
     usize max_length = 0;
-    usize end_address = 0;
+    usize end_address = 0x100000;
 
     Range memmap(memmap_request.response->entries, memmap_request.response->entry_count);
     for (auto entry : memmap)
@@ -267,20 +269,24 @@ extern "C" NORETURN void kmain()
         bitmap.Clear();
         for (auto entry : memmap)
             bitmap.Fill(entry->base / PAGE_SIZE, entry->length / PAGE_SIZE, entry->type != LIMINE_MEMMAP_USABLE);
+
+        bitmap.Fill(0, 0x100, true);
         bitmap.Fill(reinterpret_cast<uptr>(bitmap_buffer) / PAGE_SIZE, page_count / 8 + 1, true);
 
         allocator = { bitmap };
-
-        paging::MapPage(allocator, reinterpret_cast<void*>(hhdm_offset + reinterpret_cast<uptr>(paging::PML4_Base)), paging::PML4_Base, PAGE_WRITABLE);
     }
 
     {
         auto framebuffer = framebuffer_request.response->framebuffers[0];
-        auto page_count = framebuffer->pitch * framebuffer->height / PAGE_SIZE + 1;
+
+        auto buffer_size = framebuffer->pitch * framebuffer->height;
+        auto page_count = (buffer_size / PAGE_SIZE) + 1;
 
         auto buffer_physical = allocator.AllocatePhysicalPages(page_count);
-        auto buffer_virtual = reinterpret_cast<void*>(reinterpret_cast<uptr>(buffer_physical) + hhdm_offset);
-        paging::MapPage(allocator, buffer_virtual, buffer_physical, PAGE_WRITABLE);
+        auto buffer_virtual = paging::PhysicalToVirtual(buffer_physical, hhdm_offset);
+
+        paging::MapPages(allocator, buffer_virtual, buffer_physical, page_count, hhdm_offset, true, true);
+
         renderer.Initialize(framebuffer->address,
                             buffer_virtual,
                             framebuffer->width,
@@ -292,6 +298,25 @@ extern "C" NORETURN void kmain()
     }
 
     print_system_information();
+
+    {
+        auto physical_system_table = reinterpret_cast<void*>(efi_system_table_request
+                                                                 .response->address);
+        auto virtual_system_table = reinterpret_cast<EFI_SYSTEM_TABLE*>(paging::PhysicalToVirtual(physical_system_table, hhdm_offset));
+
+        paging::MapPage(allocator, virtual_system_table, physical_system_table, hhdm_offset);
+
+        Print(write_char, "efi system table: %016X\r\n", virtual_system_table);
+
+        auto physical_firmware_vendor = virtual_system_table->FirmwareVendor;
+        auto virtual_firmware_vendor = reinterpret_cast<CHAR16*>(paging::PhysicalToVirtual(physical_firmware_vendor, hhdm_offset));
+
+        paging::MapPage(allocator, virtual_firmware_vendor, physical_firmware_vendor, hhdm_offset);
+
+        Print(write_char, "firmware vendor: %w\r\n", virtual_firmware_vendor);
+    }
+
+    renderer.SwapBuffers();
 
     halt();
 }

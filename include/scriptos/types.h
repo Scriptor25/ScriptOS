@@ -20,7 +20,7 @@ typedef long double f128;
 
 typedef char* str;
 typedef const char* cstr;
-typedef int* wstr;
-typedef const int* cwstr;
+typedef i16* wstr;
+typedef const i16* cwstr;
 
 typedef void (*out_stream)(int);
