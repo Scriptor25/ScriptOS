@@ -2,3 +2,6 @@
 	path = limine
 	url = https://github.com/limine-bootloader/limine.git
 	branch = v9.x-binary
+[submodule "efi"]
+	path = efi
+	url = https://github.com/yoppeh/efi.git

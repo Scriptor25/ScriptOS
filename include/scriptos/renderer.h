@@ -11,20 +11,33 @@ struct Point
 class Renderer
 {
 public:
-    void Initialize(const Framebuffer& framebuffer);
+    void Initialize(void* front_buffer, void* back_buffer, usize width, usize height);
 
     void SetForeground(u32 color);
     void SetBackground(u32 color);
 
     void Clear();
-    void ShiftFramebuffer(usize up);
+    void Shift(usize up);
+
+    void SwapBuffers();
+
+    usize CursorX() const;
+    usize CursorY() const;
+
+    void DrawPixel(usize x, usize y, u32 color);
     void DrawChar(int c, usize x, usize y);
 
     void Reset();
     void NextChar(int c);
 
+    void NewLine();
+
 private:
-    Framebuffer m_Framebuffer;
+    void *m_FrontBuffer, *m_BackBuffer;
+
+    usize m_Width, m_Height, m_Area;
+
+    bool m_Dirty;
 
     u32 m_Foreground, m_Background;
 

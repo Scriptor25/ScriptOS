@@ -1,5 +1,4 @@
-#include "scriptos/range.h"
-
+#include <efi.h>
 #include <limine.h>
 #include <scriptos/bitmap.h>
 #include <scriptos/format.h>
@@ -7,6 +6,8 @@
 #include <scriptos/gdt.h>
 #include <scriptos/idt.h>
 #include <scriptos/memory.h>
+#include <scriptos/paging.h>
+#include <scriptos/range.h>
 #include <scriptos/renderer.h>
 #include <scriptos/serial.h>
 #include <scriptos/types.h>
@@ -74,6 +75,7 @@ NORETURN static void error(cstr message)
 }
 
 static Renderer renderer;
+static paging::PageFrameAllocator allocator;
 
 static void write_char(int c)
 {
@@ -196,7 +198,8 @@ static void print_system_information()
 
     Print(write_char, "\r\n");
 
-    auto efi_system_table = efi_system_table_request.response->address;
+    auto efi_system_table = reinterpret_cast<EFI_SYSTEM_TABLE*>(efi_system_table_request
+                                                                    .response->address);
     Print(write_char, "efi system table: %016X\r\n", efi_system_table);
 }
 
@@ -231,28 +234,17 @@ extern "C" NORETURN void kmain()
     if (!efi_system_table_request.response)
         error("no efi system table response");
 
-    {
-        auto framebuffer = framebuffer_request.response->framebuffers[0];
-        renderer.Initialize({
-            framebuffer->address,
-            framebuffer->width,
-            framebuffer->height,
-        });
-        renderer.SetForeground(0xffffffff);
-        renderer.SetBackground(0xff121212);
-        renderer.Reset();
-        renderer.Clear();
-    }
+    auto hhdm_offset = hhdm_request.response->offset;
 
-    print_system_information();
+    paging::Initialize();
+
+    Print(serial::Write, "pml4 base: %016X\r\n", paging::PML4_Base);
 
     u8* bitmap_buffer = nullptr;
     usize max_length = 0;
-
     usize end_address = 0;
 
     Range memmap(memmap_request.response->entries, memmap_request.response->entry_count);
-
     for (auto entry : memmap)
     {
         if (entry->type != LIMINE_MEMMAP_USABLE && entry->type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE)
@@ -268,13 +260,38 @@ extern "C" NORETURN void kmain()
         max_length = entry->length;
     }
 
-    auto page_count = end_address / 0x1000;
+    {
+        auto page_count = end_address / PAGE_SIZE;
 
-    Bitmap bitmap(bitmap_buffer + hhdm_request.response->offset, page_count);
-    bitmap.Clear();
+        Bitmap bitmap(bitmap_buffer + hhdm_offset, page_count);
+        bitmap.Clear();
+        for (auto entry : memmap)
+            bitmap.Fill(entry->base / PAGE_SIZE, entry->length / PAGE_SIZE, entry->type != LIMINE_MEMMAP_USABLE);
+        bitmap.Fill(reinterpret_cast<uptr>(bitmap_buffer) / PAGE_SIZE, page_count / 8 + 1, true);
 
-    for (auto entry : memmap)
-        bitmap.Fill(entry->base, entry->length / 0x1000, entry->type == LIMINE_MEMMAP_USABLE);
+        allocator = { bitmap };
+
+        paging::MapPage(allocator, reinterpret_cast<void*>(hhdm_offset + reinterpret_cast<uptr>(paging::PML4_Base)), paging::PML4_Base, PAGE_WRITABLE);
+    }
+
+    {
+        auto framebuffer = framebuffer_request.response->framebuffers[0];
+        auto page_count = framebuffer->pitch * framebuffer->height / PAGE_SIZE + 1;
+
+        auto buffer_physical = allocator.AllocatePhysicalPages(page_count);
+        auto buffer_virtual = reinterpret_cast<void*>(reinterpret_cast<uptr>(buffer_physical) + hhdm_offset);
+        paging::MapPage(allocator, buffer_virtual, buffer_physical, PAGE_WRITABLE);
+        renderer.Initialize(framebuffer->address,
+                            buffer_virtual,
+                            framebuffer->width,
+                            framebuffer->height);
+        renderer.SetForeground(0xffffffff);
+        renderer.SetBackground(0xff121212);
+        renderer.Reset();
+        renderer.Clear();
+    }
+
+    print_system_information();
 
     halt();
 }

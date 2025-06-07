@@ -11,9 +11,13 @@ INTERRUPT void interrupt::PF_Handler(StackFrame* stack_frame, u64 error_code)
     auto shadow_stack = (error_code >> 6) & 0b1;
     auto software_guard_extension = (error_code >> 15) & 0b1;
 
-    Panic("Page Fault "
+    u64 address;
+    asm volatile("mov %%cr2, %0" : "=a"(address));
+
+    Panic("Page Fault %016X "
           "[ ... ][ %u ][ ... ][ %u ][ %u ][ %u ][ %u ][ %u ][ %u ][ %u ] "
           "(%02X:%016X, %02X:%016X)",
+          address,
           software_guard_extension,
           shadow_stack,
           protection_key,

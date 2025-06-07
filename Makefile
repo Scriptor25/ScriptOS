@@ -31,10 +31,10 @@ OS_NAME = scriptos
 ISO_DIRECTORY = $(BINARY_DIRECTORY)/iso
 ISO = $(BINARY_DIRECTORY)/$(OS_NAME).iso
 
-INCLUDE = -I include -I limine
+INCLUDE = -I include -I limine -I efi
 
 ASFLAGS = -g -O0
-CFLAGS = -DLIMINE_API_REVISION=3 -g -g3 -ggdb -O0 -ffreestanding -fno-stack-protector -fno-stack-check -fno-pic -mno-red-zone -m64 -march=x86-64 -mcmodel=kernel -Wall -Wextra -Werror
+CFLAGS = -DLIMINE_API_REVISION=3 -DEFI_PLATFORM=1 -g -g3 -ggdb -O0 -ffreestanding -fno-stack-protector -fno-stack-check -fno-pic -mno-red-zone -m64 -march=x86-64 -mcmodel=kernel -Wall -Wextra -Werror
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti -std=c++20
 LDFLAGS = -nostdlib -static
 
