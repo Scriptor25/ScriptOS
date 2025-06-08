@@ -235,14 +235,11 @@ extern "C" NORETURN void kmain()
     if (!mp_request.response)
         error("no mp response");
 
-    if (!efi_system_table_request.response)
-        error("no efi system table response");
-
     paging::Initialize(hhdm_request.response->offset);
 
     u8* bitmap_buffer = nullptr;
     usize max_length = 0;
-    usize end_address = 0x100000;
+    usize end_address = 0;
 
     Range memmap(memmap_request.response->entries, memmap_request.response->entry_count);
     for (auto entry : memmap)
@@ -268,7 +265,6 @@ extern "C" NORETURN void kmain()
         for (auto entry : memmap)
             bitmap.Fill(entry->base / PAGE_SIZE, entry->length / PAGE_SIZE, entry->type != LIMINE_MEMMAP_USABLE);
 
-        bitmap.Fill(0, 0x100, true);
         bitmap.Fill(reinterpret_cast<uptr>(bitmap_buffer) / PAGE_SIZE, page_count / 8 + 1, true);
 
         allocator = { bitmap };
@@ -297,6 +293,7 @@ extern "C" NORETURN void kmain()
 
     print_system_information();
 
+    if (efi_system_table_request.response)
     {
         auto physical_system_table = reinterpret_cast<void*>(efi_system_table_request
                                                                  .response->address);

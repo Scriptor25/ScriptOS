@@ -41,9 +41,9 @@ CFLAGS = $(INCLUDES) $(DEFINES) -g -g3 -ggdb -O0 -ffreestanding -fno-stack-prote
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti -std=c++20
 LDFLAGS = -nostdlib -static
 
-QEMUFLAGS = -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE.fd -drive if=pflash,format=raw,file=/usr/share/OVMF/OVMF_VARS.fd -cdrom $(ISO) -net none -serial stdio -smp 4
+QEMUFLAGS = -cdrom $(ISO) -net none -serial stdio -smp 4
 
-.PHONY: all clean build launch debug
+.PHONY: all clean build launch-boot debug-boot launch-efi debug-efi
 
 all: clean build launch
 
@@ -52,11 +52,17 @@ clean:
 
 build: $(ISO)
 
-launch: $(ISO)
-	sudo $(QEMU) $(QEMUFLAGS)
+launch-boot: $(ISO)
+	$(QEMU) $(QEMUFLAGS)
 
-debug: $(ISO)
-	sudo $(QEMU) $(QEMUFLAGS) -s -S -no-reboot
+debug-boot: $(ISO)
+	$(QEMU) $(QEMUFLAGS) -s -S -no-reboot
+
+launch-efi: $(ISO)
+	sudo $(QEMU) $(QEMUFLAGS) -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE.fd -drive if=pflash,format=raw,file=/usr/share/OVMF/OVMF_VARS.fd
+
+debug-efi: $(ISO)
+	sudo $(QEMU) $(QEMUFLAGS) -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE.fd -drive if=pflash,format=raw,file=/usr/share/OVMF/OVMF_VARS.fd -s -S -no-reboot
 
 $(BINARY_DIRECTORY)/%.d: $(SOURCE_DIRECTORY)/%
 	mkdir -p $(@D)
