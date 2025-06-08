@@ -22,7 +22,8 @@ LIMINE_BOOTX64_EFI = $(LIMINE_DIRECTORY)/BOOTX64.EFI
 LINKER_LD = $(SOURCE_DIRECTORY)/linker.ld
 
 KERNEL_SOURCES = $(call rwildcard,$(SOURCE_DIRECTORY),*.s) $(call rwildcard,$(SOURCE_DIRECTORY),*.c) $(call rwildcard,$(SOURCE_DIRECTORY),*.cpp)
-KERNEL_OBJECTS = $(CRT0) $(patsubst $(SOURCE_DIRECTORY)/%,$(BINARY_DIRECTORY)/%.o,$(KERNEL_SOURCES))
+KERNEL_OBJECTS = $(CRT0) $(KERNEL_SOURCES:$(SOURCE_DIRECTORY)/%=$(BINARY_DIRECTORY)/%.o)
+KERNEL_DEPENDECIES = $(KERNEL_OBJECTS:.o=.d)
 
 KERNEL_ELF = $(BINARY_DIRECTORY)/kernel.elf
 
@@ -31,10 +32,12 @@ OS_NAME = scriptos
 ISO_DIRECTORY = $(BINARY_DIRECTORY)/iso
 ISO = $(BINARY_DIRECTORY)/$(OS_NAME).iso
 
-INCLUDE = -I include -I limine -I efi
+INCLUDES = -Iinclude -Ilimine -Iefi
+DEFINES = -DLIMINE_API_REVISION=3 -DEFI_PLATFORM=1
 
 ASFLAGS = -g -O0
-CFLAGS = -DLIMINE_API_REVISION=3 -DEFI_PLATFORM=1 -g -g3 -ggdb -O0 -ffreestanding -fno-stack-protector -fno-stack-check -fno-pic -mno-red-zone -m64 -march=x86-64 -mcmodel=kernel -Wall -Wextra -Werror
+PPFLAGS = $(INCLUDES) $(DEFINES) -MM
+CFLAGS = $(INCLUDES) $(DEFINES) -g -g3 -ggdb -O0 -ffreestanding -fno-stack-protector -fno-stack-check -fno-pic -mno-red-zone -m64 -march=x86-64 -mcmodel=kernel -Wall -Wextra -Werror
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti -std=c++20
 LDFLAGS = -nostdlib -static
 
@@ -55,9 +58,15 @@ launch: $(ISO)
 debug: $(ISO)
 	sudo $(QEMU) $(QEMUFLAGS) -s -S -no-reboot
 
+$(BINARY_DIRECTORY)/%.d: $(SOURCE_DIRECTORY)/%
+	mkdir -p $(@D)
+	$(PP) $(PPFLAGS) -MT $(BINARY_DIRECTORY)/$*.o -MF $@ $<
+
+-include $(KERNEL_DEPENDECIES)
+
 $(BINARY_DIRECTORY)/%.s.pp: $(SOURCE_DIRECTORY)/%.s
 	mkdir -p $(@D)
-	$(PP) $(INCLUDE) -o $@ $<
+	$(PP) $(DEFINES) $(INCLUDES) -o $@ $<
 
 $(BINARY_DIRECTORY)/%.s.o: $(BINARY_DIRECTORY)/%.s.pp
 	mkdir -p $(@D)
@@ -65,19 +74,19 @@ $(BINARY_DIRECTORY)/%.s.o: $(BINARY_DIRECTORY)/%.s.pp
 
 $(BINARY_DIRECTORY)/%.c.o: $(SOURCE_DIRECTORY)/%.c
 	mkdir -p $(@D)
-	$(CC) $(INCLUDE) $(CFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(BINARY_DIRECTORY)/%.cpp.o: $(SOURCE_DIRECTORY)/%.cpp
 	mkdir -p $(@D)
-	$(CXXC) $(INCLUDE) $(CXXFLAGS) -o $@ -c $<
+	$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
 $(BINARY_DIRECTORY)/interrupt/%.c.o: $(SOURCE_DIRECTORY)/interrupt/%.c
 	mkdir -p $(@D)
-	$(CC) $(INCLUDE) $(CFLAGS) -mgeneral-regs-only -o $@ -c $<
+	$(CC) $(CFLAGS) -mgeneral-regs-only -o $@ -c $<
 
 $(BINARY_DIRECTORY)/interrupt/%.cpp.o: $(SOURCE_DIRECTORY)/interrupt/%.cpp
 	mkdir -p $(@D)
-	$(CXXC) $(INCLUDE) $(CXXFLAGS) -mgeneral-regs-only -o $@ -c $<
+	$(CXXC) $(CXXFLAGS) -mgeneral-regs-only -o $@ -c $<
 
 $(KERNEL_ELF): $(KERNEL_OBJECTS) $(LINKER_LD)
 	mkdir -p $(@D)
