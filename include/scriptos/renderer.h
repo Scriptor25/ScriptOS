@@ -11,7 +11,7 @@ struct Point
 class Renderer
 {
 public:
-    void Initialize(void* front_buffer, void* back_buffer, usize width, usize height);
+    void Initialize(void* front_buffer, void* back_buffer, usize width, usize height, usize pitch, usize bpp);
 
     void SetForeground(u32 color);
     void SetBackground(u32 color);
@@ -33,9 +33,14 @@ public:
     void NewLine();
 
 private:
-    void *m_FrontBuffer, *m_BackBuffer;
+    u8 *m_FrontBuffer, *m_BackBuffer;
 
-    usize m_Width, m_Height, m_Area;
+    usize m_Width, m_Height, m_Pitch, m_BPP;
+
+    usize m_Area, m_Size;
+    usize m_Bitmask;
+
+    uptr m_Stride;
 
     bool m_Dirty;
 

@@ -43,7 +43,7 @@ LDFLAGS = -nostdlib -static
 
 QEMUFLAGS = -cdrom $(ISO) -net none -serial stdio -smp 4
 
-.PHONY: all clean build launch-boot debug-boot launch-efi debug-efi
+.PHONY: all clean build launch-bios debug-bios launch-efi debug-efi
 
 all: clean build launch
 
@@ -52,10 +52,10 @@ clean:
 
 build: $(ISO)
 
-launch-boot: $(ISO)
+launch-bios: $(ISO)
 	$(QEMU) $(QEMUFLAGS)
 
-debug-boot: $(ISO)
+debug-bios: $(ISO)
 	$(QEMU) $(QEMUFLAGS) -s -S -no-reboot
 
 launch-efi: $(ISO)

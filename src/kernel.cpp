@@ -284,7 +284,9 @@ extern "C" NORETURN void kmain()
         renderer.Initialize(framebuffer->address,
                             buffer_virtual,
                             framebuffer->width,
-                            framebuffer->height);
+                            framebuffer->height,
+                            framebuffer->pitch,
+                            framebuffer->bpp);
         renderer.SetForeground(0xffffffff);
         renderer.SetBackground(0xff121212);
         renderer.Reset();

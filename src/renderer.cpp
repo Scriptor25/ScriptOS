@@ -2,13 +2,23 @@
 #include <scriptos/memory.h>
 #include <scriptos/renderer.h>
 
-void Renderer::Initialize(void* front_buffer, void* back_buffer, usize width, usize height)
+void Renderer::Initialize(void* front_buffer, void* back_buffer, usize width, usize height, usize pitch, usize bpp)
 {
-    m_FrontBuffer = front_buffer;
-    m_BackBuffer = back_buffer;
+    m_FrontBuffer = reinterpret_cast<u8*>(front_buffer);
+    m_BackBuffer = reinterpret_cast<u8*>(back_buffer);
+
     m_Width = width;
     m_Height = height;
+    m_Pitch = pitch;
+    m_BPP = bpp;
+
     m_Area = width * height;
+    m_Size = pitch * height;
+
+    m_Bitmask = (1ul << bpp) - 1;
+
+    m_Stride = pitch / width;
+
     m_Dirty = false;
 }
 
@@ -24,8 +34,12 @@ void Renderer::SetBackground(u32 color)
 
 void Renderer::Clear()
 {
-    for (usize i = 0; i < m_Area; ++i)
-        reinterpret_cast<u32*>(m_BackBuffer)[i] = m_Background;
+    auto color = m_Background & m_Bitmask;
+
+    memory::Fill(m_BackBuffer, 0, m_Size);
+
+    for (usize i = 0; i < m_Size; i += m_Stride)
+        *reinterpret_cast<u32*>(m_BackBuffer + i) |= color;
 
     m_Dirty = true;
 }
@@ -33,22 +47,26 @@ void Renderer::Clear()
 void Renderer::Shift(usize up)
 {
     auto area_height = m_Height >= up ? m_Height - up : 0;
+    auto offset = up * m_Pitch;
+    auto area_size = area_height * m_Pitch;
 
-    auto dst = reinterpret_cast<u32*>(m_BackBuffer);
-    auto end = reinterpret_cast<u32*>(m_BackBuffer) + (area_height * m_Width);
-    auto src = reinterpret_cast<const u32*>(m_BackBuffer) + (up * m_Width);
+    memory::Copy(m_BackBuffer, m_BackBuffer + offset, area_size);
 
-    memory::Copy(dst, src, area_height * m_Width * sizeof(u32));
+    auto end = m_BackBuffer + area_size;
 
-    for (usize i = 0; i < up * m_Width; ++i)
-        end[i] = m_Background;
+    auto color = m_Background & m_Bitmask;
+
+    memory::Fill(end, 0, offset);
+
+    for (usize i = 0; i < offset; i += m_Stride)
+        *reinterpret_cast<u32*>(end + i) |= color;
 
     m_Dirty = true;
 }
 
 void Renderer::SwapBuffers()
 {
-    memory::Copy(m_FrontBuffer, m_BackBuffer, m_Area * sizeof(u32));
+    memory::Copy(m_FrontBuffer, m_BackBuffer, m_Size);
 }
 
 usize Renderer::CursorX() const
@@ -63,8 +81,10 @@ usize Renderer::CursorY() const
 
 void Renderer::DrawPixel(usize x, usize y, u32 color)
 {
-    auto base = reinterpret_cast<u32*>(m_BackBuffer);
-    base[x + y * m_Width] = color;
+    auto dst = reinterpret_cast<u32*>(m_BackBuffer + x * m_Stride + y * m_Pitch);
+
+    *dst &= ~m_Bitmask;
+    *dst |= (color & m_Bitmask);
 
     m_Dirty = true;
 }
@@ -73,13 +93,16 @@ void Renderer::DrawChar(int c, usize x, usize y)
 {
     auto bitmap = font8x8::GetChar(c);
 
-    auto base = reinterpret_cast<u32*>(m_BackBuffer);
-
     for (usize j = 0; j < 8; ++j)
     {
-        auto row = base + (y + j) * m_Width;
+        auto row = m_BackBuffer + (y + j) * m_Pitch;
         for (usize i = 0; i < 8; ++i)
-            row[x + i] = font8x8::GetBit(bitmap, i, j) ? m_Foreground : m_Background;
+        {
+            auto dst = reinterpret_cast<u32*>(row + (x + i) * m_Stride);
+
+            *dst &= ~m_Bitmask;
+            *dst |= (font8x8::GetBit(bitmap, i, j) ? m_Foreground : m_Background) & m_Bitmask;
+        }
     }
 
     m_Dirty = true;
