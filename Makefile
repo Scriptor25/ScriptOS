@@ -41,7 +41,7 @@ CFLAGS = $(INCLUDES) $(DEFINES) -g -g3 -ggdb -O0 -ffreestanding -fno-stack-prote
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti -std=c++20
 LDFLAGS = -nostdlib -static
 
-QEMUFLAGS = -cdrom $(ISO) -net none -serial stdio -smp 4
+QEMUFLAGS = -cdrom $(ISO) -net none -serial stdio -smp 4 -m 256M
 
 .PHONY: all clean build launch-bios debug-bios launch-efi debug-efi
 
@@ -66,45 +66,55 @@ debug-efi: $(ISO)
 
 $(BINARY_DIRECTORY)/%.d: $(SOURCE_DIRECTORY)/%
 	mkdir -p $(@D)
+	-rm $@
 	$(PP) $(PPFLAGS) -MT $(BINARY_DIRECTORY)/$*.o -MF $@ $<
 
 -include $(KERNEL_DEPENDECIES)
 
 $(BINARY_DIRECTORY)/%.s.pp: $(SOURCE_DIRECTORY)/%.s
 	mkdir -p $(@D)
+	-rm $@
 	$(PP) $(DEFINES) $(INCLUDES) -o $@ $<
 
 $(BINARY_DIRECTORY)/%.s.o: $(BINARY_DIRECTORY)/%.s.pp
 	mkdir -p $(@D)
+	-rm $@
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(BINARY_DIRECTORY)/%.c.o: $(SOURCE_DIRECTORY)/%.c
 	mkdir -p $(@D)
+	-rm $@
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(BINARY_DIRECTORY)/%.cpp.o: $(SOURCE_DIRECTORY)/%.cpp
 	mkdir -p $(@D)
+	-rm $@
 	$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
 $(BINARY_DIRECTORY)/interrupt/%.c.o: $(SOURCE_DIRECTORY)/interrupt/%.c
 	mkdir -p $(@D)
+	-rm $@
 	$(CC) $(CFLAGS) -mgeneral-regs-only -o $@ -c $<
 
 $(BINARY_DIRECTORY)/interrupt/%.cpp.o: $(SOURCE_DIRECTORY)/interrupt/%.cpp
 	mkdir -p $(@D)
+	-rm $@
 	$(CXXC) $(CXXFLAGS) -mgeneral-regs-only -o $@ -c $<
 
 $(KERNEL_ELF): $(KERNEL_OBJECTS) $(LINKER_LD)
 	mkdir -p $(@D)
+	-rm $@
 	$(LD) $(LDFLAGS) -o $(KERNEL_ELF) $(KERNEL_OBJECTS) -T $(LINKER_LD)
 
-$(ISO_DIRECTORY): $(KERNEL_ELF) $(LIMINE_CONFIG) $(LIMINE_BIOS_UEFI) $(LIMINE_BOOTX64_EFI)
+
+$(ISO): $(KERNEL_ELF) $(LIMINE_CONFIG) $(LIMINE_BIOS_UEFI) $(LIMINE_BOOTX64_EFI)
+	-rm -rf $(ISO_DIRECTORY)
 	mkdir -p $(ISO_DIRECTORY)/boot
 	cp $(KERNEL_ELF) $(ISO_DIRECTORY)/boot/kernel.elf
 	mkdir -p $(ISO_DIRECTORY)/boot/limine
 	cp $(LIMINE_CONFIG) $(LIMINE_BIOS_UEFI) $(ISO_DIRECTORY)/boot/limine
 	mkdir -p $(ISO_DIRECTORY)/EFI/BOOT
 	cp $(LIMINE_BOOTX64_EFI) $(ISO_DIRECTORY)/EFI/BOOT/BOOTX64.EFI
-
-$(ISO): $(ISO_DIRECTORY)
+	mkdir -p $(@D)
+	-rm $@
 	xorriso -as mkisofs -R -r -J -b boot/limine/limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table -hfsplus -apm-block-size 2048 --efi-boot boot/limine/limine-uefi-cd.bin -efi-boot-part --efi-boot-image --protective-msdos-label $(ISO_DIRECTORY) -o $(ISO)

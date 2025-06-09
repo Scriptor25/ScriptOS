@@ -10,11 +10,6 @@ bool paging::IsPhysical(void* maybe_physical_address)
     return !((reinterpret_cast<uptr>(maybe_physical_address) >> 48) & 0xffff);
 }
 
-void* paging::PhysicalToVirtual(void* physical_address)
-{
-    return reinterpret_cast<void*>(reinterpret_cast<uptr>(physical_address) + HHDM_Offset);
-}
-
 void paging::Initialize(uptr hhdm_offset)
 {
     HHDM_Offset = hhdm_offset;
@@ -24,7 +19,11 @@ void paging::Initialize(uptr hhdm_offset)
     PML4_Base = reinterpret_cast<PageTable>(reg & ~((1lu << 12) - 1));
 }
 
-void paging::WalkTable(out_stream stream, PageTable table, uptr virtual_base, u8 level)
+void paging::WalkTable(
+    out_stream stream,
+    PageTable table,
+    uptr virtual_base,
+    u8 level)
 {
     for (unsigned i = 0; i < 512; ++i)
     {
@@ -43,7 +42,7 @@ void paging::WalkTable(out_stream stream, PageTable table, uptr virtual_base, u8
 
         PageTable next_table;
         if (IsPhysical(physical_address))
-            next_table = reinterpret_cast<PageTable>(PhysicalToVirtual(physical_address));
+            next_table = PhysicalToVirtual<PageTable>(physical_address);
         else
             next_table = reinterpret_cast<PageTable>(physical_address);
 
@@ -51,7 +50,16 @@ void paging::WalkTable(out_stream stream, PageTable table, uptr virtual_base, u8
     }
 }
 
-bool paging::MapPage(PageFrameAllocator& allocator, void* virtual_address, void* physical_address, bool present, bool read_write, bool user_supervisor, bool write_through, bool cache_disable, bool accessed)
+bool paging::MapPage(
+    PageFrameAllocator& allocator,
+    void* virtual_address,
+    void* physical_address,
+    bool present,
+    bool read_write,
+    bool user_supervisor,
+    bool write_through,
+    bool cache_disable,
+    bool accessed)
 {
     // lvl4 = [47:39]
     usize lvl4 = (reinterpret_cast<uptr>(virtual_address) >> 39) & 0x1FF;
@@ -76,7 +84,7 @@ bool paging::MapPage(PageFrameAllocator& allocator, void* virtual_address, void*
         return false;
 
     if (IsPhysical(pt))
-        pt = reinterpret_cast<PageTable>(PhysicalToVirtual(pt));
+        pt = PhysicalToVirtual<PageTable>(pt);
 
     pt[lvl1].Value = 0;
 
@@ -93,7 +101,17 @@ bool paging::MapPage(PageFrameAllocator& allocator, void* virtual_address, void*
     return true;
 }
 
-bool paging::MapPages(PageFrameAllocator& allocator, void* virtual_address, void* physical_address, usize count, bool present, bool read_write, bool user_supervisor, bool write_through, bool cache_disable, bool accessed)
+bool paging::MapPages(
+    PageFrameAllocator& allocator,
+    void* virtual_address,
+    void* physical_address,
+    usize count,
+    bool present,
+    bool read_write,
+    bool user_supervisor,
+    bool write_through,
+    bool cache_disable,
+    bool accessed)
 {
     for (usize i = 0; i < count; ++i)
     {
@@ -104,10 +122,14 @@ bool paging::MapPages(PageFrameAllocator& allocator, void* virtual_address, void
     return true;
 }
 
-paging::PageTable paging::GetOrCreateNextLevel(PageFrameAllocator& allocator, PageTable table, usize index, bool create)
+paging::PageTable paging::GetOrCreateNextLevel(
+    PageFrameAllocator& allocator,
+    PageTable table,
+    usize index,
+    bool create)
 {
     if (IsPhysical(table))
-        table = reinterpret_cast<PageTable>(PhysicalToVirtual(table));
+        table = PhysicalToVirtual<PageTable>(table);
 
     if (table[index].Present)
         return reinterpret_cast<PageTable>(table[index].Address << 12);
@@ -119,7 +141,7 @@ paging::PageTable paging::GetOrCreateNextLevel(PageFrameAllocator& allocator, Pa
     if (!physical_address)
         return nullptr;
 
-    auto next_table = reinterpret_cast<PageTable>(PhysicalToVirtual(physical_address));
+    auto next_table = PhysicalToVirtual<PageTable>(physical_address);
 
     for (unsigned i = 0; i < 512; ++i)
         next_table[i].Value = 0;

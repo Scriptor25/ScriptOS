@@ -77,26 +77,29 @@ NORETURN static void halt()
 
 NORETURN static void error(cstr message)
 {
-    Print(serial::Write, "%s\r\n", message);
+    Print(serial::WriteDefault, "%s\r\n", message);
     asm volatile("int $0x69");
     halt();
 }
 
-static Renderer renderer;
-static paging::PageFrameAllocator allocator;
+static memory::UniquePtr<paging::PageFrameAllocator> allocator;
+static memory::UniquePtr<Renderer> renderer;
+
+static u8 __allocator_space[sizeof(paging::PageFrameAllocator)];
 
 static void write_char(int c)
 {
-    serial::Write(c);
-    renderer.NextChar(c);
+    serial::WriteDefault(c);
+    renderer->NextChar(c);
 }
 
 static void print_system_information()
 {
-    Print(write_char,
-          "bootloader: %s, %s\r\n",
-          bootloader_info_request.response->name,
-          bootloader_info_request.response->version);
+    Print(
+        write_char,
+        "bootloader: %s, %s\r\n",
+        bootloader_info_request.response->name,
+        bootloader_info_request.response->version);
 
     cstr firmware_type_string;
     switch (firmware_type_request.response->firmware_type)
@@ -125,13 +128,15 @@ static void print_system_information()
     Print(write_char, " address          | bpp | width | height | pitch | model \r\n");
     Print(write_char, "------------------+-----+-------+--------+-------+-------\r\n");
 
-    Range framebuffers(framebuffer_request.response->framebuffers,
-                       framebuffer_request.response->framebuffer_count);
+    Range framebuffers(
+        framebuffer_request.response->framebuffers,
+        framebuffer_request.response->framebuffer_count);
     for (auto framebuffer : framebuffers)
     {
-        Print(write_char,
-              " %016X |     |       |        |       |       \r\n",
-              framebuffer->address);
+        Print(
+            write_char,
+            " %016X |     |       |        |       |       \r\n",
+            framebuffer->address);
 
         Range modes(framebuffer->modes, framebuffer->mode_count);
         for (auto mode : modes)
@@ -209,7 +214,8 @@ static void print_system_information()
 
 extern "C" NORETURN void kmain()
 {
-    serial::Initialize();
+    serial::InitializeAll();
+
     fpu::Initialize();
     gdt::Initialize();
     idt::Initialize();
@@ -260,60 +266,63 @@ extern "C" NORETURN void kmain()
     {
         auto page_count = end_address / PAGE_SIZE;
 
-        Bitmap bitmap(reinterpret_cast<u8*>(paging::PhysicalToVirtual(bitmap_buffer)), page_count);
+        Bitmap bitmap(paging::PhysicalToVirtual<u8*>(bitmap_buffer), page_count);
         bitmap.Clear();
         for (auto entry : memmap)
             bitmap.Fill(entry->base / PAGE_SIZE, entry->length / PAGE_SIZE, entry->type != LIMINE_MEMMAP_USABLE);
 
         bitmap.Fill(reinterpret_cast<uptr>(bitmap_buffer) / PAGE_SIZE, page_count / 8 + 1, true);
 
-        allocator = { bitmap };
+        allocator = memory::UniquePtr<paging::PageFrameAllocator>(reinterpret_cast<paging::PageFrameAllocator*>(__allocator_space));
+        *allocator = { bitmap };
     }
+
+    memory::InitializeHeap(*allocator, 0x400000);
 
     {
         auto framebuffer = framebuffer_request.response->framebuffers[0];
+        auto back_buffer = memory::Allocate(framebuffer->pitch * framebuffer->height);
 
-        auto buffer_size = framebuffer->pitch * framebuffer->height;
-        auto page_count = (buffer_size / PAGE_SIZE) + 1;
-
-        auto buffer_physical = allocator.AllocatePhysicalPages(page_count);
-        auto buffer_virtual = paging::PhysicalToVirtual(buffer_physical);
-
-        paging::MapPages(allocator, buffer_virtual, buffer_physical, page_count, true, true);
-
-        renderer.Initialize(framebuffer->address,
-                            buffer_virtual,
-                            framebuffer->width,
-                            framebuffer->height,
-                            framebuffer->pitch,
-                            framebuffer->bpp);
-        renderer.SetForeground(0xffffffff);
-        renderer.SetBackground(0xff121212);
-        renderer.Reset();
-        renderer.Clear();
+        renderer = memory::MakeUnique<Renderer>(
+            framebuffer->address,
+            back_buffer,
+            framebuffer->width,
+            framebuffer->height,
+            framebuffer->pitch,
+            framebuffer->bpp,
+            framebuffer->red_mask_shift,
+            framebuffer->red_mask_size,
+            framebuffer->green_mask_shift,
+            framebuffer->green_mask_size,
+            framebuffer->blue_mask_shift,
+            framebuffer->blue_mask_size);
+        renderer->SetForeground(0xffffff);
+        renderer->SetBackground(0x121212);
+        renderer->Reset();
+        renderer->Clear();
     }
 
     print_system_information();
 
     if (efi_system_table_request.response)
     {
-        auto physical_system_table = reinterpret_cast<void*>(efi_system_table_request
-                                                                 .response->address);
-        auto virtual_system_table = reinterpret_cast<EFI_SYSTEM_TABLE*>(paging::PhysicalToVirtual(physical_system_table));
+        auto physical_system_table = reinterpret_cast<void*>(
+            efi_system_table_request.response->address);
+        auto virtual_system_table = paging::PhysicalToVirtual<EFI_SYSTEM_TABLE*>(physical_system_table);
 
-        paging::MapPage(allocator, virtual_system_table, physical_system_table);
+        paging::MapPage(*allocator, virtual_system_table, physical_system_table);
 
         Print(write_char, "efi system table: %016X\r\n", virtual_system_table);
 
         auto physical_firmware_vendor = virtual_system_table->FirmwareVendor;
-        auto virtual_firmware_vendor = reinterpret_cast<CHAR16*>(paging::PhysicalToVirtual(physical_firmware_vendor));
+        auto virtual_firmware_vendor = paging::PhysicalToVirtual<CHAR16*>(physical_firmware_vendor);
 
-        paging::MapPage(allocator, virtual_firmware_vendor, physical_firmware_vendor);
+        paging::MapPage(*allocator, virtual_firmware_vendor, physical_firmware_vendor);
 
         Print(write_char, "firmware vendor: %h\r\n", virtual_firmware_vendor);
     }
 
-    renderer.SwapBuffers();
+    renderer->SwapBuffers();
 
     halt();
 }

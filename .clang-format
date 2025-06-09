@@ -1,6 +1,6 @@
 AccessModifierOffset: -4
 
-AlignAfterOpenBracket: Align
+AlignAfterOpenBracket: AlwaysBreak
 AlignArrayOfStructures: Right
 AlignConsecutiveAssignments: None
 AlignConsecutiveBitFields: Consecutive
@@ -33,7 +33,7 @@ AllowShortLoopsOnASingleLine: false
 AlwaysBreakBeforeMultilineStrings: false
 
 BinPackArguments: false
-BinPackParameters: false
+BinPackParameters: AlwaysOnePerLine
 
 BitFieldColonSpacing: Both
 
@@ -128,7 +128,7 @@ PenaltyBreakAssignment: 1000
 PenaltyBreakBeforeFirstCallParameter: 0
 PenaltyBreakComment: 0
 PenaltyBreakFirstLessLess: 1000
-PenaltyBreakOpenParenthesis: 1000
+PenaltyBreakOpenParenthesis: 0
 PenaltyBreakScopeResolution: 1000
 PenaltyBreakString: 0
 PenaltyBreakTemplateDeclaration: 0

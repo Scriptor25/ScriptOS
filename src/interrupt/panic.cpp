@@ -3,12 +3,14 @@
 #include <scriptos/serial.h>
 #include <scriptos/types.h>
 
-void interrupt::Panic(cstr format, ...)
+void interrupt::Panic(
+    cstr format,
+    ...)
 {
     va_list ap;
     va_start(ap, format);
-    PrintV(serial::Write, format, ap);
-    Print(serial::Write, "\r\n");
+    PrintV(serial::WriteDefault, format, ap);
+    Print(serial::WriteDefault, "\r\n");
     va_end(ap);
 
     for (;;)
