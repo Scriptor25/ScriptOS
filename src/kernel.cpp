@@ -243,27 +243,27 @@ extern "C" NORETURN void kmain()
 
     paging::Initialize(hhdm_request.response->offset);
 
-    u8* bitmap_buffer = nullptr;
-    usize max_length = 0;
-    usize end_address = 0;
-
-    Range memmap(memmap_request.response->entries, memmap_request.response->entry_count);
-    for (auto entry : memmap)
     {
-        if (entry->type != LIMINE_MEMMAP_USABLE && entry->type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE)
-            continue;
+        u8* bitmap_buffer = nullptr;
+        usize max_length = 0;
+        usize end_address = 0;
 
-        if (end_address < (entry->base + entry->length))
-            end_address = entry->base + entry->length;
+        Range memmap(memmap_request.response->entries, memmap_request.response->entry_count);
+        for (auto entry : memmap)
+        {
+            if (entry->type != LIMINE_MEMMAP_USABLE && entry->type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE)
+                continue;
 
-        if (entry->length < max_length)
-            continue;
+            if (end_address < (entry->base + entry->length))
+                end_address = entry->base + entry->length;
 
-        bitmap_buffer = reinterpret_cast<u8*>(entry->base);
-        max_length = entry->length;
-    }
+            if (entry->length < max_length)
+                continue;
 
-    {
+            bitmap_buffer = reinterpret_cast<u8*>(entry->base);
+            max_length = entry->length;
+        }
+
         auto page_count = end_address / PAGE_SIZE;
 
         Bitmap bitmap(paging::PhysicalToVirtual<u8*>(bitmap_buffer), page_count);

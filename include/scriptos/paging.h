@@ -75,7 +75,7 @@ namespace paging
         typename S = void*>
     T VirtualToPhysical(S virtual_address)
     {
-        return reinterpret_cast<T>(reinterpret_cast<uptr>(virtual_address) - HHDM_Offset);
+        return reinterpret_cast<T>(GetMapping(virtual_address));
     }
 
     void Initialize(uptr hhdm_offset);
@@ -108,10 +108,12 @@ namespace paging
         bool cache_disable = false,
         bool accessed = false);
     PageTable GetOrCreateNextLevel(
-        PageFrameAllocator& allocator,
+        PageFrameAllocator* allocator,
         PageTable table,
         usize index,
-        bool create = true);
+        bool create);
+
+    void* GetMapping(void* virtual_address);
 
     void FlushPage(void* virtual_address);
 }

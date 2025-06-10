@@ -69,17 +69,16 @@ bool paging::MapPage(
     usize lvl2 = (reinterpret_cast<uptr>(virtual_address) >> 21) & 0x1FF;
     // lvl1 = [20:12]
     usize lvl1 = (reinterpret_cast<uptr>(virtual_address) >> 12) & 0x1FF;
-    // lvl0 = [11:00] --> not needed
 
-    auto pdpt = GetOrCreateNextLevel(allocator, PML4_Base, lvl4);
+    auto pdpt = GetOrCreateNextLevel(&allocator, PML4_Base, lvl4, true);
     if (!pdpt)
         return false;
 
-    auto pd = GetOrCreateNextLevel(allocator, pdpt, lvl3);
+    auto pd = GetOrCreateNextLevel(&allocator, pdpt, lvl3, true);
     if (!pd)
         return false;
 
-    auto pt = GetOrCreateNextLevel(allocator, pd, lvl2);
+    auto pt = GetOrCreateNextLevel(&allocator, pd, lvl2, true);
     if (!pt)
         return false;
 
@@ -123,7 +122,7 @@ bool paging::MapPages(
 }
 
 paging::PageTable paging::GetOrCreateNextLevel(
-    PageFrameAllocator& allocator,
+    PageFrameAllocator* allocator,
     PageTable table,
     usize index,
     bool create)
@@ -137,7 +136,7 @@ paging::PageTable paging::GetOrCreateNextLevel(
     if (!create)
         return nullptr;
 
-    auto physical_address = allocator.AllocatePhysicalPage();
+    auto physical_address = allocator->AllocatePhysicalPage();
     if (!physical_address)
         return nullptr;
 
@@ -153,6 +152,38 @@ paging::PageTable paging::GetOrCreateNextLevel(
     table[index].Address = reinterpret_cast<uptr>(physical_address) >> 12;
 
     return next_table;
+}
+
+void* paging::GetMapping(void* virtual_address)
+{
+    // lvl4 = [47:39]
+    usize lvl4 = (reinterpret_cast<uptr>(virtual_address) >> 39) & 0x1FF;
+    // lvl3 = [38:30]
+    usize lvl3 = (reinterpret_cast<uptr>(virtual_address) >> 30) & 0x1FF;
+    // lvl2 = [29:21]
+    usize lvl2 = (reinterpret_cast<uptr>(virtual_address) >> 21) & 0x1FF;
+    // lvl1 = [20:12]
+    usize lvl1 = (reinterpret_cast<uptr>(virtual_address) >> 12) & 0x1FF;
+
+    auto pdpt = GetOrCreateNextLevel(nullptr, PML4_Base, lvl4, false);
+    if (!pdpt)
+        return nullptr;
+
+    auto pd = GetOrCreateNextLevel(nullptr, pdpt, lvl3, false);
+    if (!pd)
+        return nullptr;
+
+    auto pt = GetOrCreateNextLevel(nullptr, pd, lvl2, false);
+    if (!pt)
+        return nullptr;
+
+    if (IsPhysical(pt))
+        pt = PhysicalToVirtual<PageTable>(pt);
+
+    if (!pt[lvl1].Present)
+        return nullptr;
+
+    return reinterpret_cast<void*>(pt[lvl1].Address << 12);
 }
 
 void paging::FlushPage(void* virtual_address)
