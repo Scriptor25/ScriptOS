@@ -4,18 +4,36 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Launch",
+            "label": "Launch EFI",
             "type": "shell",
-            "command": "make launch",
+            "command": "make launch-efi",
             "problemMatcher": [],
             "group": {
                 "kind": "build"
             }
         },
         {
-            "label": "Debug",
+            "label": "Debug EFI",
             "type": "shell",
-            "command": "make debug",
+            "command": "make debug-efi",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "label": "Launch BIOS",
+            "type": "shell",
+            "command": "make launch-bios",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "label": "Debug BIOS",
+            "type": "shell",
+            "command": "make debug-bios",
             "problemMatcher": [],
             "group": {
                 "kind": "build"
@@ -40,18 +58,36 @@
             }
         },
         {
-            "label": "Clean Launch",
+            "label": "Clean Launch EFI",
             "type": "shell",
-            "command": "make clean launch",
+            "command": "make clean launch-efi",
             "problemMatcher": [],
             "group": {
                 "kind": "build"
             }
         },
         {
-            "label": "Clean Debug",
+            "label": "Clean Debug EFI",
             "type": "shell",
-            "command": "make clean debug",
+            "command": "make clean debug-efi",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "label": "Clean Launch BIOS",
+            "type": "shell",
+            "command": "make clean launch-bios",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "label": "Clean Debug BIOS",
+            "type": "shell",
+            "command": "make clean debug-bios",
             "problemMatcher": [],
             "group": {
                 "kind": "build"
