@@ -24,6 +24,22 @@ namespace memory
     void Free(void* block);
 
     template<typename T>
+    T Move(T&& value)
+    {
+        return value;
+    }
+
+    template<typename T>
+    void Swap(
+        T& a,
+        T& b)
+    {
+        T c = a;
+        a = Move(b);
+        b = Move(c);
+    }
+
+    template<typename T>
     class UniquePtr
     {
     public:
@@ -46,8 +62,7 @@ namespace memory
 
         UniquePtr& operator=(UniquePtr&& other) noexcept
         {
-            m_Ptr = other.m_Ptr;
-            other.m_Ptr = nullptr;
+            Swap(m_Ptr, other.m_Ptr);
             return *this;
         }
 
@@ -71,7 +86,7 @@ namespace memory
         typename... Args>
     UniquePtr<T> MakeUnique(Args... args)
     {
-        auto ptr = reinterpret_cast<T*>(Allocate(sizeof(T)));
+        T* ptr = reinterpret_cast<T*>(Allocate(sizeof(T)));
         *ptr = T(args...);
         return UniquePtr(ptr);
     }
