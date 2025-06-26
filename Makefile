@@ -41,7 +41,7 @@ CFLAGS = $(INCLUDES) $(DEFINES) -g -g3 -ggdb -O0 -ffreestanding -fno-stack-prote
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti -std=c++20
 LDFLAGS = -nostdlib -static
 
-QEMUFLAGS = -cdrom $(ISO) -net none -serial stdio -smp 4 -m 256M
+QEMUFLAGS = -cdrom $(ISO) -net none -serial stdio -smp 4 -m 256M -machine q35
 
 .PHONY: all clean build launch-bios debug-bios launch-efi debug-efi
 

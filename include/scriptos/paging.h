@@ -16,14 +16,14 @@ namespace paging
     public:
         PageFrameAllocator(const Bitmap& bitmap);
 
-        void LockPage(void* address);
-        void FreePage(void* address);
+        void LockPage(const void* address);
+        void FreePage(const void* address);
 
         void LockPages(
-            void* address,
+            const void* address,
             usize count);
         void FreePages(
-            void* address,
+            const void* address,
             usize count);
 
         void* AllocatePhysicalPage();
@@ -32,6 +32,8 @@ namespace paging
     private:
         Bitmap m_Bitmap;
     };
+
+    extern PageFrameAllocator* KernelAllocator;
 
     union PageTableEntry
     {
@@ -60,7 +62,7 @@ namespace paging
     extern uptr HHDM_Offset;
     extern PageTable PML4_Base;
 
-    bool IsPhysical(void* maybe_physical_address);
+    bool IsPhysical(const void* maybe_physical_address);
 
     template<
         typename T = void*,
@@ -87,19 +89,18 @@ namespace paging
         u8 level = 4);
 
     bool MapPage(
-        PageFrameAllocator& allocator,
-        void* virtual_address,
-        void* physical_address,
+        const void* virtual_address,
+        const void* physical_address,
         bool present = true,
         bool read_write = false,
         bool user_supervisor = false,
         bool write_through = false,
         bool cache_disable = false,
         bool accessed = false);
+
     bool MapPages(
-        PageFrameAllocator& allocator,
-        void* virtual_address,
-        void* physical_address,
+        const void* virtual_address,
+        const void* physical_address,
         usize count,
         bool present = true,
         bool read_write = false,
@@ -107,13 +108,13 @@ namespace paging
         bool write_through = false,
         bool cache_disable = false,
         bool accessed = false);
+
     PageTable GetOrCreateNextLevel(
-        PageFrameAllocator* allocator,
         PageTable table,
         usize index,
         bool create);
 
-    void* GetMapping(void* virtual_address);
+    void* GetMapping(const void* virtual_address);
 
-    void FlushPage(void* virtual_address);
+    void FlushPage(const void* virtual_address);
 }

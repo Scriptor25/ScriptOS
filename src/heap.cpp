@@ -9,7 +9,6 @@ struct HeapHeader
     HeapHeader* right;
 } __attribute__((packed));
 
-static paging::PageFrameAllocator* __heap_allocator = nullptr;
 static HeapHeader* __heap_begin = nullptr;
 static usize __heap_size = 0;
 
@@ -47,12 +46,11 @@ static void __extend_heap()
 {
     auto page_count = __heap_size / PAGE_SIZE + 1;
 
-    auto physical_address = __heap_allocator->AllocatePhysicalPages(page_count);
-    auto virtual_address = paging::PhysicalToVirtual<HeapHeader*>(physical_address);
+    auto address = reinterpret_cast<HeapHeader*>(paging::KernelAllocator->AllocatePhysicalPages(page_count));
 
-    paging::MapPages(*__heap_allocator, virtual_address, physical_address, page_count, true, true);
+    paging::MapPages(address, address, page_count, true, true);
 
-    auto heap_extension = virtual_address;
+    auto heap_extension = address;
 
     auto end = __heap_end();
     end->right = heap_extension;
@@ -67,20 +65,15 @@ static void __extend_heap()
     __merge(end, heap_extension);
 }
 
-void memory::InitializeHeap(
-    paging::PageFrameAllocator& allocator,
-    usize size)
+void memory::InitializeHeap(usize size)
 {
-    __heap_allocator = &allocator;
-
     auto page_count = size / PAGE_SIZE + 1;
 
-    auto physical_address = __heap_allocator->AllocatePhysicalPages(page_count);
-    auto virtual_address = paging::PhysicalToVirtual<HeapHeader*>(physical_address);
+    auto address = reinterpret_cast<HeapHeader*>(paging::KernelAllocator->AllocatePhysicalPages(page_count));
 
-    paging::MapPages(*__heap_allocator, virtual_address, physical_address, page_count, true, true);
+    paging::MapPages(address, address, page_count, true, true);
 
-    __heap_begin = virtual_address;
+    __heap_begin = address;
     __heap_size = size;
 
     __heap_begin->free = true;

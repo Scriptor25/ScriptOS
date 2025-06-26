@@ -2,18 +2,19 @@
 #include <scriptos/memory.h>
 #include <scriptos/renderer.h>
 
-Renderer::Renderer(void* front_buffer,
-                   void* back_buffer,
-                   usize width,
-                   usize height,
-                   usize pitch,
-                   u16 bpp,
-                   u8 red_shift,
-                   u8 red_size,
-                   u8 green_shift,
-                   u8 green_size,
-                   u8 blue_shift,
-                   u8 blue_size)
+Renderer::Renderer(
+    void* front_buffer,
+    void* back_buffer,
+    usize width,
+    usize height,
+    usize pitch,
+    u16 bpp,
+    u8 red_shift,
+    u8 red_size,
+    u8 green_shift,
+    u8 green_size,
+    u8 blue_shift,
+    u8 blue_size)
     : m_FrontBuffer(reinterpret_cast<u8*>(front_buffer)),
       m_BackBuffer(reinterpret_cast<u8*>(back_buffer)),
       m_Width(width),
@@ -106,9 +107,10 @@ usize Renderer::CursorY() const
     return m_Cursor.Y;
 }
 
-void Renderer::DrawPixel(usize x,
-                         usize y,
-                         u32 color)
+void Renderer::DrawPixel(
+    usize x,
+    usize y,
+    u32 color)
 {
     color = RepackColor(color);
 
@@ -120,9 +122,10 @@ void Renderer::DrawPixel(usize x,
     m_Dirty = true;
 }
 
-void Renderer::DrawChar(int c,
-                        usize x,
-                        usize y)
+void Renderer::DrawChar(
+    int c,
+    usize x,
+    usize y)
 {
     auto bitmap = font8x8::GetChar(c);
 
@@ -178,3 +181,5 @@ void Renderer::NewLine()
     else
         m_Cursor.Y += 12;
 }
+
+memory::UniquePtr<Renderer> KernelRenderer;

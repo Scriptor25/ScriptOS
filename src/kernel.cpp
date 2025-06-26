@@ -1,15 +1,20 @@
+#include "scriptos/ahci.h"
+
 #include <efi.h>
 #include <limine.h>
+#include <scriptos/acpi.h>
 #include <scriptos/bitmap.h>
-#include <scriptos/format.h>
 #include <scriptos/fpu.h>
 #include <scriptos/gdt.h>
 #include <scriptos/idt.h>
 #include <scriptos/memory.h>
 #include <scriptos/paging.h>
+#include <scriptos/pci.h>
+#include <scriptos/print.h>
 #include <scriptos/range.h>
 #include <scriptos/renderer.h>
 #include <scriptos/serial.h>
+#include <scriptos/tss.h>
 #include <scriptos/types.h>
 
 #define LIMINE_REQUEST                                                 \
@@ -67,36 +72,97 @@ LIMINE_REQUEST limine_paging_mode_request paging_mode_request = {
     .max_mode = LIMINE_PAGING_MODE_X86_64_4LVL,
     .min_mode = LIMINE_PAGING_MODE_X86_64_4LVL,
 };
+LIMINE_REQUEST limine_rsdp_request rsdp_request = {
+    .id = LIMINE_RSDP_REQUEST,
+    .revision = 0,
+    .response = nullptr,
+};
 LIMINE_REQUEST_END LIMINE_REQUESTS_END_MARKER;
 
 NORETURN static void halt()
 {
     for (;;)
-        asm volatile("cli; hlt");
+        asm volatile("cli ; hlt");
 }
 
-NORETURN static void error(cstr message)
+NORETURN static void error(
+    cstr format,
+    ...)
 {
-    Print(serial::WriteDefault, "%s\r\n", message);
+    va_list ap;
+    va_start(ap, format);
+    PrintV(format, ap);
+    va_end(ap);
+    Print("\r\n");
     asm volatile("int $0x69");
     halt();
 }
 
-static memory::UniquePtr<paging::PageFrameAllocator> allocator;
-static memory::UniquePtr<Renderer> renderer;
-
-static u8 __allocator_space[sizeof(paging::PageFrameAllocator)];
-
-static void write_char(int c)
+static void initialize_allocator()
 {
-    serial::WriteDefault(c);
-    renderer->NextChar(c);
+    u8* physical_buffer = nullptr;
+    usize max_length = 0;
+    usize memory_end = 0;
+
+    Range memmap(memmap_request.response->entries, memmap_request.response->entry_count);
+    for (auto entry : memmap)
+    {
+        if (entry->type != LIMINE_MEMMAP_USABLE && entry->type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE)
+            continue;
+
+        if (memory_end < (entry->base + entry->length))
+            memory_end = entry->base + entry->length;
+
+        if (entry->length < max_length)
+            continue;
+
+        physical_buffer = reinterpret_cast<u8*>(entry->base);
+        max_length = entry->length;
+    }
+
+    auto virtual_buffer = paging::PhysicalToVirtual<u8*>(physical_buffer);
+
+    auto page_count = memory_end / PAGE_SIZE;
+    Bitmap bitmap(virtual_buffer, page_count);
+
+    bitmap.Clear();
+    for (auto entry : memmap)
+        bitmap.Fill(entry->base / PAGE_SIZE, entry->length / PAGE_SIZE, entry->type != LIMINE_MEMMAP_USABLE);
+
+    bitmap.Fill(0, 0x100, true);
+    bitmap.Fill(reinterpret_cast<uptr>(physical_buffer) / PAGE_SIZE, page_count / 8 + 1, true);
+
+    paging::KernelAllocator = reinterpret_cast<paging::PageFrameAllocator*>(virtual_buffer + memory_end / 8);
+    *paging::KernelAllocator = { bitmap };
+}
+
+static void initialize_renderer()
+{
+    auto framebuffer = framebuffer_request.response->framebuffers[0];
+    auto back_buffer = memory::Allocate(framebuffer->pitch * framebuffer->height);
+
+    KernelRenderer = memory::MakeUnique<Renderer>(
+        framebuffer->address,
+        back_buffer,
+        framebuffer->width,
+        framebuffer->height,
+        framebuffer->pitch,
+        framebuffer->bpp,
+        framebuffer->red_mask_shift,
+        framebuffer->red_mask_size,
+        framebuffer->green_mask_shift,
+        framebuffer->green_mask_size,
+        framebuffer->blue_mask_shift,
+        framebuffer->blue_mask_size);
+    KernelRenderer->SetForeground(0xffffff);
+    KernelRenderer->SetBackground(0x121212);
+    KernelRenderer->Reset();
+    KernelRenderer->Clear();
 }
 
 static void print_system_information()
 {
     Print(
-        write_char,
         "bootloader: %s, %s\r\n",
         bootloader_info_request.response->name,
         bootloader_info_request.response->version);
@@ -121,22 +187,19 @@ static void print_system_information()
         break;
     }
 
-    Print(write_char, "firmware type: %s\r\n", firmware_type_string);
+    Print("firmware type: %s\r\n", firmware_type_string);
 
-    Print(write_char, "\r\n");
+    Print("\r\n");
 
-    Print(write_char, " address          | bpp | width | height | pitch | model \r\n");
-    Print(write_char, "------------------+-----+-------+--------+-------+-------\r\n");
+    Print(" address          | bpp | width | height | pitch | model \r\n");
+    Print("------------------+-----+-------+--------+-------+-------\r\n");
 
     Range framebuffers(
         framebuffer_request.response->framebuffers,
         framebuffer_request.response->framebuffer_count);
     for (auto framebuffer : framebuffers)
     {
-        Print(
-            write_char,
-            " %016X |     |       |        |       |       \r\n",
-            framebuffer->address);
+        Print(" %016X |     |       |        |       |       \r\n", framebuffer->address);
 
         Range modes(framebuffer->modes, framebuffer->mode_count);
         for (auto mode : modes)
@@ -146,14 +209,14 @@ static void print_system_information()
                        && mode->height == framebuffer->height
                        && mode->pitch == framebuffer->pitch
                        && mode->memory_model == framebuffer->memory_model;
-            Print(write_char, "              [%c] | %-3u | %-5u | %-6u | %-5u | %02X    \r\n", active ? '*' : ' ', mode->bpp, mode->width, mode->height, mode->pitch, mode->memory_model);
+            Print("              [%c] | %-3u | %-5u | %-6u | %-5u | %02X    \r\n", active ? '*' : ' ', mode->bpp, mode->width, mode->height, mode->pitch, mode->memory_model);
         }
     }
 
-    Print(write_char, "\r\n");
+    Print("\r\n");
 
-    Print(write_char, " base             | length           | type                   \r\n");
-    Print(write_char, "------------------+------------------+------------------------\r\n");
+    Print(" base             | length           | type                   \r\n");
+    Print("------------------+------------------+------------------------\r\n");
 
     usize end_address = 0;
 
@@ -193,23 +256,140 @@ static void print_system_information()
             break;
         }
 
-        Print(write_char, " %016X | %016X | %-22s \r\n", entry->base, entry->length, type_string);
+        Print(" %016X | %016X | %-22s \r\n", entry->base, entry->length, type_string);
     }
 
-    Print(write_char, "\r\n");
+    Print("\r\n");
 
-    Print(write_char, "total size: %016X (%u KiB)\r\n", end_address, end_address / 1024);
+    Print("total size: %016X (%u KiB)\r\n", end_address, end_address / 1024);
 
-    Print(write_char, "\r\n");
+    Print("\r\n");
 
-    Print(write_char, " processor id | lapic id | goto address     \r\n");
-    Print(write_char, "--------------+----------+------------------\r\n");
+    Print(" processor id | lapic id | goto address     \r\n");
+    Print("--------------+----------+------------------\r\n");
 
     Range cpus(mp_request.response->cpus, mp_request.response->cpu_count);
     for (auto cpu : cpus)
-        Print(write_char, " %-4u         | %-4u     | %016X \r\n", cpu->processor_id, cpu->lapic_id, cpu->goto_address);
+        Print(" %-4u         | %-4u     | %016X \r\n", cpu->processor_id, cpu->lapic_id, cpu->goto_address);
 
-    Print(write_char, "\r\n");
+    Print("\r\n");
+
+    if (efi_system_table_request.response)
+    {
+        auto system_table = reinterpret_cast<EFI_SYSTEM_TABLE*>(
+            efi_system_table_request.response->address);
+        paging::MapPage(system_table, system_table);
+
+        Print("efi system table: %016X\r\n", system_table);
+
+        auto firmware_vendor = system_table->FirmwareVendor;
+        paging::MapPage(firmware_vendor, firmware_vendor);
+
+        Print("firmware vendor: %h\r\n", firmware_vendor);
+    }
+}
+
+static void print_mcfg(const acpi::MCFG* mcfg)
+{
+    for (auto& entry : *mcfg)
+    {
+        auto base_address = reinterpret_cast<const u8*>(entry.BaseAddress);
+        const pci::RootIterable root(base_address, entry.StartBus, entry.EndBus);
+
+        for (const auto [bus_index, bus] : root)
+            for (const auto [device_index, device] : bus)
+                for (const auto [function_index, function] : device)
+                {
+                    if (function->DeviceID == 0xFFFF || function->VendorID == 0xFFFF)
+                        continue;
+
+                    auto device_descriptor = pci::GetDeviceDescriptor(
+                        function->BaseClass,
+                        function->SubClass,
+                        function->ProgIF);
+                    auto vendor_name = pci::GetVendorName(function->VendorID);
+                    auto device_name = pci::GetDeviceName(
+                        function->VendorID,
+                        function->DeviceID);
+
+                    Print("[ %02X:%02X:%02X ] ", bus_index, device_index, function_index);
+                    if (device_descriptor)
+                        Print("%s, ", device_descriptor);
+                    else
+                        Print(
+                            "%02X-%02X-%02X, ",
+                            function->BaseClass,
+                            function->SubClass,
+                            function->ProgIF);
+                    if (vendor_name)
+                        Print("%s, ", vendor_name);
+                    else
+                        Print("%04X, ", function->VendorID);
+                    if (device_name)
+                        Print("%s", device_name);
+                    else
+                        Print("%04X", function->DeviceID);
+                    Print("\r\n");
+                }
+    }
+}
+
+static void find_ahci(const acpi::MCFG* mcfg)
+{
+    for (auto& entry : *mcfg)
+    {
+        auto base_address = reinterpret_cast<const u8*>(entry.BaseAddress);
+        const pci::RootIterable root(base_address, entry.StartBus, entry.EndBus);
+
+        for (const auto [bus_index, bus] : root)
+            for (const auto [device_index, device] : bus)
+                for (const auto [function_index, function] : device)
+                {
+                    if (function->BaseClass != 0x01 || function->SubClass != 0x06 || function->ProgIF != 0x01)
+                        continue;
+
+                    auto ahci = reinterpret_cast<const pci::PCIDevice*>(function);
+                    auto hba_mem = reinterpret_cast<ahci::HBA_MEM*>(ahci->BAR5);
+                    paging::MapPage(hba_mem, hba_mem, true, true);
+
+                    hba_mem->GHC.AE = true;
+
+                    for (auto port : *hba_mem)
+                    {
+                        if (!port)
+                            continue;
+
+                        auto det = port->SSTS.DET;
+                        auto ipm = port->SSTS.IPM;
+
+                        (void) det;
+                        (void) ipm;
+
+                        switch (port->SIG.Value)
+                        {
+                        case 0x00000101:
+                            // ATA
+                            Print("ATA\r\n");
+                            break;
+
+                        case 0xEB140101:
+                            // ATAPI
+                            Print("ATAPI\r\n");
+                            break;
+
+                        case 0xC33C0101:
+                            // SEMB
+                            Print("SEMB\r\n");
+                            break;
+
+                        case 0x96690101:
+                            // PM
+                            Print("PM\r\n");
+                            break;
+                        }
+                    }
+                }
+    }
 }
 
 extern "C" NORETURN void kmain()
@@ -241,88 +421,64 @@ extern "C" NORETURN void kmain()
     if (!mp_request.response)
         error("no mp response");
 
+    if (!rsdp_request.response)
+        error("no rsdp response");
+
     paging::Initialize(hhdm_request.response->offset);
 
-    {
-        u8* bitmap_buffer = nullptr;
-        usize max_length = 0;
-        usize end_address = 0;
+    initialize_allocator();
 
-        Range memmap(memmap_request.response->entries, memmap_request.response->entry_count);
-        for (auto entry : memmap)
-        {
-            if (entry->type != LIMINE_MEMMAP_USABLE && entry->type != LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE)
-                continue;
+    auto kernel_stack = paging::KernelAllocator->AllocatePhysicalPage();
+    paging::MapPage(kernel_stack, kernel_stack, true, true);
+    tss::Initialize(kernel_stack, nullptr, nullptr);
 
-            if (end_address < (entry->base + entry->length))
-                end_address = entry->base + entry->length;
+    memory::InitializeHeap(0x400000);
 
-            if (entry->length < max_length)
-                continue;
-
-            bitmap_buffer = reinterpret_cast<u8*>(entry->base);
-            max_length = entry->length;
-        }
-
-        auto page_count = end_address / PAGE_SIZE;
-
-        Bitmap bitmap(paging::PhysicalToVirtual<u8*>(bitmap_buffer), page_count);
-        bitmap.Clear();
-        for (auto entry : memmap)
-            bitmap.Fill(entry->base / PAGE_SIZE, entry->length / PAGE_SIZE, entry->type != LIMINE_MEMMAP_USABLE);
-
-        bitmap.Fill(reinterpret_cast<uptr>(bitmap_buffer) / PAGE_SIZE, page_count / 8 + 1, true);
-
-        allocator = memory::UniquePtr<paging::PageFrameAllocator>(reinterpret_cast<paging::PageFrameAllocator*>(__allocator_space));
-        *allocator = { bitmap };
-    }
-
-    memory::InitializeHeap(*allocator, 0x400000);
-
-    {
-        auto framebuffer = framebuffer_request.response->framebuffers[0];
-        auto back_buffer = memory::Allocate(framebuffer->pitch * framebuffer->height);
-
-        renderer = memory::MakeUnique<Renderer>(
-            framebuffer->address,
-            back_buffer,
-            framebuffer->width,
-            framebuffer->height,
-            framebuffer->pitch,
-            framebuffer->bpp,
-            framebuffer->red_mask_shift,
-            framebuffer->red_mask_size,
-            framebuffer->green_mask_shift,
-            framebuffer->green_mask_size,
-            framebuffer->blue_mask_shift,
-            framebuffer->blue_mask_size);
-        renderer->SetForeground(0xffffff);
-        renderer->SetBackground(0x121212);
-        renderer->Reset();
-        renderer->Clear();
-    }
+    initialize_renderer();
 
     print_system_information();
 
-    if (efi_system_table_request.response)
+    auto xsdp = reinterpret_cast<acpi::XSDP*>(rsdp_request.response->address);
+    paging::MapPage(xsdp, xsdp);
+
+    const acpi::MCFG* mcfg;
+    switch (xsdp->Revision)
     {
-        auto physical_system_table = reinterpret_cast<void*>(
-            efi_system_table_request.response->address);
-        auto virtual_system_table = paging::PhysicalToVirtual<EFI_SYSTEM_TABLE*>(physical_system_table);
+    case 0:
+    case 1:
+    {
+        auto rsdt = reinterpret_cast<const acpi::RSDT*>(xsdp->RSDT_Address);
+        paging::MapPage(rsdt, rsdt);
 
-        paging::MapPage(*allocator, virtual_system_table, physical_system_table);
+        mcfg = rsdt->Find<acpi::MCFG>("MCFG");
+        if (!mcfg)
+            error("no mcfg table");
 
-        Print(write_char, "efi system table: %016X\r\n", virtual_system_table);
-
-        auto physical_firmware_vendor = virtual_system_table->FirmwareVendor;
-        auto virtual_firmware_vendor = paging::PhysicalToVirtual<CHAR16*>(physical_firmware_vendor);
-
-        paging::MapPage(*allocator, virtual_firmware_vendor, physical_firmware_vendor);
-
-        Print(write_char, "firmware vendor: %h\r\n", virtual_firmware_vendor);
+        break;
     }
 
-    renderer->SwapBuffers();
+    case 2:
+    {
+        auto xsdt = reinterpret_cast<const acpi::XSDT*>(xsdp->XSDT_Address);
+        paging::MapPage(xsdt, xsdt);
+
+        mcfg = xsdt->Find<acpi::MCFG>("MCFG");
+        if (!mcfg)
+            error("no mcfg table");
+
+        break;
+    }
+
+    default:
+        error("unsupported rsdp revision %d", xsdp->Revision);
+    }
+
+    print_mcfg(mcfg);
+    find_ahci(mcfg);
+
+    // TODO: read drivers from disk
+
+    Flush();
 
     halt();
 }

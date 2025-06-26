@@ -7,7 +7,12 @@ namespace idt
     union GateDescriptor
     {
         GateDescriptor() = default;
-        GateDescriptor(u64 offset, u16 segment_selector, u8 interrupt_stack_table, u8 gate_type, u8 privilege_level);
+        GateDescriptor(
+            u64 offset,
+            u16 segment_selector,
+            u8 interrupt_stack_table,
+            u8 gate_type,
+            u8 privilege_level);
 
         struct
         {

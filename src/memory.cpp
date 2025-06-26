@@ -36,3 +36,14 @@ void memory::Copy(
     for (; i < count; ++i)
         *reinterpret_cast<u8*>(reinterpret_cast<uptr>(dst) + i) = *reinterpret_cast<const u8*>(reinterpret_cast<uptr>(src) + i);
 }
+
+bool memory::Compare(
+    cstr s1,
+    cstr s2,
+    usize count)
+{
+    for (usize i = 0; i < count; ++i)
+        if (s1[i] != s2[i])
+            return false;
+    return true;
+}

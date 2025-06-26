@@ -1,6 +1,7 @@
 #pragma once
 
 #include <scriptos/framebuffer.h>
+#include <scriptos/memory.h>
 
 template<typename T>
 struct Point
@@ -11,18 +12,19 @@ struct Point
 class Renderer
 {
 public:
-    Renderer(void* front_buffer,
-             void* back_buffer,
-             usize width,
-             usize height,
-             usize pitch,
-             u16 bpp,
-             u8 red_shift,
-             u8 red_size,
-             u8 green_shift,
-             u8 green_size,
-             u8 blue_shift,
-             u8 blue_size);
+    Renderer(
+        void* front_buffer,
+        void* back_buffer,
+        usize width,
+        usize height,
+        usize pitch,
+        u16 bpp,
+        u8 red_shift,
+        u8 red_size,
+        u8 green_shift,
+        u8 green_size,
+        u8 blue_shift,
+        u8 blue_size);
 
     u32 RepackColor(u32 color) const;
 
@@ -37,12 +39,14 @@ public:
     usize CursorX() const;
     usize CursorY() const;
 
-    void DrawPixel(usize x,
-                   usize y,
-                   u32 color);
-    void DrawChar(int c,
-                  usize x,
-                  usize y);
+    void DrawPixel(
+        usize x,
+        usize y,
+        u32 color);
+    void DrawChar(
+        int c,
+        usize x,
+        usize y);
 
     void Reset();
     void NextChar(int c);
@@ -67,3 +71,5 @@ private:
 
     Point<usize> m_Cursor;
 };
+
+extern memory::UniquePtr<Renderer> KernelRenderer;

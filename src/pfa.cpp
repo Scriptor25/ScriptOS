@@ -5,22 +5,26 @@ paging::PageFrameAllocator::PageFrameAllocator(const Bitmap& bitmap)
 {
 }
 
-void paging::PageFrameAllocator::LockPage(void* address)
+void paging::PageFrameAllocator::LockPage(const void* address)
 {
     m_Bitmap.Set(reinterpret_cast<uptr>(address) / PAGE_SIZE, true);
 }
 
-void paging::PageFrameAllocator::FreePage(void* address)
+void paging::PageFrameAllocator::FreePage(const void* address)
 {
     m_Bitmap.Set(reinterpret_cast<uptr>(address) / PAGE_SIZE, false);
 }
 
-void paging::PageFrameAllocator::LockPages(void* address, usize count)
+void paging::PageFrameAllocator::LockPages(
+    const void* address,
+    usize count)
 {
     m_Bitmap.Fill(reinterpret_cast<uptr>(address) / PAGE_SIZE, count, true);
 }
 
-void paging::PageFrameAllocator::FreePages(void* address, usize count)
+void paging::PageFrameAllocator::FreePages(
+    const void* address,
+    usize count)
 {
     m_Bitmap.Fill(reinterpret_cast<uptr>(address) / PAGE_SIZE, count, false);
 }
@@ -66,3 +70,5 @@ void* paging::PageFrameAllocator::AllocatePhysicalPages(usize count)
     }
     return nullptr;
 }
+
+paging::PageFrameAllocator* paging::KernelAllocator;

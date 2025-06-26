@@ -1,11 +1,11 @@
-#include <scriptos/format.h>
 #include <scriptos/paging.h>
+#include <scriptos/print.h>
 #include <scriptos/types.h>
 
 uptr paging::HHDM_Offset;
 paging::PageTable paging::PML4_Base;
 
-bool paging::IsPhysical(void* maybe_physical_address)
+bool paging::IsPhysical(const void* maybe_physical_address)
 {
     return !((reinterpret_cast<uptr>(maybe_physical_address) >> 48) & 0xffff);
 }
@@ -36,7 +36,7 @@ void paging::WalkTable(
 
         if (level <= 1)
         {
-            Print(stream, "at %016X -> %016X\r\n", virtual_address, physical_address);
+            SPrint(stream, "at %016X -> %016X\r\n", virtual_address, physical_address);
             continue;
         }
 
@@ -51,9 +51,8 @@ void paging::WalkTable(
 }
 
 bool paging::MapPage(
-    PageFrameAllocator& allocator,
-    void* virtual_address,
-    void* physical_address,
+    const void* virtual_address,
+    const void* physical_address,
     bool present,
     bool read_write,
     bool user_supervisor,
@@ -70,15 +69,15 @@ bool paging::MapPage(
     // lvl1 = [20:12]
     usize lvl1 = (reinterpret_cast<uptr>(virtual_address) >> 12) & 0x1FF;
 
-    auto pdpt = GetOrCreateNextLevel(&allocator, PML4_Base, lvl4, true);
+    auto pdpt = GetOrCreateNextLevel(PML4_Base, lvl4, true);
     if (!pdpt)
         return false;
 
-    auto pd = GetOrCreateNextLevel(&allocator, pdpt, lvl3, true);
+    auto pd = GetOrCreateNextLevel(pdpt, lvl3, true);
     if (!pd)
         return false;
 
-    auto pt = GetOrCreateNextLevel(&allocator, pd, lvl2, true);
+    auto pt = GetOrCreateNextLevel(pd, lvl2, true);
     if (!pt)
         return false;
 
@@ -96,14 +95,12 @@ bool paging::MapPage(
     pt[lvl1].Address = reinterpret_cast<uptr>(physical_address) >> 12;
 
     FlushPage(virtual_address);
-
     return true;
 }
 
 bool paging::MapPages(
-    PageFrameAllocator& allocator,
-    void* virtual_address,
-    void* physical_address,
+    const void* virtual_address,
+    const void* physical_address,
     usize count,
     bool present,
     bool read_write,
@@ -115,14 +112,13 @@ bool paging::MapPages(
     for (usize i = 0; i < count; ++i)
     {
         auto pi = i * PAGE_SIZE;
-        if (!MapPage(allocator, reinterpret_cast<void*>(reinterpret_cast<uptr>(virtual_address) + pi), reinterpret_cast<void*>(reinterpret_cast<uptr>(physical_address) + pi), present, read_write, user_supervisor, write_through, cache_disable, accessed))
+        if (!MapPage(reinterpret_cast<void*>(reinterpret_cast<uptr>(virtual_address) + pi), reinterpret_cast<void*>(reinterpret_cast<uptr>(physical_address) + pi), present, read_write, user_supervisor, write_through, cache_disable, accessed))
             return false;
     }
     return true;
 }
 
 paging::PageTable paging::GetOrCreateNextLevel(
-    PageFrameAllocator* allocator,
     PageTable table,
     usize index,
     bool create)
@@ -136,7 +132,7 @@ paging::PageTable paging::GetOrCreateNextLevel(
     if (!create)
         return nullptr;
 
-    auto physical_address = allocator->AllocatePhysicalPage();
+    auto physical_address = KernelAllocator->AllocatePhysicalPage();
     if (!physical_address)
         return nullptr;
 
@@ -154,7 +150,7 @@ paging::PageTable paging::GetOrCreateNextLevel(
     return next_table;
 }
 
-void* paging::GetMapping(void* virtual_address)
+void* paging::GetMapping(const void* virtual_address)
 {
     // lvl4 = [47:39]
     usize lvl4 = (reinterpret_cast<uptr>(virtual_address) >> 39) & 0x1FF;
@@ -165,15 +161,15 @@ void* paging::GetMapping(void* virtual_address)
     // lvl1 = [20:12]
     usize lvl1 = (reinterpret_cast<uptr>(virtual_address) >> 12) & 0x1FF;
 
-    auto pdpt = GetOrCreateNextLevel(nullptr, PML4_Base, lvl4, false);
+    auto pdpt = GetOrCreateNextLevel(PML4_Base, lvl4, false);
     if (!pdpt)
         return nullptr;
 
-    auto pd = GetOrCreateNextLevel(nullptr, pdpt, lvl3, false);
+    auto pd = GetOrCreateNextLevel(pdpt, lvl3, false);
     if (!pd)
         return nullptr;
 
-    auto pt = GetOrCreateNextLevel(nullptr, pd, lvl2, false);
+    auto pt = GetOrCreateNextLevel(pd, lvl2, false);
     if (!pt)
         return nullptr;
 
@@ -186,7 +182,7 @@ void* paging::GetMapping(void* virtual_address)
     return reinterpret_cast<void*>(pt[lvl1].Address << 12);
 }
 
-void paging::FlushPage(void* virtual_address)
+void paging::FlushPage(const void* virtual_address)
 {
     asm volatile("invlpg (%0)" : : "r"(virtual_address) : "memory");
 }

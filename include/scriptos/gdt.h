@@ -21,7 +21,11 @@ namespace gdt
 {
     union SegmentDescriptor
     {
-        SegmentDescriptor(u32 base, u32 limit, u8 access, u8 flags);
+        SegmentDescriptor(
+            u32 base,
+            u32 limit,
+            u8 access,
+            u8 flags);
 
         struct
         {
@@ -38,7 +42,11 @@ namespace gdt
 
     union SystemSegmentDescriptor
     {
-        SystemSegmentDescriptor(u64 base, u32 limit, u8 access, u8 flags);
+        SystemSegmentDescriptor(
+            u64 base,
+            u32 limit,
+            u8 access,
+            u8 flags);
 
         struct
         {
@@ -66,8 +74,17 @@ namespace gdt
 
     void Initialize();
 
-    usize Insert(void* buffer, usize offset, const SegmentDescriptor& desc);
-    usize Insert(void* buffer, usize offset, const SystemSegmentDescriptor& desc);
+    usize Insert(
+        void* buffer,
+        usize offset,
+        const SegmentDescriptor& desc);
+    usize Insert(
+        void* buffer,
+        usize offset,
+        const SystemSegmentDescriptor& desc);
 
-    extern "C" void __load_gdt(const Descriptor* descriptor, u16 code_segment, u16 data_segment);
+    extern "C" void __load_gdt(
+        const Descriptor* descriptor,
+        u16 code_segment,
+        u16 data_segment);
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <scriptos/paging.h>
 #include <scriptos/types.h>
 
 namespace memory
@@ -14,13 +13,54 @@ namespace memory
         const void* src,
         usize count);
 
-    void InitializeHeap(
-        paging::PageFrameAllocator& allocator,
-        usize size);
+    bool Compare(
+        cstr s1,
+        cstr s2,
+        usize count);
+
+    template<typename T>
+    usize StringLength(const T* value)
+    {
+        usize length = 0;
+        for (auto p = const_cast<T*>(value); *p; ++p, ++length)
+            ;
+        return length;
+    }
+
+    void InitializeHeap(usize size);
+
     void* Allocate(usize count);
+
+    template<typename T>
+    T* Allocate()
+    {
+        return reinterpret_cast<T*>(Allocate(sizeof(T)));
+    }
+
+    template<typename T>
+    T* Allocate(usize size)
+    {
+        return reinterpret_cast<T*>(Allocate(size * sizeof(T)));
+    }
+
     void* Reallocate(
         void* block,
         usize count);
+
+    template<typename T>
+    T* Reallocate(T* block)
+    {
+        return reinterpret_cast<T*>(Reallocate(block, sizeof(T)));
+    }
+
+    template<typename T>
+    T* Reallocate(
+        T* block,
+        usize size)
+    {
+        return reinterpret_cast<T*>(Reallocate(block, size * sizeof(T)));
+    }
+
     void Free(void* block);
 
     template<typename T>
@@ -76,6 +116,8 @@ namespace memory
 
         T* operator->() const { return m_Ptr; }
         T& operator*() const { return *m_Ptr; }
+
+        operator bool() const { return m_Ptr != nullptr; }
 
     private:
         T* m_Ptr{};
