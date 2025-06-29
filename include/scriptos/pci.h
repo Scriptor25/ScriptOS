@@ -1,5 +1,7 @@
 #pragma once
 
+#include "scriptos/stl.h"
+
 #include <scriptos/types.h>
 
 namespace pci
@@ -17,15 +19,21 @@ namespace pci
     {
         u16 VendorID;
         u16 DeviceID;
+
         u16 Command;
         u16 Status;
+
         u8 RevisionID;
+
         u8 ProgIF;
         u8 SubClass;
         u8 BaseClass;
+
         u8 CacheLineSize;
         u8 LatencyTimer;
+
         u8 HeaderType;
+
         u8 BIST;
     } __attribute__((packed));
 
@@ -39,14 +47,21 @@ namespace pci
         u32 BAR3;
         u32 BAR4;
         u32 BAR5;
+
         u32 CardBusCISPointer;
+
         u16 SubsystemVendorID;
         u16 SubsystemID;
-        u32 ExpROMBaseAddress;
+
+        u32 ExpansionROMBaseAddress;
+
         u8 CapabilitiesPointer;
+
         u8 Reserved[7];
+
         u8 InterruptLine;
         u8 InterruptPIN;
+
         u8 MinGrant;
         u8 MaxLatency;
     } __attribute__((packed));
@@ -54,19 +69,16 @@ namespace pci
     struct PCI_To_PCI_Bridge
     {
         PCIHeader Header;
+
+        // TODO
     } __attribute__((packed));
 
     struct PCI_To_CardBus_Bridge
     {
         PCIHeader Header;
-    } __attribute__((packed));
 
-    template<typename V, typename K = u8>
-    struct Indexed
-    {
-        K Index;
-        V Value;
-    };
+        // TODO
+    } __attribute__((packed));
 
     struct DeviceIterable
     {
@@ -78,7 +90,10 @@ namespace pci
                 u8 function_index);
 
             bool operator==(const Iterator& iterator) const;
-            Indexed<const PCIHeader*> operator*() const;
+            pair<
+                u8,
+                const PCIHeader*>
+            operator*() const;
             Iterator& operator++();
 
         private:
@@ -106,7 +121,10 @@ namespace pci
                 u8 device_index);
 
             bool operator==(const Iterator& iterator) const;
-            Indexed<DeviceIterable> operator*() const;
+            pair<
+                u8,
+                DeviceIterable>
+            operator*() const;
             Iterator& operator++();
 
         private:
@@ -136,7 +154,10 @@ namespace pci
                 u8 bus_index);
 
             bool operator==(const Iterator& iterator) const;
-            Indexed<BusIterable> operator*() const;
+            pair<
+                u8,
+                BusIterable>
+            operator*() const;
             Iterator& operator++();
 
         private:

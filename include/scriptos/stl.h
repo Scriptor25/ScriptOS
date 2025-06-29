@@ -9,6 +9,13 @@ class vector;
 template<typename T>
 class view;
 
+template<typename K, typename V>
+struct pair
+{
+    K Index;
+    V Value;
+};
+
 template<typename T>
 class vector
 {

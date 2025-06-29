@@ -1,8 +1,7 @@
-#include "scriptos/ahci.h"
-
 #include <efi.h>
 #include <limine.h>
 #include <scriptos/acpi.h>
+#include <scriptos/ahci.h>
 #include <scriptos/bitmap.h>
 #include <scriptos/fpu.h>
 #include <scriptos/gdt.h>
@@ -349,44 +348,61 @@ static void find_ahci(const acpi::MCFG* mcfg)
                         continue;
 
                     auto ahci = reinterpret_cast<const pci::PCIDevice*>(function);
-                    auto hba_mem = reinterpret_cast<ahci::HBA_MEM*>(ahci->BAR5);
-                    paging::MapPage(hba_mem, hba_mem, true, true);
+                    auto abar = reinterpret_cast<ahci::hba::MEM_T*>(ahci->BAR5 & 0xFFFFF000);
+                    paging::MapPage(abar, abar, true, true, false, false, true, false);
 
-                    hba_mem->GHC.AE = true;
+                    abar->GHC.AE = true;
 
-                    for (auto port : *hba_mem)
+                    for (unsigned i = 0; i < abar->CAP.NP; ++i)
                     {
-                        if (!port)
+                        if (!(abar->PI & (1 << i)))
                             continue;
 
-                        auto det = port->SSTS.DET;
-                        auto ipm = port->SSTS.IPM;
+                        auto port = abar->PCR + i;
 
-                        (void) det;
-                        (void) ipm;
+                        if (port->SATAStatus.DeviceDetection != ahci::hba::HBA_PORT_DET_PRESENT)
+                            continue;
+                        if (port->SATAStatus.InterfacePowerManagement != ahci::hba::HBA_PORT_IPM_ACTIVE)
+                            continue;
 
-                        switch (port->SIG.Value)
+                        auto base_address = paging::KernelAllocator->AllocatePhysicalPages(0x10);
+                        paging::MapPages(base_address, base_address, 0x10, true, true);
+
+                        if (!ahci::Initialize(abar, port, reinterpret_cast<uptr>(base_address)))
+                            Print("failed to rebase port %u\r\n", i);
+
+                        auto buffer = paging::KernelAllocator->AllocatePhysicalPage();
+                        paging::MapPage(buffer, buffer, true, true);
+
+                        memory::Fill(buffer, 0, PAGE_SIZE);
+
+                        switch (*reinterpret_cast<const u32*>(&port->Signature))
                         {
-                        case 0x00000101:
-                            // ATA
-                            Print("ATA\r\n");
+                        case ahci::hba::HBA_PORT_SIG_ATA:
+                            Print("located ATA drive at port %u\r\n", i);
+                            if (!ahci::ReadATA(abar, port, 0, 1, buffer))
+                                Print("failed to read from port %u\r\n", i);
                             break;
 
-                        case 0xEB140101:
-                            // ATAPI
-                            Print("ATAPI\r\n");
+                        case ahci::hba::HBA_PORT_SIG_ATAPI:
+                            Print("located ATAPI drive at port %u\r\n", i);
+                            if (!ahci::ReadATAPI(abar, port, 0, 1, buffer))
+                                Print("failed to read from port %u\r\n", i);
                             break;
 
-                        case 0xC33C0101:
-                            // SEMB
-                            Print("SEMB\r\n");
+                        case ahci::hba::HBA_PORT_SIG_SEMB:
+                            Print("located SEMB drive at port %u\r\n", i);
                             break;
 
-                        case 0x96690101:
-                            // PM
-                            Print("PM\r\n");
+                        case ahci::hba::HBA_PORT_SIG_PM:
+                            Print("located PM drive at port %u\r\n", i);
                             break;
+
+                        default:
+                            continue;
                         }
+
+                        paging::KernelAllocator->FreePage(buffer);
                     }
                 }
     }

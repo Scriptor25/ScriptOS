@@ -1,161 +1,231 @@
-#include "scriptos/memory.h"
-
 #include <scriptos/ahci.h>
+#include <scriptos/ahci/fis.h>
+#include <scriptos/ahci/hba.h>
+#include <scriptos/ata.h>
+#include <scriptos/atapi.h>
+#include <scriptos/memory.h>
 
-bool ahci::HBA_MEM::Iterator::operator==(const Iterator& iterator) const
+void ahci::StartCommand(hba::PortT* port)
 {
-    return PI == iterator.PI && Index == iterator.Index;
-}
-
-ahci::HBA_PORT* ahci::HBA_MEM::Iterator::operator*() const
-{
-    if (PI & (1 << Index))
-        return PCR + Index;
-    return nullptr;
-}
-
-ahci::HBA_MEM::Iterator& ahci::HBA_MEM::Iterator::operator++()
-{
-    Index++;
-    return *this;
-}
-
-ahci::HBA_MEM::Iterator ahci::HBA_MEM::begin()
-{
-    return { PI, PCR, 0 };
-}
-
-ahci::HBA_MEM::Iterator ahci::HBA_MEM::end()
-{
-    return { PI, PCR, 32 };
-}
-
-void ahci::BeginCommand(HBA_PORT* port)
-{
-    while (port->CMD.CR)
+    while (port->Command_Status.CommandListRunning)
         ;
 
-    port->CMD.FRE = true;
-    port->CMD.ST = true;
+    port->Command_Status.Start = true;
 }
 
-void ahci::EndCommand(HBA_PORT* port)
+void ahci::StopCommand(hba::PortT* port)
 {
-    port->CMD.ST = false;
-    port->CMD.FRE = false;
+    port->Command_Status.Start = false;
+    while (port->Command_Status.CommandListRunning)
+        ; // wait at least 500ms, then try reset
 
-    while (port->CMD.FR || port->CMD.CR)
-        ;
+    port->Command_Status.FISReceiveEnable = false;
+    while (port->Command_Status.FISReceiveRunning)
+        ; // wait at least 500ms, then try reset
 }
 
-void ahci::RebasePort(
-    HBA_PORT* port,
-    uptr base_address,
-    unsigned index)
+bool ahci::Initialize(
+    hba::MEM_T* abar,
+    hba::PortT* port,
+    uptr base_address)
 {
-    EndCommand(port);
+    if (base_address & 0x7F)
+        return false;
 
-    port->CLB = base_address + (index << 10);
-    port->FB = base_address + (32 << 10) + (index << 8);
+    StopCommand(port);
 
-    memory::Fill(reinterpret_cast<void*>(port->CLB), 0, 0x400);
-    memory::Fill(reinterpret_cast<void*>(port->FB), 0, 0x100);
+    const auto slot_count = abar->CAP.NCS;
 
-    auto cmd_list = reinterpret_cast<HBA_CMD_HEADER*>(port->CLB);
-    for (unsigned i = 0; i < 32; ++i)
+    port->CommandListBase = base_address;
+    memory::Fill(reinterpret_cast<void*>(port->CommandListBase), 0, 0x400);
+
+    const auto command_list = reinterpret_cast<hba::CommandHeaderT*>(port->CommandListBase);
+
+    port->FISBase = base_address + (32 << 10);
+    memory::Fill(reinterpret_cast<void*>(port->FISBase), 0, 0x100);
+
+    port->Command_Status.FISReceiveEnable = true;
+    *reinterpret_cast<u32*>(&port->SATAError) = 0xFFFFFFFF;
+
+    for (unsigned slot = 0; slot < slot_count; ++slot)
     {
-        auto& cmd = cmd_list[0];
+        const auto command_header = command_list + slot;
 
-        cmd.PRDTL = 8;
-        cmd.CTBA = base_address + (40 << 10) + (index << 13) + (i << 8);
+        command_header->PRDTableLength = 8;
+        command_header->CommandTableBase = base_address + (40 << 10) + (slot << 8);
 
-        memory::Fill(reinterpret_cast<void*>(cmd.CTBA), 0, 0x100);
+        memory::Fill(reinterpret_cast<void*>(command_header->CommandTableBase), 0, 0x100);
     }
 
-    BeginCommand(port);
+    StartCommand(port);
+    return true;
 }
 
-int ahci::FindCommandSlot(HBA_PORT* port)
+int ahci::FindSlot(
+    hba::MEM_T* abar,
+    hba::PortT* port)
 {
-    auto slots = port->SACT | port->CI;
-    for (unsigned i = 0; i < 32; ++i)
-    {
-        if ((slots >> i) & 1)
-            continue;
-        return i;
-    }
+    const auto slot_count = abar->CAP.NCS;
+    const auto slots = port->SATAActive | port->CommandIssue;
+
+    for (unsigned i = 0; i < slot_count; ++i)
+        if (!((slots >> i) & 1))
+            return i;
+
     return -1;
 }
 
-bool ahci::Read(
-    HBA_PORT* port,
-    uptr offset,
-    u16 count,
-    u16* buffer)
+bool ahci::SendATAPICommand(
+    hba::MEM_T* abar,
+    hba::PortT* port,
+    const u8* command,
+    usize command_length,
+    void* buffer,
+    usize buffer_length)
 {
-    port->IS.Value = -1;
+    for (unsigned timeout = 1000000;
+         port->TaskFileData.Status.Busy || port->TaskFileData.Status.DataTransferRequest;
+         --timeout)
+        if (!timeout)
+            return false;
 
-    auto slot = FindCommandSlot(port);
+    auto slot = FindSlot(abar, port);
     if (slot < 0)
         return false;
 
-    auto cmd_hdr = reinterpret_cast<HBA_CMD_HEADER*>(port->CLB) + slot;
-    cmd_hdr->CFL = sizeof(FIS_REG_H2D) / sizeof(u32);
-    cmd_hdr->W = false;
-    cmd_hdr->PRDTL = ((count - 1) >> 4) + 1;
+    const auto command_header = reinterpret_cast<hba::CommandHeaderT*>(port->CommandListBase) + slot;
+    command_header->ATAPI = true;
+    command_header->Write = false;
+    command_header->Prefetchable = false;
+    command_header->PRDTableLength = 1;
+    command_header->Command_FIS_Length = sizeof(fis::HostToDeviceT) / sizeof(u32);
 
-    auto cmd_tbl = reinterpret_cast<HBA_CMD_TBL*>(cmd_hdr->CTBA);
-    memory::Fill(cmd_tbl, 0, sizeof(HBA_CMD_TBL) + (cmd_hdr->PRDTL - 1) * sizeof(HBA_PRDT));
+    const auto command_table = reinterpret_cast<hba::CommandTableT*>(
+        command_header->CommandTableBase);
+    memory::Fill(command_table, 0, sizeof(hba::CommandTableT));
 
-    unsigned i;
-    for (i = 0; i < cmd_hdr->PRDTL - 1; ++i)
-    {
-        auto& entry = cmd_tbl->PRDT[i];
+    command_table->PRDTable->DataBaseAddress = reinterpret_cast<uptr>(buffer);
+    command_table->PRDTable->DataByteCount = buffer_length - 1;
+    command_table->PRDTable->Interrupt = true;
 
-        entry.DBA = reinterpret_cast<uptr>(buffer);
-        entry.DBC = 0x1FFF;
-        entry.I = 1;
+    memory::Copy(command_table->ATAPI_Command, command, command_length);
 
-        buffer += 0x1000;
-        count -= 0x10;
-    }
+    const auto command_fis = reinterpret_cast<fis::HostToDeviceT*>(command_table->Command_FIS);
+    memory::Fill(command_fis, 0, sizeof(fis::HostToDeviceT));
 
-    {
-        auto& entry = cmd_tbl->PRDT[i];
+    command_fis->Type = fis::Type_HostToDevice;
+    command_fis->IsCommand = true;
+    command_fis->Command = ata::Command_PACKET;
+    command_fis->Count = command_length / sizeof(u32);
 
-        entry.DBA = reinterpret_cast<uptr>(buffer);
-        entry.DBC = (count << 9) - 1;
-        entry.I = 1;
-    }
+    *reinterpret_cast<u32*>(&port->InterruptStatus) = 0xFFFFFFFF;
 
-    auto cmd_fis = reinterpret_cast<FIS_REG_H2D*>(cmd_tbl->CFIS);
+    const auto mask = 1 << slot;
+    port->CommandIssue = mask;
 
-    cmd_fis->FIS_Type = FIS_TYPE_REG_H2D;
-    cmd_fis->C = 1;
-    cmd_fis->CMD = ATA_CMD_READ_DMA_EX;
-
-    cmd_fis->LBA0 = offset & 0xFF;
-    cmd_fis->LBA1 = (offset >> 0x08) & 0xFF;
-    cmd_fis->LBA2 = (offset >> 0x10) & 0xFF;
-    cmd_fis->LBA3 = (offset >> 0x18) & 0xFF;
-    cmd_fis->LBA4 = (offset >> 0x20) & 0xFF;
-    cmd_fis->LBA5 = (offset >> 0x28) & 0xFF;
-
-    cmd_fis->DEV = 1 << 6;
-    cmd_fis->C = count;
-
-    for (unsigned s = 0; port->TFD.STS_BSY || port->TFD.STS_DRQ; ++s)
-        if (s >= 1000000)
+    for (unsigned timeout = 1000000; port->CommandIssue & mask; --timeout)
+        if (port->InterruptStatus.TaskFileErrorStatus || !timeout)
             return false;
-
-    port->CI = 1 << slot;
-
-    while (port->CI & (1 << slot))
-        if (port->IS.TFES)
-            return false;
-
-    if (port->IS.TFES)
-        return false;
 
     return true;
+}
+
+bool ahci::ReadATA(
+    hba::MEM_T* abar,
+    hba::PortT* port,
+    uptr lba,
+    u16 sector_count,
+    void* buffer)
+{
+    for (unsigned timeout = 1000000;
+         port->TaskFileData.Status.Busy || port->TaskFileData.Status.DataTransferRequest;
+         --timeout)
+        if (!timeout)
+            return false;
+
+    auto slot = FindSlot(abar, port);
+    if (slot < 0)
+        return false;
+
+    const auto command_header = reinterpret_cast<hba::CommandHeaderT*>(port->CommandListBase) + slot;
+    command_header->ATAPI = false;
+    command_header->Write = false;
+    command_header->Prefetchable = false;
+    command_header->PRDTableLength = ((sector_count - 1) >> 4) + 1;
+    command_header->Command_FIS_Length = sizeof(fis::HostToDeviceT) / sizeof(u32);
+
+    const auto command_table = reinterpret_cast<hba::CommandTableT*>(
+        command_header->CommandTableBase);
+    memory::Fill(command_table, 0, sizeof(hba::CommandTableT) + (command_header->PRDTableLength - 1) * sizeof(hba::PRDTableEntryT));
+
+    auto data_base_address = reinterpret_cast<uptr>(buffer);
+
+    unsigned i;
+    for (i = 0; i < command_header->PRDTableLength - 1u; ++i)
+    {
+        const auto entry = command_table->PRDTable + i;
+
+        entry->DataBaseAddress = data_base_address;
+        entry->DataByteCount = 0x1FFF;
+        entry->Interrupt = true;
+
+        data_base_address += 0x2000;
+        sector_count -= 0x10;
+    }
+    {
+        const auto entry = command_table->PRDTable + i;
+
+        entry->DataBaseAddress = data_base_address;
+        entry->DataByteCount = (sector_count << 9) - 1;
+        entry->Interrupt = true;
+    }
+
+    const auto command_fis = reinterpret_cast<fis::HostToDeviceT*>(command_table->Command_FIS);
+    command_fis->Type = fis::Type_HostToDevice;
+    command_fis->IsCommand = true;
+    command_fis->Command = ata::Command_READ_DMA_EXT;
+    command_fis->Device = 1 << 6;
+    command_fis->Count = sector_count;
+    command_fis->LBA0 = (lba >> 0x00) & 0xFF;
+    command_fis->LBA1 = (lba >> 0x08) & 0xFF;
+    command_fis->LBA2 = (lba >> 0x10) & 0xFF;
+    command_fis->LBA3 = (lba >> 0x18) & 0xFF;
+    command_fis->LBA4 = (lba >> 0x20) & 0xFF;
+    command_fis->LBA5 = (lba >> 0x28) & 0xFF;
+
+    *reinterpret_cast<u32*>(&port->InterruptStatus) = 0xFFFFFFFF;
+
+    const auto mask = 1 << slot;
+    port->CommandIssue = mask;
+
+    for (unsigned timeout = 1000000; port->CommandIssue & mask; --timeout)
+        if (port->InterruptStatus.TaskFileErrorStatus || !timeout)
+            return false;
+
+    return true;
+}
+
+bool ahci::ReadATAPI(
+    hba::MEM_T* abar,
+    hba::PortT* port,
+    uptr lba,
+    u16 sector_count,
+    void* buffer)
+{
+    const u8 command[12]{
+        atapi::Command_READ_10,
+        0x00,
+        static_cast<u8>((lba >> 0x18) & 0xFF),
+        static_cast<u8>((lba >> 0x10) & 0xFF),
+        static_cast<u8>((lba >> 0x08) & 0xFF),
+        static_cast<u8>((lba >> 0x00) & 0xFF),
+        0x00, // (sector_count >> 0x18) & 0xF
+        0x00, // (sector_count >> 0x10) & 0xF
+        static_cast<u8>((sector_count >> 0x08) & 0xFF),
+        static_cast<u8>((sector_count >> 0x00) & 0xFF),
+        0x00,
+        0x00,
+    };
+
+    return SendATAPICommand(abar, port, command, sizeof(command), buffer, sector_count << 11);
 }
