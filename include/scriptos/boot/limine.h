@@ -1,0 +1,14 @@
+#pragma once
+
+#include <limine.h>
+
+extern uint64_t limine_base_revision[3];
+extern limine_bootloader_info_request bootloader_info_request;
+extern limine_firmware_type_request firmware_type_request;
+extern limine_hhdm_request hhdm_request;
+extern limine_framebuffer_request framebuffer_request;
+extern limine_memmap_request memmap_request;
+extern limine_mp_request mp_request;
+extern limine_efi_system_table_request efi_system_table_request;
+extern limine_paging_mode_request paging_mode_request;
+extern limine_rsdp_request rsdp_request;
