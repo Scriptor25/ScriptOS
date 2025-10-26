@@ -37,7 +37,9 @@ Renderer::Renderer(
 u32 Renderer::RepackColor(u32 color) const
 {
     if (!m_RequireRepack)
+    {
         return color;
+    }
 
     auto r = (color >> 16) & 0xff;
     auto g = (color >> 8) & 0xff;
@@ -69,7 +71,9 @@ void Renderer::Clear()
     memory::Fill(m_BackBuffer, 0, m_Size);
 
     for (usize i = 0; i < m_Size; i += m_Stride)
+    {
         *reinterpret_cast<u32*>(m_BackBuffer + i) |= m_Background;
+    }
 
     m_Dirty = true;
 }
@@ -87,7 +91,9 @@ void Renderer::Shift(usize up)
     memory::Fill(end, 0, offset);
 
     for (usize i = 0; i < offset; i += m_Stride)
+    {
         *reinterpret_cast<u32*>(end + i) |= m_Background;
+    }
 
     m_Dirty = true;
 }
@@ -129,10 +135,10 @@ void Renderer::DrawChar(
 {
     auto bitmap = font8x8::GetChar(c);
 
-    for (usize j = 0; j < 8; ++j)
+    for (usize j = 0; j < 8 && (y + j) < m_Height; ++j)
     {
         auto row = m_BackBuffer + (y + j) * m_Pitch;
-        for (usize i = 0; i < 8; ++i)
+        for (usize i = 0; i < 8 && (x + i) < m_Width; ++i)
         {
             auto dst = reinterpret_cast<u32*>(row + (x + i) * m_Stride);
 
@@ -169,7 +175,9 @@ void Renderer::NextChar(int c)
             NewLine();
         }
         else
+        {
             m_Cursor.X += 8;
+        }
         break;
     }
 }
@@ -177,9 +185,13 @@ void Renderer::NextChar(int c)
 void Renderer::NewLine()
 {
     if ((m_Cursor.Y + 12) >= m_Height)
+    {
         Shift(12);
+    }
     else
+    {
         m_Cursor.Y += 12;
+    }
 }
 
 memory::UniquePtr<Renderer> KernelRenderer;

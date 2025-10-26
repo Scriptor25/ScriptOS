@@ -16,7 +16,9 @@ static HeapHeader* __heap_end()
 {
     auto header = __heap_begin;
     while (header->right)
+    {
         header = header->right;
+    }
     return header;
 }
 
@@ -25,19 +27,27 @@ static HeapHeader* __merge(
     HeapHeader* right)
 {
     if (left->right != right || right->left != left)
+    {
         return left;
+    }
 
     if (!left->free || !right->free)
+    {
         return left;
+    }
 
     if (reinterpret_cast<HeapHeader*>(reinterpret_cast<uptr>(left + 1) + left->size) != right)
+    {
         return left;
+    }
 
     left->size += sizeof(HeapHeader) + right->size;
     left->right = right->right;
 
     if (left->right)
+    {
         left->right->left = left;
+    }
 
     return left;
 }
@@ -85,17 +95,23 @@ void memory::InitializeHeap(usize size)
 void* memory::Allocate(usize count)
 {
     if (!count)
+    {
         return nullptr;
+    }
 
     HeapHeader* header = nullptr;
     do
     {
         header = __heap_begin;
         while (header && (!header->free || header->size < count))
+        {
             header = header->right;
+        }
 
         if (!header)
+        {
             __extend_heap();
+        }
 
     } while (!header);
 
@@ -113,7 +129,9 @@ void* memory::Allocate(usize count)
     right_header->right = header->right;
 
     if (right_header->right)
+    {
         right_header->right->left = right_header;
+    }
 
     header->free = false;
     header->size = count;
@@ -134,7 +152,9 @@ void* memory::Reallocate(
 
     auto new_block = Allocate(count);
     if (!new_block)
+    {
         return nullptr;
+    }
 
     if (block)
     {
@@ -149,14 +169,20 @@ void* memory::Reallocate(
 void memory::Free(void* block)
 {
     if (!block)
+    {
         return;
+    }
 
     auto header = reinterpret_cast<HeapHeader*>(block) - 1;
     header->free = true;
 
     if (header->left && header->left->free)
+    {
         header = __merge(header->left, header);
+    }
 
     if (header->right && header->right->free)
+    {
         header = __merge(header, header->right);
+    }
 }

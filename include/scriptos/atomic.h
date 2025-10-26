@@ -5,7 +5,9 @@
 namespace atomic
 {
     template<typename T>
-    T XCHG(volatile T* dst, T val)
+    T XCHG(
+        volatile T* dst,
+        T val)
     {
         T pre;
         asm volatile("xchg %0, %1"
@@ -16,7 +18,10 @@ namespace atomic
     }
 
     template<typename T>
-    bool CMPXCHG(volatile T* dst, T exp, T val)
+    bool CMPXCHG(
+        volatile T* dst,
+        T exp,
+        T val)
     {
         u8 result;
         asm volatile("lock cmpxchg %2, %1;"

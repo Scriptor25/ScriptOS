@@ -41,12 +41,15 @@ ISO = $(BINARY_DIRECTORY)/$(OS_NAME).iso
 INCLUDES = -Iinclude -Ilimine -Iefi
 DEFINES = -DLIMINE_API_REVISION=3 -DEFI_PLATFORM=1
 
-ASFLAGS = -g -O0
+COMMON = -g -O0
+
+ASFLAGS = $(COMMON)
 PPFLAGS = $(INCLUDES) $(DEFINES) -MM
 
 CFLAGS = $(INCLUDES) 			\
 		 $(DEFINES) 			\
-		 -g -g3 -ggdb -O0 		\
+		 $(COMMON) 				\
+		 -g3 -ggdb 				\
 		 -ffreestanding 		\
 		 -fno-stack-protector 	\
 		 -fno-stack-check 		\
@@ -77,20 +80,18 @@ XORRISOFLAGS = -as mkisofs 									\
 			   --efi-boot-image 							\
 			   --protective-msdos-label
 
-QEMUFLAGS = -machine q35															\
- 			-smp 4 -m 256M															\
-			-net none																\
-			-serial stdio															\
+QEMUFLAGS = -machine q35	\
+ 			-smp 4 -m 256M	\
+			-net none		\
+			-serial stdio	\
 			-cdrom $(ISO)
 
 QEMUFLAGS_EFI = -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE.fd \
 				-drive if=pflash,format=raw,file=/usr/share/OVMF/OVMF_VARS.fd
 
-include $(KERNEL_DEPENDECIES)
-
 .PHONY: all clean build launch-bios debug-bios launch-efi debug-efi
 
-all: clean build launch
+all: build
 
 clean:
 	@ -rm -rf $(BINARY_DIRECTORY)
@@ -109,44 +110,38 @@ launch-efi: $(ISO)
 debug-efi: $(ISO)
 	sudo $(QEMU) $(QEMUFLAGS) $(QEMUFLAGS_EFI) -s -S
 
+include $(KERNEL_DEPENDECIES)
+
 $(BINARY_DIRECTORY)/%.d: $(SOURCE_DIRECTORY)/%
 	@ mkdir -p $(@D)
-	@ -rm $@
 	@ $(PP) $(PPFLAGS) -MT $(BINARY_DIRECTORY)/$*.o -MF $@ $<
 
 $(BINARY_DIRECTORY)/%.s.pp: $(SOURCE_DIRECTORY)/%.s
 	@ mkdir -p $(@D)
-	@ -rm $@
 	$(PP) $(DEFINES) $(INCLUDES) -o $@ $<
 
 $(BINARY_DIRECTORY)/%.s.o: $(BINARY_DIRECTORY)/%.s.pp
 	@ mkdir -p $(@D)
-	@ -rm $@
 	$(AS) $(ASFLAGS) -o $@ $<
 
 $(BINARY_DIRECTORY)/%.c.o: $(SOURCE_DIRECTORY)/%.c
 	@ mkdir -p $(@D)
-	@ -rm $@
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(BINARY_DIRECTORY)/%.cpp.o: $(SOURCE_DIRECTORY)/%.cpp
 	@ mkdir -p $(@D)
-	@ -rm $@
 	$(CXXC) $(CXXFLAGS) -o $@ -c $<
 
 $(BINARY_DIRECTORY)/interrupt/%.c.o: $(SOURCE_DIRECTORY)/interrupt/%.c
 	@ mkdir -p $(@D)
-	@ -rm $@
 	$(CC) $(CFLAGS) -mgeneral-regs-only -o $@ -c $<
 
 $(BINARY_DIRECTORY)/interrupt/%.cpp.o: $(SOURCE_DIRECTORY)/interrupt/%.cpp
 	@ mkdir -p $(@D)
-	@ -rm $@
 	$(CXXC) $(CXXFLAGS) -mgeneral-regs-only -o $@ -c $<
 
 $(KERNEL_ELF): $(KERNEL_OBJECTS) $(LINKER_LD)
 	@ mkdir -p $(@D)
-	@ -rm $@
 	$(LD) $(LDFLAGS) -o $(KERNEL_ELF) $(KERNEL_OBJECTS) -T $(LINKER_LD)
 
 $(ISO): $(KERNEL_ELF) $(LIMINE_CONFIG) $(LIMINE_BIOS_UEFI) $(LIMINE_BOOTX64_EFI)
@@ -158,5 +153,4 @@ $(ISO): $(KERNEL_ELF) $(LIMINE_CONFIG) $(LIMINE_BIOS_UEFI) $(LIMINE_BOOTX64_EFI)
 	@ mkdir -p $(ISO_DIRECTORY)/EFI/BOOT
 	cp $(LIMINE_BOOTX64_EFI) $(ISO_DIRECTORY)/EFI/BOOT/BOOTX64.EFI
 	@ mkdir -p $(@D)
-	@ -rm $@
 	xorriso $(XORRISOFLAGS) $(ISO_DIRECTORY) -o $(ISO)

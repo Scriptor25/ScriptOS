@@ -1,6 +1,8 @@
 #include <scriptos/interrupt.h>
 
-INTERRUPT void interrupt::NP_Handler(StackFrame* stack_frame, u64 error_code)
+INTERRUPT void interrupt::NP_Handler(
+    StackFrame* stack_frame,
+    u64 error_code)
 {
     auto external = error_code & 0b1;
     auto table = (error_code >> 1) & 0b11;
@@ -23,12 +25,14 @@ INTERRUPT void interrupt::NP_Handler(StackFrame* stack_frame, u64 error_code)
         break;
     }
 
-    Panic("Segment Not Present %s%s [ %u ] (%02X:%016X, %02X:%016X)",
-          external ? "EXT " : "",
-          table_string,
-          index,
-          stack_frame->CS,
-          stack_frame->IP,
-          stack_frame->SS,
-          stack_frame->SP);
+    Panic(
+        false,
+        "Segment Not Present %s%s [ %u ] (%02X:%016X, %02X:%016X)",
+        external ? "EXT " : "",
+        table_string,
+        index,
+        stack_frame->CS,
+        stack_frame->IP,
+        stack_frame->SS,
+        stack_frame->SP);
 }

@@ -6,8 +6,11 @@ template<typename T>
 class Range
 {
 public:
-    Range(T* buffer, usize size)
-        : m_Buffer(buffer), m_Size(size)
+    Range(
+        T* buffer,
+        usize size)
+        : m_Buffer(buffer),
+          m_Size(size)
     {
     }
 

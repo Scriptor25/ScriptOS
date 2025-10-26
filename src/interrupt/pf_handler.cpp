@@ -1,6 +1,8 @@
 #include <scriptos/interrupt.h>
 
-INTERRUPT void interrupt::PF_Handler(StackFrame* stack_frame, u64 error_code)
+INTERRUPT void interrupt::PF_Handler(
+    StackFrame* stack_frame,
+    u64 error_code)
 {
     auto present = error_code & 0b1;
     auto read_write = (error_code >> 1) & 0b1;
@@ -14,20 +16,22 @@ INTERRUPT void interrupt::PF_Handler(StackFrame* stack_frame, u64 error_code)
     u64 address;
     asm volatile("mov %%cr2, %0" : "=a"(address));
 
-    Panic("Page Fault %016X "
-          "[ ... ][ %u ][ ... ][ %u ][ %u ][ %u ][ %u ][ %u ][ %u ][ %u ] "
-          "(%02X:%016X, %02X:%016X)",
-          address,
-          software_guard_extension,
-          shadow_stack,
-          protection_key,
-          instruction_fetch,
-          reserved_write,
-          user,
-          read_write,
-          present,
-          stack_frame->CS,
-          stack_frame->IP,
-          stack_frame->SS,
-          stack_frame->SP);
+    Panic(
+        false,
+        "Page Fault %016X "
+        "[ ... ][ %u ][ ... ][ %u ][ %u ][ %u ][ %u ][ %u ][ %u ][ %u ] "
+        "(%02X:%016X, %02X:%016X)",
+        address,
+        software_guard_extension,
+        shadow_stack,
+        protection_key,
+        instruction_fetch,
+        reserved_write,
+        user,
+        read_write,
+        present,
+        stack_frame->CS,
+        stack_frame->IP,
+        stack_frame->SS,
+        stack_frame->SP);
 }

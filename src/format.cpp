@@ -17,7 +17,7 @@ enum
     flags_pad_zero,
 };
 
-static unsigned s_print_int(
+static unsigned print_int(
     out_stream stream,
     u64 value,
     unsigned base,
@@ -29,16 +29,18 @@ static unsigned s_print_int(
 {
     (void) precision;
 
-    bool left_justify = flags == flags_left_justify;
-    bool force_sign = flags == flags_force_sign;
-    bool sign_space = flags == flags_sign_space;
-    bool prefix = flags == flags_prefix;
-    bool pad_zero = flags == flags_pad_zero;
+    auto left_justify = flags == flags_left_justify;
+    auto force_sign = flags == flags_force_sign;
+    auto sign_space = flags == flags_sign_space;
+    auto prefix = flags == flags_prefix;
+    auto pad_zero = flags == flags_pad_zero;
 
     auto has_sign = is_signed && static_cast<i64>(value) < 0;
 
     if (has_sign)
+    {
         value = static_cast<u64>(-static_cast<i64>(value));
+    }
 
     char buffer[128];
     unsigned count = 0;
@@ -51,12 +53,19 @@ static unsigned s_print_int(
     } while (value);
 
     if (has_sign)
+    {
         buffer[count++] = '-';
+    }
     else if (force_sign)
+    {
         buffer[count++] = '+';
+    }
     else if (sign_space)
+    {
         buffer[count++] = ' ';
+    }
     else if (prefix)
+    {
         switch (base)
         {
         case 8:
@@ -68,22 +77,33 @@ static unsigned s_print_int(
             buffer[count++] = '0';
             break;
         }
+    }
 
     if (!left_justify)
+    {
         while (count < width)
+        {
             buffer[count++] = (pad_zero ? '0' : ' ');
+        }
+    }
 
     for (int i = count - 1; i >= 0; --i)
+    {
         stream(buffer[i]);
+    }
 
     if (left_justify)
+    {
         while (count++ < width)
+        {
             stream(' ');
+        }
+    }
 
     return count;
 }
 
-static unsigned s_print_float(
+static unsigned print_flt(
     out_stream stream,
     f64 value,
     unsigned base,
@@ -105,7 +125,7 @@ static unsigned s_print_float(
     return 0;
 }
 
-unsigned SPrintV(
+unsigned vfkprintf(
     out_stream stream,
     cstr format,
     va_list ap)
@@ -215,7 +235,7 @@ unsigned SPrintV(
             case 'I':
             {
                 auto value = va_arg(ap, u64);
-                count += s_print_int(stream, value, 10, false, true, flags, width, precision);
+                count += print_int(stream, value, 10, false, true, flags, width, precision);
                 break;
             }
 
@@ -223,7 +243,7 @@ unsigned SPrintV(
             case 'U':
             {
                 auto value = va_arg(ap, u64);
-                count += s_print_int(stream, value, 10, false, false, flags, width, precision);
+                count += print_int(stream, value, 10, false, false, flags, width, precision);
                 break;
             }
 
@@ -231,21 +251,21 @@ unsigned SPrintV(
             case 'O':
             {
                 auto value = va_arg(ap, u64);
-                count += s_print_int(stream, value, 8, false, false, flags, width, precision);
+                count += print_int(stream, value, 8, false, false, flags, width, precision);
                 break;
             }
 
             case 'x':
             {
                 auto value = va_arg(ap, u64);
-                count += s_print_int(stream, value, 16, false, false, flags, width, precision);
+                count += print_int(stream, value, 16, false, false, flags, width, precision);
                 break;
             }
 
             case 'X':
             {
                 auto value = va_arg(ap, u64);
-                count += s_print_int(stream, value, 16, true, false, flags, width, precision);
+                count += print_int(stream, value, 16, true, false, flags, width, precision);
                 break;
             }
 
@@ -253,35 +273,35 @@ unsigned SPrintV(
             case 'F':
             {
                 auto value = va_arg(ap, f64);
-                count += s_print_float(stream, value, 10, false, false, flags, width, precision);
+                count += print_flt(stream, value, 10, false, false, flags, width, precision);
                 break;
             }
 
             case 'e':
             {
                 auto value = va_arg(ap, f64);
-                count += s_print_float(stream, value, 10, false, true, flags, width, precision);
+                count += print_flt(stream, value, 10, false, true, flags, width, precision);
                 break;
             }
 
             case 'E':
             {
                 auto value = va_arg(ap, f64);
-                count += s_print_float(stream, value, 10, true, true, flags, width, precision);
+                count += print_flt(stream, value, 10, true, true, flags, width, precision);
                 break;
             }
 
             case 'a':
             {
                 auto value = va_arg(ap, f64);
-                count += s_print_float(stream, value, 16, false, false, flags, width, precision);
+                count += print_flt(stream, value, 16, false, false, flags, width, precision);
                 break;
             }
 
             case 'A':
             {
                 auto value = va_arg(ap, f64);
-                count += s_print_float(stream, value, 16, true, false, flags, width, precision);
+                count += print_flt(stream, value, 16, true, false, flags, width, precision);
                 break;
             }
 
@@ -311,7 +331,9 @@ unsigned SPrintV(
                 }
 
                 for (unsigned n = 0; *value && (!precision || n < precision); ++value, ++count, ++n)
+                {
                     stream(*value);
+                }
                 break;
             }
 
@@ -332,7 +354,9 @@ unsigned SPrintV(
                 }
 
                 for (unsigned n = 0; *value && (!precision || n < precision); ++value, ++count, ++n)
+                {
                     stream(*value);
+                }
                 break;
             }
 
@@ -353,7 +377,9 @@ unsigned SPrintV(
                 }
 
                 for (unsigned n = 0; *value && (!precision || n < precision); ++value, ++count, ++n)
+                {
                     stream(*value);
+                }
                 break;
             }
 
@@ -361,7 +387,7 @@ unsigned SPrintV(
             case 'P':
             {
                 auto value = va_arg(ap, uptr);
-                count += s_print_int(stream, value, 16, 0, 0, flags, width, precision);
+                count += print_int(stream, value, 16, 0, 0, flags, width, precision);
                 break;
             }
 
@@ -369,7 +395,9 @@ unsigned SPrintV(
             case 'N':
             {
                 if (auto p = va_arg(ap, int*))
+                {
                     *p = count;
+                }
                 break;
             }
 
@@ -378,6 +406,7 @@ unsigned SPrintV(
                 count++;
                 break;
             }
+
             state = state_print;
             break;
         }

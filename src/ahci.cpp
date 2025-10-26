@@ -30,7 +30,9 @@ bool ahci::Initialize(
     uptr base_address)
 {
     if (base_address & 0x7F)
+    {
         return false;
+    }
 
     StopCommand(port);
 
@@ -69,8 +71,12 @@ int ahci::FindSlot(
     const auto slots = port->SATAActive | port->CommandIssue;
 
     for (unsigned i = 0; i < slot_count; ++i)
+    {
         if (!((slots >> i) & 1))
+        {
             return i;
+        }
+    }
 
     return -1;
 }
@@ -86,12 +92,18 @@ bool ahci::SendATAPICommand(
     for (unsigned timeout = 1000000;
          port->TaskFileData.Status.Busy || port->TaskFileData.Status.DataTransferRequest;
          --timeout)
+    {
         if (!timeout)
+        {
             return false;
+        }
+    }
 
     auto slot = FindSlot(abar, port);
     if (slot < 0)
+    {
         return false;
+    }
 
     const auto command_header = reinterpret_cast<hba::CommandHeaderT*>(port->CommandListBase) + slot;
     command_header->ATAPI = true;
@@ -124,8 +136,12 @@ bool ahci::SendATAPICommand(
     port->CommandIssue = mask;
 
     for (unsigned timeout = 1000000; port->CommandIssue & mask; --timeout)
+    {
         if (port->InterruptStatus.TaskFileErrorStatus || !timeout)
+        {
             return false;
+        }
+    }
 
     return true;
 }
@@ -140,12 +156,18 @@ bool ahci::ReadATA(
     for (unsigned timeout = 1000000;
          port->TaskFileData.Status.Busy || port->TaskFileData.Status.DataTransferRequest;
          --timeout)
+    {
         if (!timeout)
+        {
             return false;
+        }
+    }
 
     auto slot = FindSlot(abar, port);
     if (slot < 0)
+    {
         return false;
+    }
 
     const auto command_header = reinterpret_cast<hba::CommandHeaderT*>(port->CommandListBase) + slot;
     command_header->ATAPI = false;
@@ -199,8 +221,12 @@ bool ahci::ReadATA(
     port->CommandIssue = mask;
 
     for (unsigned timeout = 1000000; port->CommandIssue & mask; --timeout)
+    {
         if (port->InterruptStatus.TaskFileErrorStatus || !timeout)
+        {
             return false;
+        }
+    }
 
     return true;
 }

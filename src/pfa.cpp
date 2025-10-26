@@ -63,7 +63,9 @@ void* paging::PageFrameAllocator::AllocatePhysicalPages(usize count)
         }
 
         if (++found < count)
+        {
             continue;
+        }
 
         LockPages(address, found);
         return address;

@@ -18,7 +18,9 @@ int __cxa_atexit(
     void* dso_handle)
 {
     if (__atexit_func_count >= __ATEXIT_MAX_FUNCS)
+    {
         return -1;
+    }
 
     __atexit_func_entry* entry = __atexit_funcs + __atexit_func_count++;
     entry->destructor = destructor;
@@ -33,6 +35,10 @@ void __cxa_finalize(void* f)
     unsigned i = __atexit_func_count;
 
     while (i--)
+    {
         if (!f || __atexit_funcs[i].destructor == f)
+        {
             __atexit_funcs[i].destructor(__atexit_funcs[i].pointer);
+        }
+    }
 }

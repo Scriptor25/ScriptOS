@@ -30,7 +30,9 @@ bool serial::Initialize(u16 port)
     io::OutB(port + 0x0, 0xAE);
 
     if (io::InB(port + 0x0) != 0xAE)
+    {
         return false;
+    }
 
     io::OutB(port + 0x4, 0x0F);
     return true;
@@ -41,8 +43,9 @@ bool serial::IsTransmitEmpty(u16 port)
     return io::InB(port + 0x5) & 0x20;
 }
 
-void serial::Write(u16 port,
-                   u8 data)
+void serial::Write(
+    u16 port,
+    u8 data)
 {
     while (!IsTransmitEmpty(port))
         ;

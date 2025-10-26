@@ -50,7 +50,9 @@ pci::DeviceIterable::Iterator pci::DeviceIterable::end() const
     paging::MapPage(device, device);
 
     if (device->HeaderType & 0x80)
+    {
         return { m_DeviceAddress, 8 };
+    }
 
     return { m_DeviceAddress, 1 };
 }

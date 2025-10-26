@@ -9,7 +9,9 @@ const acpi::SDT_Header* acpi::RSDT::Find(cstr signature) const
         paging::MapPage(header, header);
 
         if (memory::Compare(header->Signature, signature, 4))
+        {
             return header;
+        }
     }
 
     return nullptr;
@@ -33,7 +35,9 @@ const acpi::SDT_Header* acpi::XSDT::Find(cstr signature) const
         paging::MapPage(header, header);
 
         if (memory::Compare(header->Signature, signature, 4))
+        {
             return header;
+        }
     }
 
     return nullptr;

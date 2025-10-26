@@ -30,7 +30,7 @@ namespace tss
     void Initialize(
         void* stack0,
         void* stack1,
-        void* stack2I);
+        void* stack2);
 
     extern "C" void __load_tr(u16 segment);
 

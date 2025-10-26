@@ -19,8 +19,9 @@ namespace serial
 
     bool IsTransmitEmpty(u16 port);
 
-    void Write(u16 port,
-               u8 data);
+    void Write(
+        u16 port,
+        u8 data);
 
     bool HasReceived(u16 port);
 

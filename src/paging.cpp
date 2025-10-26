@@ -29,22 +29,28 @@ void paging::WalkTable(
     {
         auto entry = table[i];
         if (!entry.Present)
+        {
             continue;
+        }
 
         auto physical_address = reinterpret_cast<void*>(entry.Address << 12);
         auto virtual_address = virtual_base + (static_cast<u64>(i) << (12 + (level - 1) * 9));
 
         if (level <= 1)
         {
-            SPrint(stream, "at %016X -> %016X\r\n", virtual_address, physical_address);
+            fkprintf(stream, "at %016X -> %016X\r\n", virtual_address, physical_address);
             continue;
         }
 
         PageTable next_table;
         if (IsPhysical(physical_address))
+        {
             next_table = PhysicalToVirtual<PageTable>(physical_address);
+        }
         else
+        {
             next_table = reinterpret_cast<PageTable>(physical_address);
+        }
 
         WalkTable(stream, next_table, virtual_address, level - 1);
     }
@@ -71,18 +77,26 @@ bool paging::MapPage(
 
     auto pdpt = GetOrCreateNextLevel(PML4_Base, lvl4, true);
     if (!pdpt)
+    {
         return false;
+    }
 
     auto pd = GetOrCreateNextLevel(pdpt, lvl3, true);
     if (!pd)
+    {
         return false;
+    }
 
     auto pt = GetOrCreateNextLevel(pd, lvl2, true);
     if (!pt)
+    {
         return false;
+    }
 
     if (IsPhysical(pt))
+    {
         pt = PhysicalToVirtual<PageTable>(pt);
+    }
 
     pt[lvl1].Value = 0;
 
@@ -113,7 +127,9 @@ bool paging::MapPages(
     {
         auto pi = i * PAGE_SIZE;
         if (!MapPage(reinterpret_cast<void*>(reinterpret_cast<uptr>(virtual_address) + pi), reinterpret_cast<void*>(reinterpret_cast<uptr>(physical_address) + pi), present, read_write, user_supervisor, write_through, cache_disable, accessed))
+        {
             return false;
+        }
     }
     return true;
 }
@@ -124,22 +140,32 @@ paging::PageTable paging::GetOrCreateNextLevel(
     bool create)
 {
     if (IsPhysical(table))
+    {
         table = PhysicalToVirtual<PageTable>(table);
+    }
 
     if (table[index].Present)
+    {
         return reinterpret_cast<PageTable>(table[index].Address << 12);
+    }
 
     if (!create)
+    {
         return nullptr;
+    }
 
     auto physical_address = KernelAllocator->AllocatePhysicalPage();
     if (!physical_address)
+    {
         return nullptr;
+    }
 
     auto next_table = PhysicalToVirtual<PageTable>(physical_address);
 
     for (unsigned i = 0; i < 512; ++i)
+    {
         next_table[i].Value = 0;
+    }
 
     table[index].Value = 0;
 
@@ -163,21 +189,31 @@ void* paging::GetMapping(const void* virtual_address)
 
     auto pdpt = GetOrCreateNextLevel(PML4_Base, lvl4, false);
     if (!pdpt)
+    {
         return nullptr;
+    }
 
     auto pd = GetOrCreateNextLevel(pdpt, lvl3, false);
     if (!pd)
+    {
         return nullptr;
+    }
 
     auto pt = GetOrCreateNextLevel(pd, lvl2, false);
     if (!pt)
+    {
         return nullptr;
+    }
 
     if (IsPhysical(pt))
+    {
         pt = PhysicalToVirtual<PageTable>(pt);
+    }
 
     if (!pt[lvl1].Present)
+    {
         return nullptr;
+    }
 
     return reinterpret_cast<void*>(pt[lvl1].Address << 12);
 }

@@ -4,17 +4,29 @@
 #include <scriptos/types.h>
 
 void interrupt::Panic(
+    bool serious,
     cstr format,
     ...)
 {
     va_list ap;
     va_start(ap, format);
-    PrintV(format, ap);
-    Print("\r\n");
+
+    if (serious)
+    {
+        vfkprintf(serial::WriteDefault, format, ap);
+        fkprintf(serial::WriteDefault, "\r\n");
+    }
+    else
+    {
+        vkprintf(format, ap);
+        kprintf("\r\n");
+        kflush();
+    }
+
     va_end(ap);
 
-    Flush();
-
     for (;;)
+    {
         asm volatile("cli; hlt");
+    }
 }

@@ -13,7 +13,9 @@ class Bitmap
     class Iterator
     {
     public:
-        Iterator(const Bitmap& bitmap, usize index);
+        Iterator(
+            const Bitmap& bitmap,
+            usize index);
 
         Entry operator*() const;
         Iterator& operator++();
@@ -26,12 +28,19 @@ class Bitmap
 
 public:
     Bitmap() = default;
-    Bitmap(u8* buffer, usize size_in_bits);
+    Bitmap(
+        u8* buffer,
+        usize size_in_bits);
 
     void Clear();
 
-    void Set(usize index, bool state);
-    void Fill(usize index, usize count, bool state);
+    void Set(
+        usize index,
+        bool state);
+    void Fill(
+        usize index,
+        usize count,
+        bool state);
     bool Get(usize index) const;
 
     Iterator begin() const;

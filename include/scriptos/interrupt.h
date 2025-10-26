@@ -15,7 +15,10 @@ namespace interrupt
         u64 SS;
     } __attribute__((packed));
 
-    void Panic(cstr format, ...);
+    void Panic(
+        bool serious,
+        cstr format,
+        ...);
 
     void DE_Handler(StackFrame* stack_frame);
     void DB_Handler(StackFrame* stack_frame);
@@ -25,18 +28,34 @@ namespace interrupt
     void BR_Handler(StackFrame* stack_frame);
     void UD_Handler(StackFrame* stack_frame);
     void NM_Handler(StackFrame* stack_frame);
-    void DF_Handler(StackFrame* stack_frame, u64 error_code);
-    void TS_Handler(StackFrame* stack_frame, u64 error_code);
-    void NP_Handler(StackFrame* stack_frame, u64 error_code);
-    void SS_Handler(StackFrame* stack_frame, u64 error_code);
-    void GP_Handler(StackFrame* stack_frame, u64 error_code);
-    void PF_Handler(StackFrame* stack_frame, u64 error_code);
+    void DF_Handler(
+        StackFrame* stack_frame,
+        u64 error_code);
+    void TS_Handler(
+        StackFrame* stack_frame,
+        u64 error_code);
+    void NP_Handler(
+        StackFrame* stack_frame,
+        u64 error_code);
+    void SS_Handler(
+        StackFrame* stack_frame,
+        u64 error_code);
+    void GP_Handler(
+        StackFrame* stack_frame,
+        u64 error_code);
+    void PF_Handler(
+        StackFrame* stack_frame,
+        u64 error_code);
     void MF_Handler(StackFrame* stack_frame);
-    void AC_Handler(StackFrame* stack_frame, u64 error_code);
+    void AC_Handler(
+        StackFrame* stack_frame,
+        u64 error_code);
     void MC_Handler(StackFrame* stack_frame);
     void XM_Handler(StackFrame* stack_frame);
     void VE_Handler(StackFrame* stack_frame);
-    void CP_Handler(StackFrame* stack_frame, u64 error_code);
+    void CP_Handler(
+        StackFrame* stack_frame,
+        u64 error_code);
 
     void KE_Handler(StackFrame* stack_frame);
 }

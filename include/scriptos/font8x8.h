@@ -19,7 +19,8 @@ namespace font8x8
     extern u8 BASIC[128][8];
 
     /**
-     * Contains an 8x8 font map for unicode points U+2580 - U+259F (block elements)
+     * Contains an 8x8 font map for unicode points U+2580 - U+259F (block
+     * elements)
      */
     extern u8 BLOCK[32][8];
 
@@ -29,17 +30,20 @@ namespace font8x8
     extern u8 BOX[128][8];
 
     /**
-     * Contains an 8x8 font map for unicode points U+0080 - U+009F (C1/C2 control)
+     * Contains an 8x8 font map for unicode points U+0080 - U+009F (C1/C2
+     * control)
      */
     extern u8 CONTROL[32][8];
 
     /**
-     * Contains an 8x8 font map for unicode points U+00A0 - U+00FF (extended latin)
+     * Contains an 8x8 font map for unicode points U+00A0 - U+00FF (extended
+     * latin)
      */
     extern u8 EXT_LATIN[96][8];
 
     /**
-     * Contains an 8x8 font map for unicode points U+0390 - U+03C9 (greek characters)
+     * Contains an 8x8 font map for unicode points U+0390 - U+03C9 (greek
+     * characters)
      */
     extern u8 GREEK[58][8];
 
@@ -57,5 +61,8 @@ namespace font8x8
     extern u8 SGA[26][8];
 
     const u8* GetChar(int c);
-    bool GetBit(const u8* c, u8 x, u8 y);
+    bool GetBit(
+        const u8* c,
+        u8 x,
+        u8 y);
 }

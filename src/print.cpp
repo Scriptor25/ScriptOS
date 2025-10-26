@@ -2,45 +2,56 @@
 #include <scriptos/renderer.h>
 #include <scriptos/serial.h>
 
-static void default_stream(int c)
+static void kstdout(int c)
 {
     serial::WriteDefault(c);
     if (KernelRenderer)
+    {
         KernelRenderer->NextChar(c);
+    }
 }
 
-unsigned Print(
+unsigned kprintf(
     cstr format,
     ...)
 {
     va_list ap;
     va_start(ap, format);
-    auto count = SPrintV(default_stream, format, ap);
+    auto count = vfkprintf(kstdout, format, ap);
     va_end(ap);
     return count;
 }
 
-unsigned PrintV(
+unsigned vkprintf(
     cstr format,
     va_list ap)
 {
-    return SPrintV(default_stream, format, ap);
+    return vfkprintf(kstdout, format, ap);
 }
 
-void Flush()
+void kflush()
 {
     if (KernelRenderer)
+    {
         KernelRenderer->SwapBuffers();
+    }
 }
 
-unsigned SPrint(
+unsigned fkprintf(
     out_stream stream,
     cstr format,
     ...)
 {
     va_list ap;
     va_start(ap, format);
-    auto count = SPrintV(stream, format, ap);
+    auto count = vfkprintf(stream, format, ap);
     va_end(ap);
     return count;
+}
+
+void kprintmem(
+    const void* buffer,
+    usize buffer_length)
+{
+    fkprintmem(kstdout, buffer, buffer_length);
 }
