@@ -1,5 +1,7 @@
 ![ScriptOS Logo](./logo/repository-banner.png)
 
+TODO: rewrite README for new 64 bit system.
+
 # ScriptOS - WIP
 
 WARNING: this project is still work in process, and will be aproximatly for the next 20 years or so.
