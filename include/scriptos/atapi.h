@@ -1,0 +1,57 @@
+#pragma once
+
+namespace atapi
+{
+    enum CommandT
+    {
+        Command_TEST_UNIT_READY = 0x00,
+        Command_REQUEST_SENSE = 0x03,
+        Command_FORMAT_UNIT = 0x04,
+        Command_INQUIRY = 0x12,
+        Command_START_STOP_UNIT = 0x1B,
+        Command_PREVENT_ALLOW_MEDIUM_REMOVAL = 0x1E,
+        Command_READ_FORMAT_CAPACITIES = 0x23,
+        Command_READ_CAPACITY = 0x25,
+        Command_READ_10 = 0x28,
+        Command_WRITE_10 = 0x2A,
+        Command_SEEK_10 = 0x2B,
+        Command_WRITE_AND_VERIFY_10 = 0x2E,
+        Command_VERIFY_10 = 0x2F,
+        Command_SYNCHRONIZE_CACHE = 0x35,
+        Command_WRITE_BUFFER = 0x3B,
+        Command_READ_BUFFER = 0x3C,
+        Command_READ_TOC_PMA_ATIP = 0x43,
+        Command_GET_CONFIGURATION = 0x46,
+        Command_GET_EVENT_STATUS_NOTIFICATION = 0x4A,
+        Command_READ_DISC_INFORMATION = 0x51,
+        Command_READ_TRACK_INFORMATION = 0x52,
+        Command_REVERSE_TRACK = 0x53,
+        Command_SEND_OPC_INFORMATION = 0x54,
+        Command_MODE_SELECT_10 = 0x55,
+        Command_REPAIR_TRACK = 0x58,
+        Command_MODE_SENSE_10 = 0x5A,
+        Command_CLOSE_TRACK_SESSION = 0x5B,
+        Command_READ_BUFFER_CAPACITY = 0x5C,
+        Command_SEND_CUE_SHEET = 0x5D,
+        Command_REPORT_LUNS = 0xA0,
+        Command_BLANK = 0xA1,
+        Command_SECURITY_PROTOCOL_IN = 0xA2,
+        Command_SEND_KEY = 0xA3,
+        Command_REPORT_KEY = 0xA4,
+        Command_LOAD_UNLOAD_MEDIUM = 0xA6,
+        Command_SET_READ_AHEAD = 0xA7,
+        Command_READ_12 = 0xA8,
+        Command_WRITE_12 = 0xAA,
+        Command_READ_MEDIA_SERIAL_NUMBER = 0xAB, // 0x01
+        Command_SERVICE_ACTION_IN_12 = 0xAB,     // ...
+        Command_GET_PREFORMANCE = 0xAC,
+        Command_READ_DISC_STRUCTURE = 0xAD,
+        Command_SECURITY_PROTOCOL_OUT = 0xB5,
+        Command_SET_STREAMING = 0xB6,
+        Command_READ_CD_MSF = 0xB9,
+        Command_SET_CD_SPEED = 0xBB,
+        Command_MECHANISM_STATUS = 0xBD,
+        Command_READ_CD = 0xBE,
+        Command_SEND_DISC_STRUCTURE = 0xBF,
+    };
+}

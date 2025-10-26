@@ -1,87 +1,156 @@
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-TARGET = i686-elf
-AS = $(TARGET)-as
-CC = $(TARGET)-g++
-PP = $(TARGET)-cpp
-QEMU = qemu-system-i386
+CROSS_COMPILE = x86_64-elf-
 
-OPT = -O0 -g -ggdb -g3
-CFLAGS = $(OPT) -std=c++20 -ffreestanding -mno-red-zone -Wall -Wextra -Werror -fno-exceptions -fno-rtti
-LDFLAGS = $(OPT) -ffreestanding -nostdlib
+AS = $(CROSS_COMPILE)as
+CC = $(CROSS_COMPILE)gcc
+CXXC = $(CROSS_COMPILE)g++
+PP = $(CROSS_COMPILE)cpp
+LD = $(CROSS_COMPILE)ld
+CPY = $(CROSS_COMPILE)objcopy
 
-SRC_DIR = src
-BIN_DIR = bin
+QEMU = qemu-system-x86_64
 
-INCLUDE = -I include
+SOURCE_DIRECTORY = src
+BINARY_DIRECTORY = bin
+LIMINE_DIRECTORY = limine
 
-KERNEL_SRC_DIR = $(SRC_DIR)/kernel
-KERNEL_BIN = $(BIN_DIR)/kernel.elf
-KERNEL_SYM = $(BIN_DIR)/kernel.sym
-KERNEL_ASM_SRC = $(call rwildcard,$(KERNEL_SRC_DIR),*.s)
-KERNEL_CPP_SRC = $(call rwildcard,$(KERNEL_SRC_DIR),*.cpp)
-KERNEL_ASM_OBJ = $(patsubst $(SRC_DIR)/%.s,$(BIN_DIR)/%.s.o,$(KERNEL_ASM_SRC))
-KERNEL_CPP_OBJ = $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.cpp.o,$(KERNEL_CPP_SRC))
-KERNEL_OBJ = $(KERNEL_ASM_OBJ) $(KERNEL_CPP_OBJ)
+LIMINE_CONFIG = $(SOURCE_DIRECTORY)/limine.conf
 
-USER_SRC_DIR = $(SRC_DIR)/user
-USER_BIN = $(BIN_DIR)/user.elf
-USER_SRC = $(call rwildcard,$(USER_SRC_DIR),*.s) $(call rwildcard,$(USER_SRC_DIR),*.cpp)
-USER_OBJ = $(patsubst $(SRC_DIR)/%,$(BIN_DIR)/%.o,$(USER_SRC))
+LIMINE_BIOS_UEFI = $(LIMINE_DIRECTORY)/limine-bios.sys 		\
+				   $(LIMINE_DIRECTORY)/limine-bios-cd.bin 	\
+				   $(LIMINE_DIRECTORY)/limine-uefi-cd.bin
 
-GRUB_CFG = $(KERNEL_SRC_DIR)/grub.cfg
+LIMINE_BOOTX64_EFI = $(LIMINE_DIRECTORY)/BOOTX64.EFI
 
-OSNAME = scriptos
+LINKER_LD = $(SOURCE_DIRECTORY)/linker.ld
 
-ISO_DIR = $(BIN_DIR)/iso
-ISO = $(BIN_DIR)/$(OSNAME).iso
+KERNEL_SOURCES = $(call rwildcard,$(SOURCE_DIRECTORY),*.s) 	\
+				 $(call rwildcard,$(SOURCE_DIRECTORY),*.c) 	\
+				 $(call rwildcard,$(SOURCE_DIRECTORY),*.cpp)
+KERNEL_OBJECTS = $(CRT0) $(KERNEL_SOURCES:$(SOURCE_DIRECTORY)/%=$(BINARY_DIRECTORY)/%.o)
+KERNEL_DEPENDECIES = $(KERNEL_OBJECTS:.o=.d)
 
-QEMU_FLAGS = -machine q35 -cdrom $(ISO) -serial stdio
+KERNEL_ELF = $(BINARY_DIRECTORY)/kernel.elf
 
-.PHONY: all clean build launch debug
+OS_NAME = scriptos
 
-all: clean build launch
+ISO_DIRECTORY = $(BINARY_DIRECTORY)/iso
+ISO = $(BINARY_DIRECTORY)/$(OS_NAME).iso
+
+INCLUDES = -Iinclude -Ilimine -Iefi
+DEFINES = -DLIMINE_API_REVISION=3 -DEFI_PLATFORM=1
+
+COMMON = -g -O0
+
+ASFLAGS = $(COMMON)
+PPFLAGS = $(INCLUDES) $(DEFINES) -MM
+
+CFLAGS = $(INCLUDES) 			\
+		 $(DEFINES) 			\
+		 $(COMMON) 				\
+		 -g3 -ggdb 				\
+		 -ffreestanding 		\
+		 -fno-stack-protector 	\
+		 -fno-stack-check 		\
+		 -fno-pic 				\
+		 -mno-red-zone 			\
+		 -m64 					\
+		 -march=x86-64 			\
+		 -mcmodel=kernel 		\
+		 -Wall -Wextra -Werror
+
+CXXFLAGS = $(CFLAGS) 		\
+		   -fno-exceptions 	\
+		   -fno-rtti 		\
+		   -std=c++20
+
+LDFLAGS = -nostdlib -static
+
+XORRISOFLAGS = -as mkisofs 									\
+	    	   -R -r -J 									\
+			   -b boot/limine/limine-bios-cd.bin 			\
+			   -no-emul-boot 								\
+			   -boot-load-size 4 							\
+			   -boot-info-table 							\
+			   -hfsplus 									\
+			   -apm-block-size 2048 						\
+			   --efi-boot boot/limine/limine-uefi-cd.bin	\
+			   -efi-boot-part 								\
+			   --efi-boot-image 							\
+			   --protective-msdos-label
+
+QEMUFLAGS = -machine q35	\
+ 			-smp 4 -m 256M	\
+			-net none		\
+			-serial stdio	\
+			-cdrom $(ISO)
+
+QEMUFLAGS_EFI = -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE.fd \
+				-drive if=pflash,format=raw,file=/usr/share/OVMF/OVMF_VARS.fd
+
+.PHONY: all clean build launch-bios debug-bios launch-efi debug-efi
+
+all: build
 
 clean:
-	-rm -rf $(BIN_DIR)
+	@ -rm -rf $(BINARY_DIRECTORY)
 
 build: $(ISO)
 
-launch: $(ISO)
-	$(QEMU) $(QEMU_FLAGS)
+launch-bios: $(ISO)
+	$(QEMU) $(QEMUFLAGS)
 
-debug: $(ISO)
-	$(QEMU) $(QEMU_FLAGS) -s
+debug-bios: $(ISO)
+	$(QEMU) $(QEMUFLAGS) -s -S
 
-$(BIN_DIR)/%.s.pp: $(SRC_DIR)/%.s
-	mkdir -p $(@D)
-	$(PP) -o $@ $(INCLUDE) $<
+launch-efi: $(ISO)
+	sudo $(QEMU) $(QEMUFLAGS) $(QEMUFLAGS_EFI)
 
-$(BIN_DIR)/%.s.o: $(BIN_DIR)/%.s.pp
-	mkdir -p $(@D)
-	$(AS) -o $@ $<
+debug-efi: $(ISO)
+	sudo $(QEMU) $(QEMUFLAGS) $(QEMUFLAGS_EFI) -s -S
 
-$(BIN_DIR)/kernel/interrupts.cpp.o: $(SRC_DIR)/kernel/interrupts.cpp
-	mkdir -p $(@D)
-	$(CC) $(CFLAGS) -mgeneral-regs-only -o $@ $(INCLUDE) -c $<
+include $(KERNEL_DEPENDECIES)
 
-$(BIN_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
-	mkdir -p $(@D)
-	$(CC) $(CFLAGS) -o $@ $(INCLUDE) -c $<
+$(BINARY_DIRECTORY)/%.d: $(SOURCE_DIRECTORY)/%
+	@ mkdir -p $(@D)
+	@ $(PP) $(PPFLAGS) -MT $(BINARY_DIRECTORY)/$*.o -MF $@ $<
 
-$(KERNEL_BIN): $(KERNEL_SRC_DIR)/linker.ld $(KERNEL_OBJ)
-	$(CC) $(LDFLAGS) -o $@ -T $^
-	objcopy --only-keep-debug $@ $(KERNEL_SYM)
-	objcopy --strip-debug $@
-	grub-file --is-x86-multiboot2 $@
+$(BINARY_DIRECTORY)/%.s.pp: $(SOURCE_DIRECTORY)/%.s
+	@ mkdir -p $(@D)
+	$(PP) $(DEFINES) $(INCLUDES) -o $@ $<
 
-$(USER_BIN): $(USER_SRC_DIR)/linker.ld $(USER_OBJ)
-	$(CC) $(LDFLAGS) -o $@ -T $^
-	objcopy --strip-debug $@
+$(BINARY_DIRECTORY)/%.s.o: $(BINARY_DIRECTORY)/%.s.pp
+	@ mkdir -p $(@D)
+	$(AS) $(ASFLAGS) -o $@ $<
 
-$(ISO): $(KERNEL_BIN) $(USER_BIN) $(GRUB_CFG)
-	mkdir -p $(ISO_DIR)/boot/grub
-	cp $(KERNEL_BIN) $(ISO_DIR)/boot/kernel.elf
-	cp $(USER_BIN) $(ISO_DIR)/boot/user.elf
-	cp $(GRUB_CFG) $(ISO_DIR)/boot/grub/grub.cfg
-	grub-mkrescue -o $@ $(ISO_DIR)
+$(BINARY_DIRECTORY)/%.c.o: $(SOURCE_DIRECTORY)/%.c
+	@ mkdir -p $(@D)
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+$(BINARY_DIRECTORY)/%.cpp.o: $(SOURCE_DIRECTORY)/%.cpp
+	@ mkdir -p $(@D)
+	$(CXXC) $(CXXFLAGS) -o $@ -c $<
+
+$(BINARY_DIRECTORY)/interrupt/%.c.o: $(SOURCE_DIRECTORY)/interrupt/%.c
+	@ mkdir -p $(@D)
+	$(CC) $(CFLAGS) -mgeneral-regs-only -o $@ -c $<
+
+$(BINARY_DIRECTORY)/interrupt/%.cpp.o: $(SOURCE_DIRECTORY)/interrupt/%.cpp
+	@ mkdir -p $(@D)
+	$(CXXC) $(CXXFLAGS) -mgeneral-regs-only -o $@ -c $<
+
+$(KERNEL_ELF): $(KERNEL_OBJECTS) $(LINKER_LD)
+	@ mkdir -p $(@D)
+	$(LD) $(LDFLAGS) -o $(KERNEL_ELF) $(KERNEL_OBJECTS) -T $(LINKER_LD)
+
+$(ISO): $(KERNEL_ELF) $(LIMINE_CONFIG) $(LIMINE_BIOS_UEFI) $(LIMINE_BOOTX64_EFI)
+	@ -rm -rf $(ISO_DIRECTORY)
+	@ mkdir -p $(ISO_DIRECTORY)/boot
+	cp $(KERNEL_ELF) $(ISO_DIRECTORY)/boot/kernel.elf
+	@ mkdir -p $(ISO_DIRECTORY)/boot/limine
+	cp $(LIMINE_CONFIG) $(LIMINE_BIOS_UEFI) $(ISO_DIRECTORY)/boot/limine
+	@ mkdir -p $(ISO_DIRECTORY)/EFI/BOOT
+	cp $(LIMINE_BOOTX64_EFI) $(ISO_DIRECTORY)/EFI/BOOT/BOOTX64.EFI
+	@ mkdir -p $(@D)
+	xorriso $(XORRISOFLAGS) $(ISO_DIRECTORY) -o $(ISO)
