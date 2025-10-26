@@ -16,7 +16,7 @@ A large part of the system is written in modern C++ (sorry [Linus](https://githu
 
 Here some goals / features the OS supports / will support:
 
-- [x] Multiboot2 compatible (GRUB bootable)
+- [x] ~~Multiboot2 compatible (GRUB bootable)~~ Limine Boot
 - [x] Memory mapping
 - [x] Memory paging
 - [x] Framebuffer drawing
@@ -26,7 +26,7 @@ Here some goals / features the OS supports / will support:
 - [x] Dynamic Memory Heap
 - [ ] Filesystem
 - [ ] Task Switching / Multitasking
-- [ ] 64-Bit Long Mode
+- [X] 64-Bit Long Mode
 - [ ] Persistent System
 - [ ] Process-Thread-Model
 - [ ] Smooth error handling
@@ -78,7 +78,7 @@ This will download the source code, build it and install the toolchain in `/usr/
 Now you can build the os using the cross-compiler toolchain:
 
 ```shell
-make clean build
+make
 ```
 
 If this is the first time you build the system from source, you can omit the `clean` target from the make command.
@@ -88,11 +88,21 @@ If this is the first time you build the system from source, you can omit the `cl
 Now that you have successfully built the system, you can either launch or debug it using a target in the makefile:
 
 ```shell
-make launch
+make launch-efi
 ```
 
 ```shell
-make debug
+make debug-efi
+```
+
+Or if you don't want to use EFI or don't have it set up, you can also boot using BIOS:
+
+```shell
+make launch-bios
+```
+
+```shell
+make debug-bios
 ```
 
 The difference is that `debug` tells qemu to open a gdb server on port `1234`, so you can connect to it as a remote gdb target.
@@ -104,9 +114,6 @@ For debugging you can use any tool that uses gdb for debugging and can connect t
 (my .vscode/launch.json)
 ```json
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
