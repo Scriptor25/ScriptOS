@@ -45,6 +45,23 @@ void idt::Initialize()
     entries[0x14] = { reinterpret_cast<uptr>(interrupt::VE_Handler), 0x0008, 0b000, 0xE, 0b00 };
     entries[0x15] = { reinterpret_cast<uptr>(interrupt::CP_Handler), 0x0008, 0b000, 0xF, 0b00 };
 
+    entries[0x20] = { reinterpret_cast<uptr>(interrupt::IRQ0_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x21] = { reinterpret_cast<uptr>(interrupt::IRQ1_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x22] = { reinterpret_cast<uptr>(interrupt::IRQ2_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x23] = { reinterpret_cast<uptr>(interrupt::IRQ3_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x24] = { reinterpret_cast<uptr>(interrupt::IRQ4_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x25] = { reinterpret_cast<uptr>(interrupt::IRQ5_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x26] = { reinterpret_cast<uptr>(interrupt::IRQ6_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x27] = { reinterpret_cast<uptr>(interrupt::IRQ7_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x28] = { reinterpret_cast<uptr>(interrupt::IRQ8_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x29] = { reinterpret_cast<uptr>(interrupt::IRQ9_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x2A] = { reinterpret_cast<uptr>(interrupt::IRQA_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x2B] = { reinterpret_cast<uptr>(interrupt::IRQB_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x2C] = { reinterpret_cast<uptr>(interrupt::IRQC_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x2D] = { reinterpret_cast<uptr>(interrupt::IRQD_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x2E] = { reinterpret_cast<uptr>(interrupt::IRQE_Handler), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x2F] = { reinterpret_cast<uptr>(interrupt::IRQF_Handler), 0x0008, 0b000, 0xF, 0b00 };
+
     entries[0x69] = { reinterpret_cast<uptr>(interrupt::KE_Handler), 0x0008, 0b000, 0xE, 0b00 };
 
     const Descriptor descriptor = {

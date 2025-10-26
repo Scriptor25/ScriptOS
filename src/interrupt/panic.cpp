@@ -25,8 +25,9 @@ void interrupt::Panic(
 
     va_end(ap);
 
+    asm volatile("cli");
     for (;;)
     {
-        asm volatile("cli; hlt");
+        asm volatile("hlt");
     }
 }

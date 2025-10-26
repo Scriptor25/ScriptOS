@@ -19,28 +19,28 @@ u8 serial::InitializeAll()
 
 bool serial::Initialize(u16 port)
 {
-    io::OutB(port + 0x1, 0x00);
-    io::OutB(port + 0x3, 0x80);
-    io::OutB(port + 0x0, 0x03);
-    io::OutB(port + 0x1, 0x00);
-    io::OutB(port + 0x3, 0x03);
-    io::OutB(port + 0x2, 0xC7);
-    io::OutB(port + 0x4, 0x0B);
-    io::OutB(port + 0x4, 0x1E);
-    io::OutB(port + 0x0, 0xAE);
+    io::outb(port + 0x1, 0x00);
+    io::outb(port + 0x3, 0x80);
+    io::outb(port + 0x0, 0x03);
+    io::outb(port + 0x1, 0x00);
+    io::outb(port + 0x3, 0x03);
+    io::outb(port + 0x2, 0xC7);
+    io::outb(port + 0x4, 0x0B);
+    io::outb(port + 0x4, 0x1E);
+    io::outb(port + 0x0, 0xAE);
 
-    if (io::InB(port + 0x0) != 0xAE)
+    if (io::inb(port + 0x0) != 0xAE)
     {
         return false;
     }
 
-    io::OutB(port + 0x4, 0x0F);
+    io::outb(port + 0x4, 0x0F);
     return true;
 }
 
 bool serial::IsTransmitEmpty(u16 port)
 {
-    return io::InB(port + 0x5) & 0x20;
+    return io::inb(port + 0x5) & 0x20;
 }
 
 void serial::Write(
@@ -50,12 +50,12 @@ void serial::Write(
     while (!IsTransmitEmpty(port))
         ;
 
-    io::OutB(port + 0x0, data);
+    io::outb(port + 0x0, data);
 }
 
 bool serial::HasReceived(u16 port)
 {
-    return io::InB(port + 0x5) & 0x01;
+    return io::inb(port + 0x5) & 0x01;
 }
 
 u8 serial::Read(u16 port)
@@ -63,7 +63,7 @@ u8 serial::Read(u16 port)
     while (!HasReceived(port))
         ;
 
-    return io::InB(port + 0x0);
+    return io::inb(port + 0x0);
 }
 
 void serial::WriteDefault(int data)

@@ -4,8 +4,9 @@
 
 namespace io
 {
-    void OutB(
+    void wait();
+    void outb(
         u16 port,
         u8 data);
-    u8 InB(u16 port);
+    u8 inb(u16 port);
 }

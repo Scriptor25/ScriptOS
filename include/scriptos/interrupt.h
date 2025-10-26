@@ -57,5 +57,22 @@ namespace interrupt
         StackFrame* stack_frame,
         u64 error_code);
 
+    void IRQ0_Handler(StackFrame* stack_frame);
+    void IRQ1_Handler(StackFrame* stack_frame);
+    void IRQ2_Handler(StackFrame* stack_frame);
+    void IRQ3_Handler(StackFrame* stack_frame);
+    void IRQ4_Handler(StackFrame* stack_frame);
+    void IRQ5_Handler(StackFrame* stack_frame);
+    void IRQ6_Handler(StackFrame* stack_frame);
+    void IRQ7_Handler(StackFrame* stack_frame);
+    void IRQ8_Handler(StackFrame* stack_frame);
+    void IRQ9_Handler(StackFrame* stack_frame);
+    void IRQA_Handler(StackFrame* stack_frame);
+    void IRQB_Handler(StackFrame* stack_frame);
+    void IRQC_Handler(StackFrame* stack_frame);
+    void IRQD_Handler(StackFrame* stack_frame);
+    void IRQE_Handler(StackFrame* stack_frame);
+    void IRQF_Handler(StackFrame* stack_frame);
+
     void KE_Handler(StackFrame* stack_frame);
 }

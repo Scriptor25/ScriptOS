@@ -14,11 +14,9 @@ static usize __heap_size = 0;
 
 static HeapHeader* __heap_end()
 {
-    auto header = __heap_begin;
-    while (header->right)
-    {
-        header = header->right;
-    }
+    HeapHeader* header;
+    for (header = __heap_begin; header && header->right; header = header->right)
+        ;
     return header;
 }
 
@@ -102,17 +100,14 @@ void* memory::Allocate(usize count)
     HeapHeader* header = nullptr;
     do
     {
-        header = __heap_begin;
-        while (header && (!header->free || header->size < count))
-        {
-            header = header->right;
-        }
+        for (header = __heap_begin; header && (!header->free || header->size < count);
+             header = header->right)
+            ;
 
         if (!header)
         {
             __extend_heap();
         }
-
     } while (!header);
 
     if (header->size - sizeof(HeapHeader) <= count)

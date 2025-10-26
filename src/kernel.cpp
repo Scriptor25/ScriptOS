@@ -10,24 +10,17 @@
 #include <scriptos/memory.h>
 #include <scriptos/paging.h>
 #include <scriptos/pci.h>
+#include <scriptos/pic.h>
+#include <scriptos/pit.h>
 #include <scriptos/print.h>
 #include <scriptos/range.h>
 #include <scriptos/renderer.h>
 #include <scriptos/serial.h>
+#include <scriptos/task/schedule.h>
 #include <scriptos/tss.h>
 #include <scriptos/types.h>
 
-#define NORETURN __attribute__((noreturn))
-
-NORETURN static void halt()
-{
-    for (;;)
-    {
-        asm volatile("cli ; hlt");
-    }
-}
-
-NORETURN static void error(
+__attribute__((noreturn)) static void error(
     cstr format,
     ...)
 {
@@ -37,7 +30,11 @@ NORETURN static void error(
     va_end(ap);
     kprintf("\r\n");
     asm volatile("int $0x69");
-    halt();
+    asm volatile("cli");
+    for (;;)
+    {
+        asm volatile("hlt");
+    }
 }
 
 static void initialize_allocator()
@@ -403,13 +400,71 @@ static void find_ahci(const acpi::MCFG* mcfg)
     }
 }
 
-extern "C" NORETURN void kmain()
+struct print_task_t
 {
+    cstr message;
+};
+
+static void print_task(void* arg)
+{
+    auto t = reinterpret_cast<const print_task_t*>(arg);
+
+    kprintf(t->message);
+    kflush();
+}
+
+__attribute__((noreturn)) static void kernel_task(void* arg)
+{
+    (void) arg;
+
+    {
+        auto arg = memory::Allocate<print_task_t>();
+        arg->message = "A";
+        auto task = task::Create("print a", 0, print_task, arg);
+        task::Enqueue(task);
+    }
+    {
+        auto arg = memory::Allocate<print_task_t>();
+        arg->message = "B";
+        auto task = task::Create("print b", 0, print_task, arg);
+        task::Enqueue(task);
+    }
+    {
+        auto arg = memory::Allocate<print_task_t>();
+        arg->message = "C";
+        auto task = task::Create("print c", 0, print_task, arg);
+        task::Enqueue(task);
+    }
+    {
+        auto arg = memory::Allocate<print_task_t>();
+        arg->message = "D";
+        auto task = task::Create("print d", 0, print_task, arg);
+        task::Enqueue(task);
+    }
+
+    for (;;)
+    {
+        asm volatile("hlt");
+    }
+}
+
+extern "C" __attribute__((noreturn)) void kmain()
+{
+    asm volatile("cli");
+
     serial::InitializeAll();
 
     fpu::Initialize();
     gdt::Initialize();
     idt::Initialize();
+
+    pic::Disable();
+    pic::Remap(0x20, 0x28);
+
+    pit::Initialize(100);
+    pic::ClearMask(0);
+
+    asm volatile("sti");
 
     if (!LIMINE_BASE_REVISION_SUPPORTED)
     {
@@ -511,5 +566,11 @@ extern "C" NORETURN void kmain()
 
     kflush();
 
-    halt();
+    auto task = task::Create("kernel", 0, kernel_task, nullptr);
+    task::Enqueue(task);
+
+    for (;;)
+    {
+        asm volatile("hlt");
+    }
 }
