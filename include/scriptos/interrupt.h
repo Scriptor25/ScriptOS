@@ -2,77 +2,73 @@
 
 #include <scriptos/types.h>
 
-#define INTERRUPT __attribute__((interrupt))
+#define INTERRUPT(NAME)                                                 \
+    extern "C" void NAME##_Handler(interrupt::StackFrame* stack_frame); \
+    extern "C" void NAME##_Proxy(void);
+
+#define INTERRUPT_ERROR(NAME)                                                \
+    extern "C" void NAME##_Handler(interrupt::StackFrameError* stack_frame); \
+    extern "C" void NAME##_Proxy(void);
 
 namespace interrupt
 {
     struct StackFrame
     {
-        u64 IP;
-        u64 CS;
-        u64 Flags;
-        u64 SP;
-        u64 SS;
-    } __attribute__((packed));
+        u64 r15, r14, r13, r12, r11, r10, r9, r8;
+        u64 rsi, rdi, rbp, rdx, rcx, rbx, rax;
+        u64 rip, cs, rflags, rsp, ss;
+    };
+
+    struct StackFrameError
+    {
+        u64 r15, r14, r13, r12, r11, r10, r9, r8;
+        u64 rsi, rdi, rbp, rdx, rcx, rbx, rax;
+        u64 error_code;
+        u64 rip, cs, rflags, rsp, ss;
+    };
 
     void Panic(
         bool serious,
         cstr format,
         ...);
-
-    void DE_Handler(StackFrame* stack_frame);
-    void DB_Handler(StackFrame* stack_frame);
-    void NI_Handler(StackFrame* stack_frame);
-    void BP_Handler(StackFrame* stack_frame);
-    void OF_Handler(StackFrame* stack_frame);
-    void BR_Handler(StackFrame* stack_frame);
-    void UD_Handler(StackFrame* stack_frame);
-    void NM_Handler(StackFrame* stack_frame);
-    void DF_Handler(
-        StackFrame* stack_frame,
-        u64 error_code);
-    void TS_Handler(
-        StackFrame* stack_frame,
-        u64 error_code);
-    void NP_Handler(
-        StackFrame* stack_frame,
-        u64 error_code);
-    void SS_Handler(
-        StackFrame* stack_frame,
-        u64 error_code);
-    void GP_Handler(
-        StackFrame* stack_frame,
-        u64 error_code);
-    void PF_Handler(
-        StackFrame* stack_frame,
-        u64 error_code);
-    void MF_Handler(StackFrame* stack_frame);
-    void AC_Handler(
-        StackFrame* stack_frame,
-        u64 error_code);
-    void MC_Handler(StackFrame* stack_frame);
-    void XM_Handler(StackFrame* stack_frame);
-    void VE_Handler(StackFrame* stack_frame);
-    void CP_Handler(
-        StackFrame* stack_frame,
-        u64 error_code);
-
-    void IRQ0_Handler(StackFrame* stack_frame);
-    void IRQ1_Handler(StackFrame* stack_frame);
-    void IRQ2_Handler(StackFrame* stack_frame);
-    void IRQ3_Handler(StackFrame* stack_frame);
-    void IRQ4_Handler(StackFrame* stack_frame);
-    void IRQ5_Handler(StackFrame* stack_frame);
-    void IRQ6_Handler(StackFrame* stack_frame);
-    void IRQ7_Handler(StackFrame* stack_frame);
-    void IRQ8_Handler(StackFrame* stack_frame);
-    void IRQ9_Handler(StackFrame* stack_frame);
-    void IRQA_Handler(StackFrame* stack_frame);
-    void IRQB_Handler(StackFrame* stack_frame);
-    void IRQC_Handler(StackFrame* stack_frame);
-    void IRQD_Handler(StackFrame* stack_frame);
-    void IRQE_Handler(StackFrame* stack_frame);
-    void IRQF_Handler(StackFrame* stack_frame);
-
-    void KE_Handler(StackFrame* stack_frame);
 }
+
+INTERRUPT(DE)
+INTERRUPT(DB)
+INTERRUPT(NI)
+INTERRUPT(BP)
+INTERRUPT(OF)
+INTERRUPT(BR)
+INTERRUPT(UD)
+INTERRUPT(NM)
+INTERRUPT_ERROR(DF)
+INTERRUPT_ERROR(TS)
+INTERRUPT_ERROR(NP)
+INTERRUPT_ERROR(SS)
+INTERRUPT_ERROR(GP)
+INTERRUPT_ERROR(PF)
+INTERRUPT(MF)
+INTERRUPT_ERROR(AC)
+INTERRUPT(MC)
+INTERRUPT(XM)
+INTERRUPT(VE)
+INTERRUPT_ERROR(CP)
+
+INTERRUPT(IRQ0)
+INTERRUPT(IRQ1)
+INTERRUPT(IRQ2)
+INTERRUPT(IRQ3)
+INTERRUPT(IRQ4)
+INTERRUPT(IRQ5)
+INTERRUPT(IRQ6)
+INTERRUPT(IRQ7)
+INTERRUPT(IRQ8)
+INTERRUPT(IRQ9)
+INTERRUPT(IRQA)
+INTERRUPT(IRQB)
+INTERRUPT(IRQC)
+INTERRUPT(IRQD)
+INTERRUPT(IRQE)
+INTERRUPT(IRQF)
+
+INTERRUPT(KE)

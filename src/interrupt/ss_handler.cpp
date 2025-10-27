@@ -1,12 +1,10 @@
 #include <scriptos/interrupt.h>
 
-INTERRUPT void interrupt::SS_Handler(
-    StackFrame* stack_frame,
-    u64 error_code)
+extern "C" void SS_Handler(interrupt::StackFrameError* stack_frame)
 {
-    auto external = error_code & 0b1;
-    auto table = (error_code >> 1) & 0b11;
-    auto index = (error_code >> 3) & 0x1fff;
+    auto external = stack_frame->error_code & 0b1;
+    auto table = (stack_frame->error_code >> 1) & 0b11;
+    auto index = (stack_frame->error_code >> 3) & 0x1fff;
 
     cstr table_string;
     switch (table)
@@ -25,14 +23,14 @@ INTERRUPT void interrupt::SS_Handler(
         break;
     }
 
-    Panic(
+    interrupt::Panic(
         false,
         "Stack-Segment Fault %s%s [ %u ] (%02X:%016X, %02X:%016X)",
         external ? "EXT " : "",
         table_string,
         index,
-        stack_frame->CS,
-        stack_frame->IP,
-        stack_frame->SS,
-        stack_frame->SP);
+        stack_frame->cs,
+        stack_frame->rip,
+        stack_frame->ss,
+        stack_frame->rsp);
 }

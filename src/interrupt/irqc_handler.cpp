@@ -1,7 +1,7 @@
 #include <scriptos/interrupt.h>
 #include <scriptos/pic.h>
 
-INTERRUPT void interrupt::IRQC_Handler(StackFrame* stack_frame)
+extern "C" void IRQC_Handler(interrupt::StackFrame* stack_frame)
 {
     (void) stack_frame;
 

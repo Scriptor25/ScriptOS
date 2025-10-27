@@ -4,30 +4,21 @@
 #include <scriptos/task/task.h>
 #include <scriptos/types.h>
 
-INTERRUPT void interrupt::IRQ0_Handler(StackFrame* stack_frame)
+extern "C" void IRQ0_Handler(interrupt::StackFrame* stack_frame)
 {
-    (void) stack_frame;
-
-    if (task::CurrentTask)
+    auto active = task::ActiveTask;
+    if (active)
     {
-        auto regs = &task::CurrentTask->Regs;
-
-        regs->rflags = stack_frame->Flags;
-        regs->cs = stack_frame->CS;
-        regs->rip = stack_frame->IP;
-        regs->ss = stack_frame->SS;
-        regs->rsp = stack_frame->SP;
-
-        __save_context(regs);
+        active->Frame = *stack_frame;
     }
 
-    auto next = task::Schedule();
+    auto next = task::NextTask();
+    task::ActiveTask = next;
 
-    if (next && next != task::CurrentTask)
+    if (next && next != active)
     {
-        task::CurrentTask = next;
-        task::CurrentTask->State = task::TaskState_Running;
-        __restore_context(&task::CurrentTask->Regs);
+        next->State = task::TaskState_Running;
+        *stack_frame = next->Frame;
     }
 
     pic::SendEOI(0x0);

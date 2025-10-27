@@ -5,23 +5,17 @@
 
 namespace task
 {
-    extern Task* CurrentTask;
+    extern Task* ActiveTask;
 
-    Task* Create(
+    Task* CreateTask(
         cstr name,
         u64 priority,
         void (*entry)(void*),
         void* arg);
 
-    void Enqueue(Task* task);
+    void EnqueueTask(Task* task);
 
-    Task* Schedule();
+    Task* NextTask();
 
     void Reaper();
-}
-
-extern "C"
-{
-    void __save_context(task::Registers* regs);
-    __attribute__((noreturn)) void __restore_context(task::Registers* regs);
 }

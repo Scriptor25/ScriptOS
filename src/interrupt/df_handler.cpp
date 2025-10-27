@@ -1,16 +1,12 @@
 #include <scriptos/interrupt.h>
 
-INTERRUPT void interrupt::DF_Handler(
-    StackFrame* stack_frame,
-    u64 error_code)
+extern "C" void DF_Handler(interrupt::StackFrameError* stack_frame)
 {
-    (void) error_code;
-
-    Panic(
+    interrupt::Panic(
         true,
         "Double Fault (%02X:%016X, %02X:%016X)",
-        stack_frame->CS,
-        stack_frame->IP,
-        stack_frame->SS,
-        stack_frame->SP);
+        stack_frame->cs,
+        stack_frame->rip,
+        stack_frame->ss,
+        stack_frame->rsp);
 }

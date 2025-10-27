@@ -409,8 +409,14 @@ static void print_task(void* arg)
 {
     auto t = reinterpret_cast<const print_task_t*>(arg);
 
-    kprintf(t->message);
-    kflush();
+    for (;;)
+    {
+        asm volatile("cli");
+        kprintf(t->message);
+        kflush();
+        asm volatile("sti");
+        asm volatile("hlt");
+    }
 }
 
 __attribute__((noreturn)) static void kernel_task(void* arg)
@@ -420,26 +426,26 @@ __attribute__((noreturn)) static void kernel_task(void* arg)
     {
         auto arg = memory::Allocate<print_task_t>();
         arg->message = "A";
-        auto task = task::Create("print a", 0, print_task, arg);
-        task::Enqueue(task);
+        auto task = task::CreateTask("print a", 0, print_task, arg);
+        task::EnqueueTask(task);
     }
     {
         auto arg = memory::Allocate<print_task_t>();
         arg->message = "B";
-        auto task = task::Create("print b", 0, print_task, arg);
-        task::Enqueue(task);
+        auto task = task::CreateTask("print b", 0, print_task, arg);
+        task::EnqueueTask(task);
     }
     {
         auto arg = memory::Allocate<print_task_t>();
         arg->message = "C";
-        auto task = task::Create("print c", 0, print_task, arg);
-        task::Enqueue(task);
+        auto task = task::CreateTask("print c", 0, print_task, arg);
+        task::EnqueueTask(task);
     }
     {
         auto arg = memory::Allocate<print_task_t>();
         arg->message = "D";
-        auto task = task::Create("print d", 0, print_task, arg);
-        task::Enqueue(task);
+        auto task = task::CreateTask("print d", 0, print_task, arg);
+        task::EnqueueTask(task);
     }
 
     for (;;)
@@ -461,7 +467,7 @@ extern "C" __attribute__((noreturn)) void kmain()
     pic::Disable();
     pic::Remap(0x20, 0x28);
 
-    pit::Initialize(100);
+    pit::Initialize(20);
     pic::ClearMask(0);
 
     asm volatile("sti");
@@ -566,8 +572,8 @@ extern "C" __attribute__((noreturn)) void kmain()
 
     kflush();
 
-    auto task = task::Create("kernel", 0, kernel_task, nullptr);
-    task::Enqueue(task);
+    auto task = task::CreateTask("kernel", 0, kernel_task, nullptr);
+    task::EnqueueTask(task);
 
     for (;;)
     {

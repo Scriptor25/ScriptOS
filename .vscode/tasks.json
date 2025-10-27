@@ -96,7 +96,7 @@
         {
             "label": "Update Compile Commands",
             "type": "shell",
-            "command": "bear -- make clean build",
+            "command": "bear -- make -i clean build",
             "problemMatcher": [],
             "group": {
                 "kind": "build"

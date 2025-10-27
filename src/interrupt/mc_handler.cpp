@@ -1,12 +1,12 @@
 #include <scriptos/interrupt.h>
 
-INTERRUPT void interrupt::MC_Handler(StackFrame* stack_frame)
+extern "C" void MC_Handler(interrupt::StackFrame* stack_frame)
 {
-    Panic(
+    interrupt::Panic(
         false,
         "Machine Check (%02X:%016X, %02X:%016X)",
-        stack_frame->CS,
-        stack_frame->IP,
-        stack_frame->SS,
-        stack_frame->SP);
+        stack_frame->cs,
+        stack_frame->rip,
+        stack_frame->ss,
+        stack_frame->rsp);
 }
