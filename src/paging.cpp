@@ -1,3 +1,4 @@
+#include <scriptos/kernel.h>
 #include <scriptos/paging.h>
 #include <scriptos/print.h>
 #include <scriptos/types.h>
@@ -154,7 +155,7 @@ paging::PageTable paging::GetOrCreateNextLevel(
         return nullptr;
     }
 
-    auto physical_address = KernelAllocator->AllocatePhysicalPage();
+    auto physical_address = kernel::Instance.Allocator->AllocatePhysicalPage();
     if (!physical_address)
     {
         return nullptr;
@@ -216,9 +217,4 @@ void* paging::GetMapping(const void* virtual_address)
     }
 
     return reinterpret_cast<void*>(pt[lvl1].Address << 12);
-}
-
-void paging::FlushPage(const void* virtual_address)
-{
-    asm volatile("invlpg (%0)" : : "r"(virtual_address) : "memory");
 }

@@ -1,8 +1,8 @@
 #include <scriptos/font8x8.h>
+#include <scriptos/graphics.h>
 #include <scriptos/memory.h>
-#include <scriptos/renderer.h>
 
-Renderer::Renderer(
+graphics::Renderer::Renderer(
     void* front_buffer,
     void* back_buffer,
     usize width,
@@ -22,7 +22,7 @@ Renderer::Renderer(
       m_Pitch(pitch),
       m_Area(width * height),
       m_Size(pitch * height),
-      m_Bitmask((1u << bpp) - 1u),
+      m_Bitmask((1llu << bpp) - 1llu),
       m_RequireRepack(red_shift != 16u || red_size != 8u || green_shift != 8u || green_size != 8u || blue_shift != 0u || blue_size != 8u),
       m_RedShift(red_shift),
       m_RedMask((1u << red_size) - 1u),
@@ -34,7 +34,7 @@ Renderer::Renderer(
 {
 }
 
-u32 Renderer::RepackColor(u32 color) const
+u32 graphics::Renderer::RepackColor(u32 color) const
 {
     if (!m_RequireRepack)
     {
@@ -56,29 +56,30 @@ u32 Renderer::RepackColor(u32 color) const
     return ((rm & m_RedMask) << m_RedShift) | ((gm & m_GreenMask) << m_GreenShift) | ((bm & m_BlueMask) << m_BlueShift);
 }
 
-void Renderer::SetForeground(u32 color)
+void graphics::Renderer::SetForeground(u32 color)
 {
     m_Foreground = RepackColor(color);
 }
 
-void Renderer::SetBackground(u32 color)
+void graphics::Renderer::SetBackground(u32 color)
 {
     m_Background = RepackColor(color);
 }
 
-void Renderer::Clear()
+void graphics::Renderer::Clear()
 {
     memory::Fill(m_BackBuffer, 0, m_Size);
 
     for (usize i = 0; i < m_Size; i += m_Stride)
     {
+        *reinterpret_cast<u32*>(m_BackBuffer + i) &= ~m_Bitmask;
         *reinterpret_cast<u32*>(m_BackBuffer + i) |= m_Background;
     }
 
     m_Dirty = true;
 }
 
-void Renderer::Shift(usize up)
+void graphics::Renderer::Shift(usize up)
 {
     auto area_height = m_Height >= up ? m_Height - up : 0;
     auto offset = up * m_Pitch;
@@ -98,22 +99,22 @@ void Renderer::Shift(usize up)
     m_Dirty = true;
 }
 
-void Renderer::SwapBuffers()
+void graphics::Renderer::SwapBuffers()
 {
     memory::Copy(m_FrontBuffer, m_BackBuffer, m_Size);
 }
 
-usize Renderer::CursorX() const
+usize graphics::Renderer::CursorX() const
 {
     return m_Cursor.X;
 }
 
-usize Renderer::CursorY() const
+usize graphics::Renderer::CursorY() const
 {
     return m_Cursor.Y;
 }
 
-void Renderer::DrawPixel(
+void graphics::Renderer::DrawPixel(
     usize x,
     usize y,
     u32 color)
@@ -128,70 +129,94 @@ void Renderer::DrawPixel(
     m_Dirty = true;
 }
 
-void Renderer::DrawChar(
+void graphics::Renderer::DrawChar(
     int c,
     usize x,
     usize y)
 {
     auto bitmap = font8x8::GetChar(c);
 
-    for (usize j = 0; j < 8 && (y + j) < m_Height; ++j)
+    for (usize j = 0; j < 8 && y + j < m_Height; ++j)
     {
         auto row = m_BackBuffer + (y + j) * m_Pitch;
-        for (usize i = 0; i < 8 && (x + i) < m_Width; ++i)
+        for (usize i = 0; i < 8 && x + i < m_Width; ++i)
         {
-            auto dst = reinterpret_cast<u32*>(row + (x + i) * m_Stride);
+            auto& dst = *reinterpret_cast<u32*>(row + (x + i) * m_Stride);
+            auto bit = font8x8::GetBit(bitmap, i, j);
 
-            *dst &= ~m_Bitmask;
-            *dst |= font8x8::GetBit(bitmap, i, j) ? m_Foreground : m_Background;
+            u32 mask = 0;
+            for (usize i = 0; i < sizeof(u32) * 8; ++i)
+            {
+                mask = (mask << 1) | bit;
+            }
+
+            dst &= ~m_Bitmask;
+            dst |= (mask & m_Foreground) | (~mask & m_Background);
         }
     }
 
     m_Dirty = true;
 }
 
-void Renderer::Reset()
+void graphics::Renderer::Reset()
 {
     m_Cursor.X = m_Cursor.Y = 0;
 }
 
-void Renderer::NextChar(int c)
+void graphics::Renderer::PushChar(int c)
 {
     switch (c)
     {
     case '\r':
+    {
         m_Cursor.X = 0;
         break;
+    }
     case '\n':
-        NewLine();
-        break;
+    {
+        auto cy = m_Cursor.Y;
 
-    default:
-        DrawChar(c, m_Cursor.X, m_Cursor.Y);
-
-        if ((m_Cursor.X + 8) >= m_Width)
+        if (cy + CHAR_HEIGHT >= m_Height)
         {
-            m_Cursor.X = 0;
-            NewLine();
+            Shift(CHAR_HEIGHT);
         }
         else
         {
-            m_Cursor.X += 8;
+            cy += CHAR_HEIGHT;
         }
+
+        m_Cursor.Y = cy;
         break;
     }
-}
 
-void Renderer::NewLine()
-{
-    if ((m_Cursor.Y + 12) >= m_Height)
+    default:
     {
-        Shift(12);
+        auto cx = m_Cursor.X;
+        auto cy = m_Cursor.Y;
+
+        DrawChar(c, cx, cy);
+
+        if (cx + CHAR_WIDTH >= m_Width)
+        {
+            cx = 0;
+
+            if (cy + CHAR_HEIGHT >= m_Height)
+            {
+                Shift(CHAR_HEIGHT);
+            }
+            else
+            {
+                cy += CHAR_HEIGHT;
+            }
+        }
+        else
+        {
+            cx += CHAR_WIDTH;
+        }
+
+        m_Cursor.X = cx;
+        m_Cursor.Y = cy;
+        break;
     }
-    else
-    {
-        m_Cursor.Y += 12;
     }
 }
-
-memory::UniquePtr<Renderer> KernelRenderer;

@@ -72,5 +72,3 @@ void* paging::PageFrameAllocator::AllocatePhysicalPages(usize count)
     }
     return nullptr;
 }
-
-paging::PageFrameAllocator* paging::KernelAllocator;

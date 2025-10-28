@@ -61,8 +61,12 @@ namespace font8x8
     extern u8 SGA[26][8];
 
     const u8* GetChar(int c);
-    bool GetBit(
+
+    inline unsigned GetBit(
         const u8* c,
         u8 x,
-        u8 y);
+        u8 y)
+    {
+        return (c[y] >> x) & 1u;
+    }
 }

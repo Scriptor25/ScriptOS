@@ -3,7 +3,14 @@
 #include <scriptos/interrupt.h>
 #include <scriptos/types.h>
 
-#define TASK_TIMESLICE_MILLIS 10
+#define TASK_TIMESLICE 10
+#define BLOCK(S) \
+    do           \
+    {            \
+        cli();   \
+        S;       \
+        sti();   \
+    } while (0)
 
 namespace task
 {
@@ -24,7 +31,7 @@ namespace task
         void* KernelStack;
         TaskState State;
         u64 Priority;
-        u64 TimesliceMillis;
+        u64 Timeslice;
         Task* PrevTask;
         Task* NextTask;
     };

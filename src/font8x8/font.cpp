@@ -20,8 +20,3 @@ const u8* font8x8::GetChar(int c)
         return font8x8::SGA[c - 0xe541];
     return nullptr;
 }
-
-bool font8x8::GetBit(const u8* c, u8 x, u8 y)
-{
-    return (c[y] >> x) & 1;
-}

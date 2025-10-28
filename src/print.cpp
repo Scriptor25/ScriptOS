@@ -1,13 +1,53 @@
+#include <scriptos/graphics.h>
+#include <scriptos/kernel.h>
 #include <scriptos/print.h>
-#include <scriptos/renderer.h>
 #include <scriptos/serial.h>
 
 static void kstdout(int c)
 {
     serial::WriteDefault(c);
-    if (KernelRenderer)
+
+    if (kernel::Instance.Renderer)
     {
-        KernelRenderer->NextChar(c);
+        kernel::Instance.Renderer->PushChar(c);
+    }
+}
+
+void kflush()
+{
+    if (kernel::Instance.Renderer)
+    {
+        kernel::Instance.Renderer->SwapBuffers();
+    }
+}
+
+void kputc(int c)
+{
+    kstdout(c);
+}
+
+void kputs(cstr s)
+{
+    while (*s)
+    {
+        kstdout(*s++);
+    }
+}
+
+void fkputc(
+    out_stream stream,
+    int c)
+{
+    stream(c);
+}
+
+void fkputs(
+    out_stream stream,
+    cstr s)
+{
+    while (*s)
+    {
+        stream(*s++);
     }
 }
 
@@ -27,14 +67,6 @@ unsigned vkprintf(
     va_list ap)
 {
     return vfkprintf(kstdout, format, ap);
-}
-
-void kflush()
-{
-    if (KernelRenderer)
-    {
-        KernelRenderer->SwapBuffers();
-    }
 }
 
 unsigned fkprintf(

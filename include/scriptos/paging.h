@@ -33,8 +33,6 @@ namespace paging
         Bitmap m_Bitmap;
     };
 
-    extern PageFrameAllocator* KernelAllocator;
-
     union PageTableEntry
     {
         struct
@@ -57,7 +55,7 @@ namespace paging
         u64 Value;
     };
 
-    typedef PageTableEntry* PageTable;
+    using PageTable = PageTableEntry*;
 
     extern uptr HHDM_Offset;
     extern PageTable PML4_Base;
@@ -116,5 +114,8 @@ namespace paging
 
     void* GetMapping(const void* virtual_address);
 
-    void FlushPage(const void* virtual_address);
+    inline void FlushPage(const void* virtual_address)
+    {
+        asm volatile("invlpg (%0)" : : "r"(virtual_address) : "memory");
+    }
 }

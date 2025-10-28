@@ -1,12 +1,18 @@
+#include "scriptos/task/task.h"
+
 #include <efi.h>
 #include <limine.h>
 #include <scriptos/acpi.h>
 #include <scriptos/ahci.h>
+#include <scriptos/asm.h>
 #include <scriptos/bitmap.h>
 #include <scriptos/boot/limine.h>
 #include <scriptos/fpu.h>
 #include <scriptos/gdt.h>
+#include <scriptos/graphics.h>
 #include <scriptos/idt.h>
+#include <scriptos/io.h>
+#include <scriptos/kernel.h>
 #include <scriptos/memory.h>
 #include <scriptos/paging.h>
 #include <scriptos/pci.h>
@@ -14,26 +20,34 @@
 #include <scriptos/pit.h>
 #include <scriptos/print.h>
 #include <scriptos/range.h>
-#include <scriptos/renderer.h>
 #include <scriptos/serial.h>
 #include <scriptos/task/schedule.h>
 #include <scriptos/tss.h>
 #include <scriptos/types.h>
 
+kernel::InstanceT kernel::Instance = {
+    .Allocator = nullptr,
+    .Renderer = nullptr,
+};
+
 __attribute__((noreturn)) static void error(
     cstr format,
     ...)
 {
+    cli();
+
     va_list ap;
     va_start(ap, format);
     vkprintf(format, ap);
     va_end(ap);
-    kprintf("\r\n");
-    asm volatile("int $0x69");
-    asm volatile("cli");
+
+    kputs("\r\n");
+
+    INT(0x69);
+
     for (;;)
     {
-        asm volatile("hlt");
+        hlt();
     }
 }
 
@@ -79,8 +93,8 @@ static void initialize_allocator()
     bitmap.Fill(0, 0x100, true);
     bitmap.Fill(reinterpret_cast<uptr>(physical_buffer) / PAGE_SIZE, page_count / 8 + 1, true);
 
-    paging::KernelAllocator = reinterpret_cast<paging::PageFrameAllocator*>(virtual_buffer + memory_end / 8);
-    *paging::KernelAllocator = { bitmap };
+    kernel::Instance.Allocator = reinterpret_cast<paging::PageFrameAllocator*>(virtual_buffer + memory_end / 8);
+    *kernel::Instance.Allocator = { bitmap };
 }
 
 static void initialize_renderer()
@@ -88,7 +102,7 @@ static void initialize_renderer()
     auto framebuffer = framebuffer_request.response->framebuffers[0];
     auto back_buffer = memory::Allocate(framebuffer->pitch * framebuffer->height);
 
-    KernelRenderer = memory::MakeUnique<Renderer>(
+    kernel::Instance.Renderer = memory::Allocate<graphics::Renderer>(
         framebuffer->address,
         back_buffer,
         framebuffer->width,
@@ -101,10 +115,11 @@ static void initialize_renderer()
         framebuffer->green_mask_size,
         framebuffer->blue_mask_shift,
         framebuffer->blue_mask_size);
-    KernelRenderer->SetForeground(0xffffff);
-    KernelRenderer->SetBackground(0x121212);
-    KernelRenderer->Reset();
-    KernelRenderer->Clear();
+
+    kernel::Instance.Renderer->SetForeground(0xffffff);
+    kernel::Instance.Renderer->SetBackground(0x121212);
+    kernel::Instance.Renderer->Reset();
+    kernel::Instance.Renderer->Clear();
 }
 
 static void print_system_information()
@@ -136,10 +151,10 @@ static void print_system_information()
 
     kprintf("firmware type: %s\r\n", firmware_type_string);
 
-    kprintf("\r\n");
+    kputs("\r\n");
 
-    kprintf(" address          | bpp | width | height | pitch | model \r\n");
-    kprintf("------------------+-----+-------+--------+-------+-------\r\n");
+    kputs(" address          | bpp | width | height | pitch | model \r\n");
+    kputs("------------------+-----+-------+--------+-------+-------\r\n");
 
     Range framebuffers(
         framebuffer_request.response->framebuffers,
@@ -162,10 +177,10 @@ static void print_system_information()
         }
     }
 
-    kprintf("\r\n");
+    kputs("\r\n");
 
-    kprintf(" base             | length           | type                   \r\n");
-    kprintf("------------------+------------------+------------------------\r\n");
+    kputs(" base             | length           | type                   \r\n");
+    kputs("------------------+------------------+------------------------\r\n");
 
     usize end_address = 0;
 
@@ -210,14 +225,14 @@ static void print_system_information()
         kprintf(" %016X | %016X | %-22s \r\n", entry->base, entry->length, type_string);
     }
 
-    kprintf("\r\n");
+    kputs("\r\n");
 
     kprintf("total size: %016X (%u KiB)\r\n", end_address, end_address / 1024);
 
-    kprintf("\r\n");
+    kputs("\r\n");
 
-    kprintf(" processor id | lapic id | goto address     \r\n");
-    kprintf("--------------+----------+------------------\r\n");
+    kputs(" processor id | lapic id | goto address     \r\n");
+    kputs("--------------+----------+------------------\r\n");
 
     Range cpus(mp_request.response->cpus, mp_request.response->cpu_count);
     for (auto cpu : cpus)
@@ -225,7 +240,7 @@ static void print_system_information()
         kprintf(" %-4u         | %-4u     | %016X \r\n", cpu->processor_id, cpu->lapic_id, cpu->goto_address);
     }
 
-    kprintf("\r\n");
+    kputs("\r\n");
 
     if (efi_system_table_request.response)
     {
@@ -298,7 +313,7 @@ static void print_mcfg(const acpi::MCFG* mcfg)
                     {
                         kprintf("%04X", function->DeviceID);
                     }
-                    kprintf("\r\n");
+                    kputs("\r\n");
                 }
             }
         }
@@ -347,7 +362,7 @@ static void find_ahci(const acpi::MCFG* mcfg)
                             continue;
                         }
 
-                        auto base_address = paging::KernelAllocator->AllocatePhysicalPages(0x10);
+                        auto base_address = kernel::Instance.Allocator->AllocatePhysicalPages(0x10);
                         paging::MapPages(base_address, base_address, 0x10, true, true);
 
                         if (!ahci::Initialize(abar, port, reinterpret_cast<uptr>(base_address)))
@@ -355,7 +370,7 @@ static void find_ahci(const acpi::MCFG* mcfg)
                             kprintf("failed to rebase port %u\r\n", i);
                         }
 
-                        auto buffer = paging::KernelAllocator->AllocatePhysicalPage();
+                        auto buffer = kernel::Instance.Allocator->AllocatePhysicalPage();
                         paging::MapPage(buffer, buffer, true, true);
 
                         memory::Fill(buffer, 0, PAGE_SIZE);
@@ -392,7 +407,7 @@ static void find_ahci(const acpi::MCFG* mcfg)
 
                         kprintmem(buffer, 0x80);
 
-                        paging::KernelAllocator->FreePage(buffer);
+                        kernel::Instance.Allocator->FreePage(buffer);
                     }
                 }
             }
@@ -411,11 +426,7 @@ static void print_task(void* arg)
 
     for (;;)
     {
-        asm volatile("cli");
-        kprintf(t->message);
-        kflush();
-        asm volatile("sti");
-        asm volatile("hlt");
+        BLOCK(kputs(t->message));
     }
 }
 
@@ -426,37 +437,37 @@ __attribute__((noreturn)) static void kernel_task(void* arg)
     {
         auto arg = memory::Allocate<print_task_t>();
         arg->message = "A";
-        auto task = task::CreateTask("print a", 0, print_task, arg);
+        auto task = task::CreateTask("print a", 1, print_task, arg);
         task::EnqueueTask(task);
     }
     {
         auto arg = memory::Allocate<print_task_t>();
         arg->message = "B";
-        auto task = task::CreateTask("print b", 0, print_task, arg);
+        auto task = task::CreateTask("print b", 2, print_task, arg);
         task::EnqueueTask(task);
     }
     {
         auto arg = memory::Allocate<print_task_t>();
         arg->message = "C";
-        auto task = task::CreateTask("print c", 0, print_task, arg);
+        auto task = task::CreateTask("print c", 3, print_task, arg);
         task::EnqueueTask(task);
     }
     {
         auto arg = memory::Allocate<print_task_t>();
         arg->message = "D";
-        auto task = task::CreateTask("print d", 0, print_task, arg);
+        auto task = task::CreateTask("print d", 4, print_task, arg);
         task::EnqueueTask(task);
     }
 
     for (;;)
     {
-        asm volatile("hlt");
+        BLOCK(kflush());
     }
 }
 
 extern "C" __attribute__((noreturn)) void kmain()
 {
-    asm volatile("cli");
+    cli();
 
     serial::InitializeAll();
 
@@ -467,10 +478,10 @@ extern "C" __attribute__((noreturn)) void kmain()
     pic::Disable();
     pic::Remap(0x20, 0x28);
 
-    pit::Initialize(20);
+    pit::Initialize(500);
     pic::ClearMask(0);
 
-    asm volatile("sti");
+    sti();
 
     if (!LIMINE_BASE_REVISION_SUPPORTED)
     {
@@ -516,7 +527,7 @@ extern "C" __attribute__((noreturn)) void kmain()
 
     initialize_allocator();
 
-    auto kernel_stack = paging::KernelAllocator->AllocatePhysicalPage();
+    auto kernel_stack = kernel::Instance.Allocator->AllocatePhysicalPage();
     paging::MapPage(kernel_stack, kernel_stack, true, true);
     tss::Initialize(kernel_stack, nullptr, nullptr);
 
@@ -577,6 +588,6 @@ extern "C" __attribute__((noreturn)) void kmain()
 
     for (;;)
     {
-        asm volatile("hlt");
+        hlt();
     }
 }

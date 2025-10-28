@@ -1,3 +1,4 @@
+#include <scriptos/kernel.h>
 #include <scriptos/memory.h>
 #include <scriptos/paging.h>
 
@@ -54,7 +55,7 @@ static void __extend_heap()
 {
     auto page_count = __heap_size / PAGE_SIZE + 1;
 
-    auto address = reinterpret_cast<HeapHeader*>(paging::KernelAllocator->AllocatePhysicalPages(page_count));
+    auto address = reinterpret_cast<HeapHeader*>(kernel::Instance.Allocator->AllocatePhysicalPages(page_count));
 
     paging::MapPages(address, address, page_count, true, true);
 
@@ -77,7 +78,7 @@ void memory::InitializeHeap(usize size)
 {
     auto page_count = size / PAGE_SIZE + 1;
 
-    auto address = reinterpret_cast<HeapHeader*>(paging::KernelAllocator->AllocatePhysicalPages(page_count));
+    auto address = reinterpret_cast<HeapHeader*>(kernel::Instance.Allocator->AllocatePhysicalPages(page_count));
 
     paging::MapPages(address, address, page_count, true, true);
 

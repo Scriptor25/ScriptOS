@@ -22,7 +22,7 @@ class vector
 public:
     vector(usize size = 10)
     {
-        m_First = memory::Allocate<T>(size);
+        m_First = memory::AllocateN<T>(size);
         m_Last = m_First;
         m_End = m_First + size;
     }

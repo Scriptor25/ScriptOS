@@ -17,13 +17,13 @@ void fkprintmem(
             fkprintf(stream, "%02X ", p[d]);
         }
 
-        fkprintf(stream, "| ");
+        fkputs(stream, "| ");
         for (usize d = 0; d < CHUNK_SIZE; ++d)
         {
             auto c = p[d];
             fkprintf(stream, "%c", c < 0x20 ? '.' : c);
         }
 
-        fkprintf(stream, "\r\n");
+        fkputs(stream, "\r\n");
     }
 }

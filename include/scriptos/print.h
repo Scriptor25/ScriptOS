@@ -3,14 +3,24 @@
 #include <scriptos/types.h>
 #include <scriptos/vararg.h>
 
+void kflush();
+
+void kputc(int c);
+void kputs(cstr s);
+
+void fkputc(
+    out_stream stream,
+    int c);
+void fkputs(
+    out_stream stream,
+    cstr s);
+
 unsigned kprintf(
     cstr format,
     ...);
 unsigned vkprintf(
     cstr format,
     va_list ap);
-
-void kflush();
 
 unsigned fkprintf(
     out_stream stream,

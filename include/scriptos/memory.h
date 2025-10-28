@@ -37,8 +37,18 @@ namespace memory
         return reinterpret_cast<T*>(Allocate(sizeof(T)));
     }
 
+    template<
+        typename T,
+        typename... Args>
+    T* Allocate(Args&&... args)
+    {
+        auto p = reinterpret_cast<T*>(Allocate(sizeof(T)));
+        *p = T(args...);
+        return p;
+    }
+
     template<typename T>
-    T* Allocate(usize size)
+    T* AllocateN(usize size)
     {
         return reinterpret_cast<T*>(Allocate(size * sizeof(T)));
     }

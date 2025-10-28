@@ -1,3 +1,4 @@
+#include <scriptos/asm.h>
 #include <scriptos/memory.h>
 #include <scriptos/paging.h>
 #include <scriptos/task/schedule.h>
@@ -11,15 +12,15 @@ task::Task* task::ActiveTask = nullptr;
 
 __attribute__((noreturn)) static void task_exit()
 {
-    asm volatile("cli");
+    cli();
 
     task::ActiveTask->State = task::TaskState_Zombie;
 
-    asm volatile("sti");
+    sti();
 
     for (;;)
     {
-        asm volatile("hlt");
+        hlt();
     }
 }
 
@@ -44,7 +45,7 @@ task::Task* task::CreateTask(
         .KernelStack = kernel_stack,
         .State = TaskState_Runnable,
         .Priority = priority,
-        .TimesliceMillis = TASK_TIMESLICE_MILLIS,
+        .Timeslice = priority ? priority * TASK_TIMESLICE : 1,
         .PrevTask = nullptr,
         .NextTask = nullptr,
     };
@@ -100,9 +101,9 @@ task::Task* task::NextTask()
         return task_queue_root;
     }
 
-    if (ActiveTask->TimesliceMillis)
+    if (ActiveTask->Timeslice)
     {
-        ActiveTask->TimesliceMillis--;
+        ActiveTask->Timeslice--;
         return ActiveTask;
     }
 
@@ -113,7 +114,7 @@ task::Task* task::NextTask()
             if (task->State == TaskState_Running)
             {
                 task->State = TaskState_Runnable;
-                task->TimesliceMillis = TASK_TIMESLICE_MILLIS;
+                task->Timeslice = task->Priority ? task->Priority * TASK_TIMESLICE : 1;
             }
         }
         return task_queue_root;
