@@ -1,30 +1,32 @@
 #include <scriptos/asm.h>
 #include <scriptos/memory.h>
 #include <scriptos/paging.h>
+#include <scriptos/print.h>
 #include <scriptos/task/schedule.h>
 #include <scriptos/task/task.h>
 #include <scriptos/types.h>
+
+#define STACK_SIZE 0x2000
 
 static u64 task_next_pid = 0;
 static task::Task* task_queue_root = nullptr;
 
 task::Task* task::ActiveTask = nullptr;
 
-__attribute__((noreturn)) static void task_exit()
+extern "C" void __task_trampoline(void* arg);
+extern "C" void __task_exit(task::Task* task)
 {
-    cli();
+    BLOCK({
+        kprintf("task %s (%016x) exited\r\n", task->Name, task);
 
-    task::ActiveTask->State = task::TaskState_Zombie;
-
-    sti();
+        task->State = task::TaskState_Zombie;
+    });
 
     for (;;)
     {
         hlt();
     }
 }
-
-#define STACK_SIZE 0x2000
 
 task::Task* task::CreateTask(
     cstr name,
@@ -53,38 +55,40 @@ task::Task* task::CreateTask(
     auto stack_top = reinterpret_cast<u8*>(kernel_stack) + STACK_SIZE;
     stack_top = reinterpret_cast<u8*>(reinterpret_cast<uptr>(stack_top) & ~0xF);
 
-    stack_top -= 8;
-    *reinterpret_cast<u64*>(stack_top) = reinterpret_cast<u64>(task_exit);
+    *reinterpret_cast<u64*>(stack_top -= 8) = 0;
+    *reinterpret_cast<u64*>(stack_top -= 8) = reinterpret_cast<u64>(arg);
+    *reinterpret_cast<u64*>(stack_top -= 8) = reinterpret_cast<u64>(task);
+    *reinterpret_cast<u64*>(stack_top -= 8) = reinterpret_cast<u64>(entry);
 
-    task->Frame.rip = reinterpret_cast<u64>(entry);
+    task->Frame.rip = reinterpret_cast<u64>(__task_trampoline);
     task->Frame.rsp = reinterpret_cast<u64>(stack_top);
     task->Frame.rflags = 0x202;
     task->Frame.cs = 0x08;
     task->Frame.ss = 0x10;
-
-    task->Frame.rdi = reinterpret_cast<u64>(arg);
 
     return task;
 }
 
 void task::EnqueueTask(Task* task)
 {
-    task->PrevTask = nullptr;
-    task->NextTask = nullptr;
+    BLOCK({
+        task->PrevTask = nullptr;
+        task->NextTask = nullptr;
 
-    if (!task_queue_root)
-    {
-        task_queue_root = task;
-    }
-    else
-    {
-        Task* it;
-        for (it = task_queue_root; it->NextTask; it = it->NextTask)
-            ;
+        if (!task_queue_root)
+        {
+            task_queue_root = task;
+        }
+        else
+        {
+            Task* it;
+            for (it = task_queue_root; it->NextTask; it = it->NextTask)
+                ;
 
-        it->NextTask = task;
-        task->PrevTask = it;
-    }
+            it->NextTask = task;
+            task->PrevTask = it;
+        }
+    });
 }
 
 task::Task* task::NextTask()

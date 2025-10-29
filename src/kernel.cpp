@@ -420,48 +420,74 @@ struct print_task_t
     cstr message;
 };
 
-static void print_task(void* arg)
-{
-    auto t = reinterpret_cast<const print_task_t*>(arg);
+// static void print_task(void* arg)
+// {
+//     auto t = reinterpret_cast<const print_task_t*>(arg);
+//
+//     for (;;)
+//     {
+//         BLOCK(kputs(t->message));
+//     }
+// }
 
-    for (;;)
+static void ping_pong_task(void* arg)
+{
+    task::Task* task;
+
+    if (arg)
     {
-        BLOCK(kputs(t->message));
+        BLOCK(kputs("pong\r\n"));
+
+        task = task::CreateTask("ping", 0, ping_pong_task, nullptr);
     }
+    else
+    {
+        BLOCK(kputs("ping\r\n"));
+
+        task = task::CreateTask("pong", 0, ping_pong_task, reinterpret_cast<void*>(0xDEADBEEF));
+    }
+
+    task::EnqueueTask(task);
 }
 
 __attribute__((noreturn)) static void kernel_task(void* arg)
 {
     (void) arg;
 
+    // {
+    //     auto arg = memory::Allocate<print_task_t>();
+    //     arg->message = "A";
+    //     auto task = task::CreateTask("print a", 1, print_task, arg);
+    //     task::EnqueueTask(task);
+    // }
+    // {
+    //     auto arg = memory::Allocate<print_task_t>();
+    //     arg->message = "B";
+    //     auto task = task::CreateTask("print b", 2, print_task, arg);
+    //     task::EnqueueTask(task);
+    // }
+    // {
+    //     auto arg = memory::Allocate<print_task_t>();
+    //     arg->message = "C";
+    //     auto task = task::CreateTask("print c", 3, print_task, arg);
+    //     task::EnqueueTask(task);
+    // }
+    // {
+    //     auto arg = memory::Allocate<print_task_t>();
+    //     arg->message = "D";
+    //     auto task = task::CreateTask("print d", 4, print_task, arg);
+    //     task::EnqueueTask(task);
+    // }
+
     {
-        auto arg = memory::Allocate<print_task_t>();
-        arg->message = "A";
-        auto task = task::CreateTask("print a", 1, print_task, arg);
-        task::EnqueueTask(task);
-    }
-    {
-        auto arg = memory::Allocate<print_task_t>();
-        arg->message = "B";
-        auto task = task::CreateTask("print b", 2, print_task, arg);
-        task::EnqueueTask(task);
-    }
-    {
-        auto arg = memory::Allocate<print_task_t>();
-        arg->message = "C";
-        auto task = task::CreateTask("print c", 3, print_task, arg);
-        task::EnqueueTask(task);
-    }
-    {
-        auto arg = memory::Allocate<print_task_t>();
-        arg->message = "D";
-        auto task = task::CreateTask("print d", 4, print_task, arg);
+        auto task = task::CreateTask("ping", 0, ping_pong_task, nullptr);
         task::EnqueueTask(task);
     }
 
     for (;;)
     {
         BLOCK(kflush());
+        hlt();
     }
 }
 
