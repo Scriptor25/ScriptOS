@@ -9,8 +9,6 @@ void interrupt::Panic(
     cstr format,
     ...)
 {
-    cli();
-
     va_list ap;
     va_start(ap, format);
 

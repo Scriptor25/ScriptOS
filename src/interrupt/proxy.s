@@ -4,6 +4,8 @@
     .type \name\()_Proxy, @function
     .align 16
 \name\()_Proxy:
+    cli
+
     /* save context */
     pushq %rax
     pushq %rbx
@@ -43,6 +45,8 @@
     popq %rcx
     popq %rbx
     popq %rax
+
+    sti
 
     /* return */
     iretq

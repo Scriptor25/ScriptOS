@@ -4,13 +4,6 @@
 #include <scriptos/types.h>
 
 #define TASK_TIMESLICE 10
-#define BLOCK(S) \
-    do           \
-    {            \
-        cli();   \
-        S;       \
-        sti();   \
-    } while (0)
 
 namespace task
 {

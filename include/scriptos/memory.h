@@ -48,10 +48,23 @@ namespace memory
     }
 
     template<typename T>
-    T* AllocateN(usize size)
+    T* AllocateArray(usize size)
     {
         return reinterpret_cast<T*>(Allocate(size * sizeof(T)));
     }
+
+    template<typename T>
+    T* AllocateAligned(usize alignment)
+    {
+        auto size = sizeof(T);
+        auto mask = alignment - 1;
+        auto raw = reinterpret_cast<uptr>(Allocate(size + alignment + sizeof(void*)));
+        auto aligned = (raw + sizeof(void*) + mask) & ~mask;
+        reinterpret_cast<void**>(aligned)[-1] = reinterpret_cast<void*>(raw);
+        return reinterpret_cast<T*>(aligned);
+    }
+
+    void FreeAligned(void* block);
 
     void* Reallocate(
         void* block,

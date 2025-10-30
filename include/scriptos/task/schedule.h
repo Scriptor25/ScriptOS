@@ -5,8 +5,6 @@
 
 namespace task
 {
-    extern Task* ActiveTask;
-
     Task* CreateTask(
         cstr name,
         u64 priority,
@@ -15,7 +13,7 @@ namespace task
 
     void EnqueueTask(Task* task);
 
-    Task* NextTask();
+    Task* NextTask(Task* active);
 
     void Reaper();
 }

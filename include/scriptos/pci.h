@@ -1,7 +1,6 @@
 #pragma once
 
-#include "scriptos/stl.h"
-
+#include <scriptos/stl.h>
 #include <scriptos/types.h>
 
 namespace pci

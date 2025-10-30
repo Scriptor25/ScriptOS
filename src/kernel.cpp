@@ -1,5 +1,3 @@
-#include "scriptos/task/task.h"
-
 #include <efi.h>
 #include <limine.h>
 #include <scriptos/acpi.h>
@@ -19,9 +17,11 @@
 #include <scriptos/pic.h>
 #include <scriptos/pit.h>
 #include <scriptos/print.h>
+#include <scriptos/processor.h>
 #include <scriptos/range.h>
 #include <scriptos/serial.h>
 #include <scriptos/task/schedule.h>
+#include <scriptos/task/task.h>
 #include <scriptos/tss.h>
 #include <scriptos/types.h>
 
@@ -426,7 +426,9 @@ struct print_task_t
 //
 //     for (;;)
 //     {
-//         BLOCK(kputs(t->message));
+//         cli();
+//         kputs(t->message);
+//         sti();
 //     }
 // }
 
@@ -436,13 +438,17 @@ static void ping_pong_task(void* arg)
 
     if (arg)
     {
-        BLOCK(kputs("pong\r\n"));
+        cli();
+        kputs("pong\r\n");
+        sti();
 
         task = task::CreateTask("ping", 0, ping_pong_task, nullptr);
     }
     else
     {
-        BLOCK(kputs("ping\r\n"));
+        cli();
+        kputs("ping\r\n");
+        sti();
 
         task = task::CreateTask("pong", 0, ping_pong_task, reinterpret_cast<void*>(0xDEADBEEF));
     }
@@ -486,7 +492,9 @@ __attribute__((noreturn)) static void kernel_task(void* arg)
 
     for (;;)
     {
-        BLOCK(kflush());
+        cli();
+        kflush();
+        sti();
         hlt();
     }
 }
@@ -558,6 +566,8 @@ extern "C" __attribute__((noreturn)) void kmain()
     tss::Initialize(kernel_stack, nullptr, nullptr);
 
     memory::InitializeHeap(0x400000);
+
+    processor::Initialize(0);
 
     initialize_renderer();
 

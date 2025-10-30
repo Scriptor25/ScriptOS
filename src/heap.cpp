@@ -136,6 +136,17 @@ void* memory::Allocate(usize count)
     return header + 1;
 }
 
+void memory::FreeAligned(void* block)
+{
+    if (!block)
+    {
+        return;
+    }
+
+    auto raw = reinterpret_cast<void**>(block)[-1];
+    Free(raw);
+}
+
 void* memory::Reallocate(
     void* block,
     usize count)

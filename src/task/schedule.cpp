@@ -11,16 +11,15 @@
 static u64 task_next_pid = 0;
 static task::Task* task_queue_root = nullptr;
 
-task::Task* task::ActiveTask = nullptr;
-
 extern "C" void __task_trampoline(void* arg);
 extern "C" void __task_exit(task::Task* task)
 {
-    BLOCK({
-        kprintf("task %s (%016x) exited\r\n", task->Name, task);
+    cli();
 
-        task->State = task::TaskState_Zombie;
-    });
+    kprintf("task %s (%016x) exited\r\n", task->Name, task);
+    task->State = task::TaskState_Zombie;
+
+    sti();
 
     for (;;)
     {
@@ -71,27 +70,31 @@ task::Task* task::CreateTask(
 
 void task::EnqueueTask(Task* task)
 {
-    BLOCK({
-        task->PrevTask = nullptr;
-        task->NextTask = nullptr;
+    cli();
 
-        if (!task_queue_root)
-        {
-            task_queue_root = task;
-        }
-        else
-        {
-            Task* it;
-            for (it = task_queue_root; it->NextTask; it = it->NextTask)
-                ;
+    task->PrevTask = nullptr;
+    task->NextTask = nullptr;
 
-            it->NextTask = task;
-            task->PrevTask = it;
-        }
-    });
+    if (!task_queue_root)
+    {
+        task_queue_root = task;
+    }
+    else
+    {
+        Task* it;
+        for (it = task_queue_root; it->NextTask; it = it->NextTask)
+            ;
+
+        it->NextTask = task;
+        task->PrevTask = it;
+    }
+
+    kprintf("task %s (%016x) enqueued\r\n", task->Name, task);
+
+    sti();
 }
 
-task::Task* task::NextTask()
+task::Task* task::NextTask(Task* active)
 {
     Reaper();
 
@@ -100,18 +103,18 @@ task::Task* task::NextTask()
         return nullptr;
     }
 
-    if (!ActiveTask)
+    if (!active)
     {
         return task_queue_root;
     }
 
-    if (ActiveTask->Timeslice)
+    if (active->Timeslice)
     {
-        ActiveTask->Timeslice--;
-        return ActiveTask;
+        active->Timeslice--;
+        return active;
     }
 
-    if (!ActiveTask->NextTask)
+    if (!active->NextTask)
     {
         for (auto task = task_queue_root; task; task = task->NextTask)
         {
@@ -125,7 +128,7 @@ task::Task* task::NextTask()
     }
 
     Task* task;
-    for (task = ActiveTask; task && task->State != TaskState_Runnable; task = task->NextTask)
+    for (task = active; task && task->State != TaskState_Runnable; task = task->NextTask)
         ;
 
     return task;
