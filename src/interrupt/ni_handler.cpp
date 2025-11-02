@@ -1,6 +1,6 @@
 #include <scriptos/interrupt.h>
 
-extern "C" void NI_Handler(interrupt::StackFrame* stack_frame)
+extern "C" void __ni_handler(interrupt::StackFrame* stack_frame)
 {
     interrupt::Panic(
         stack_frame,

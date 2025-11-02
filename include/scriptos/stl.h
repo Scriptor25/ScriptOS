@@ -262,3 +262,27 @@ public:
         return *this;
     }
 };
+
+template<typename T = char>
+class string_view : public view<T>
+{
+public:
+    string_view()
+        : view<T>()
+    {
+    }
+
+    string_view(
+        const T* begin,
+        const T* end)
+        : view<T>(
+              begin,
+              end)
+    {
+    }
+
+    string_view(const vector<T>& v)
+        : view<T>(v)
+    {
+    }
+};

@@ -2,8 +2,7 @@
 
 #include <scriptos/types.h>
 
-#define INT(I)                 asm volatile("int $" #I)
-#define offsetof(TYPE, MEMBER) __builtin_offsetof(TYPE, MEMBER)
+#define INT(I) asm volatile("int $" #I)
 
 inline void hlt()
 {

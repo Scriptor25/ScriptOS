@@ -6,7 +6,7 @@
 #include <scriptos/task/task.h>
 #include <scriptos/types.h>
 
-extern "C" void IRQ0_Handler(interrupt::StackFrame* stack_frame)
+extern "C" void __irq0_handler(interrupt::StackFrame* stack_frame)
 {
     if (processor::NoProcessorState())
     {

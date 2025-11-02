@@ -89,9 +89,8 @@ namespace paging
     bool MapPage(
         const void* virtual_address,
         const void* physical_address,
-        bool present = true,
-        bool read_write = false,
-        bool user_supervisor = false,
+        bool writable = false,
+        bool user = false,
         bool write_through = false,
         bool cache_disable = false,
         bool accessed = false);
@@ -100,9 +99,8 @@ namespace paging
         const void* virtual_address,
         const void* physical_address,
         usize count,
-        bool present = true,
-        bool read_write = false,
-        bool user_supervisor = false,
+        bool writable = false,
+        bool user = false,
         bool write_through = false,
         bool cache_disable = false,
         bool accessed = false);

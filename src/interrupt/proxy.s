@@ -1,9 +1,9 @@
 .macro proxy name
 
-    .global \name\()_Proxy
-    .type \name\()_Proxy, @function
+    .global __\name\()_proxy
+    .type __\name\()_proxy, @function
     .align 16
-\name\()_Proxy:
+__\name\()_proxy:
     cli
 
     /* save context */
@@ -27,7 +27,7 @@
     movq %rsp, %rdi
 
     /* call handler */
-    call \name\()_Handler
+    call __\name\()_handler
 
     /* restore context */
     popq %r15
@@ -53,40 +53,40 @@
 
 .endm
 
-proxy DE
-proxy DB
-proxy NI
-proxy BP
-proxy OF
-proxy BR
-proxy UD
-proxy NM
-proxy DF
-proxy TS
-proxy NP
-proxy SS
-proxy GP
-proxy PF
-proxy MF
-proxy AC
-proxy MC
-proxy XM
-proxy VE
-proxy CP
-proxy IRQ0
-proxy IRQ1
-proxy IRQ2
-proxy IRQ3
-proxy IRQ4
-proxy IRQ5
-proxy IRQ6
-proxy IRQ7
-proxy IRQ8
-proxy IRQ9
-proxy IRQA
-proxy IRQB
-proxy IRQC
-proxy IRQD
-proxy IRQE
-proxy IRQF
-proxy KE
+proxy de
+proxy db
+proxy ni
+proxy bp
+proxy of
+proxy br
+proxy ud
+proxy nm
+proxy df
+proxy ts
+proxy np
+proxy ss
+proxy gp
+proxy pf
+proxy mf
+proxy ac
+proxy mc
+proxy xm
+proxy ve
+proxy cp
+proxy irq0
+proxy irq1
+proxy irq2
+proxy irq3
+proxy irq4
+proxy irq5
+proxy irq6
+proxy irq7
+proxy irq8
+proxy irq9
+proxy irq10
+proxy irq11
+proxy irq12
+proxy irq13
+proxy irq14
+proxy irq15
+proxy ke

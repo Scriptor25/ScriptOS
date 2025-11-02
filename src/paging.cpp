@@ -60,9 +60,8 @@ void paging::WalkTable(
 bool paging::MapPage(
     const void* virtual_address,
     const void* physical_address,
-    bool present,
-    bool read_write,
-    bool user_supervisor,
+    bool writable,
+    bool user,
     bool write_through,
     bool cache_disable,
     bool accessed)
@@ -99,15 +98,16 @@ bool paging::MapPage(
         pt = PhysicalToVirtual<PageTable>(pt);
     }
 
-    pt[lvl1].Value = 0;
+    auto& pte = pt[lvl1];
+    pte.Value = 0;
 
-    pt[lvl1].Present = present;
-    pt[lvl1].ReadWrite = read_write;
-    pt[lvl1].UserSupervisor = user_supervisor;
-    pt[lvl1].WriteThrough = write_through;
-    pt[lvl1].CacheDisable = cache_disable;
-    pt[lvl1].Accessed = accessed;
-    pt[lvl1].Address = reinterpret_cast<uptr>(physical_address) >> 12;
+    pte.Present = 1;
+    pte.ReadWrite = writable;
+    pte.UserSupervisor = user;
+    pte.WriteThrough = write_through;
+    pte.CacheDisable = cache_disable;
+    pte.Accessed = accessed;
+    pte.Address = reinterpret_cast<uptr>(physical_address) >> 12;
 
     FlushPage(virtual_address);
     return true;
@@ -117,9 +117,8 @@ bool paging::MapPages(
     const void* virtual_address,
     const void* physical_address,
     usize count,
-    bool present,
-    bool read_write,
-    bool user_supervisor,
+    bool writable,
+    bool user,
     bool write_through,
     bool cache_disable,
     bool accessed)
@@ -127,7 +126,7 @@ bool paging::MapPages(
     for (usize i = 0; i < count; ++i)
     {
         auto pi = i * PAGE_SIZE;
-        if (!MapPage(reinterpret_cast<void*>(reinterpret_cast<uptr>(virtual_address) + pi), reinterpret_cast<void*>(reinterpret_cast<uptr>(physical_address) + pi), present, read_write, user_supervisor, write_through, cache_disable, accessed))
+        if (!MapPage(reinterpret_cast<void*>(reinterpret_cast<uptr>(virtual_address) + pi), reinterpret_cast<void*>(reinterpret_cast<uptr>(physical_address) + pi), writable, user, write_through, cache_disable, accessed))
         {
             return false;
         }
@@ -168,11 +167,12 @@ paging::PageTable paging::GetOrCreateNextLevel(
         next_table[i].Value = 0;
     }
 
-    table[index].Value = 0;
+    auto& entry = table[index];
+    entry.Value = 0;
 
-    table[index].Present = true;
-    table[index].ReadWrite = true;
-    table[index].Address = reinterpret_cast<uptr>(physical_address) >> 12;
+    entry.Present = true;
+    entry.ReadWrite = true;
+    entry.Address = reinterpret_cast<uptr>(physical_address) >> 12;
 
     return next_table;
 }

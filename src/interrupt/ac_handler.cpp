@@ -1,6 +1,6 @@
 #include <scriptos/interrupt.h>
 
-extern "C" void AC_Handler(interrupt::StackFrameError* stack_frame)
+extern "C" void __ac_handler(interrupt::StackFrameError* stack_frame)
 {
     interrupt::Panic(
         stack_frame,

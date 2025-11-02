@@ -1,6 +1,6 @@
 #include <scriptos/interrupt.h>
 
-extern "C" void DF_Handler(interrupt::StackFrameError* stack_frame)
+extern "C" void __df_handler(interrupt::StackFrameError* stack_frame)
 {
     interrupt::Panic(
         stack_frame,

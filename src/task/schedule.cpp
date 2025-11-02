@@ -18,8 +18,6 @@ static void __task_exit()
     auto task = processor::GetProcessorActiveTask();
     task->State = task::TaskState_Zombie;
 
-    // kprintf("task %s (%016x) exited\r\n", task->Name, task);
-
     sti();
 
     for (;;)
@@ -39,7 +37,7 @@ task::Task* task::CreateTask(
     auto pid = task_next_pid++;
 
     auto stack = kernel::Instance.Allocator->AllocatePhysicalPage();
-    paging::MapPage(stack, stack, true, true);
+    paging::MapPage(stack, stack, true);
 
     memory::Fill(stack, 0, PAGE_SIZE);
 
@@ -47,7 +45,6 @@ task::Task* task::CreateTask(
         .PID = pid,
         .Name = name,
         .Frame = {},
-        .CR3 = 0,
         .Stack = stack,
         .State = TaskState_Runnable,
         .Priority = priority,
@@ -92,8 +89,6 @@ void task::EnqueueTask(Task* task)
         it->NextTask = task;
         task->PrevTask = it;
     }
-
-    // kprintf("task %s (%016x) enqueued\r\n", task->Name, task);
 
     sti();
 }
@@ -160,8 +155,9 @@ void task::Reaper()
 
             auto next = task->NextTask;
 
-            paging::MapPage(task->Stack, nullptr, false);
             kernel::Instance.Allocator->FreePage(task->Stack);
+
+            *reinterpret_cast<u8*>(task->Stack) = 0x69;
 
             memory::Free(task);
 

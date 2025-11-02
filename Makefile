@@ -84,10 +84,7 @@ QEMUFLAGS = -machine q35	\
  			-smp 4 -m 256M	\
 			-net none		\
 			-serial stdio	\
-			-cdrom $(ISO)	\
-			-no-reboot		\
-			-no-shutdown	\
-			-d int,cpu_reset
+			-cdrom $(ISO)
 
 QEMUFLAGS_EFI = -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE.fd \
 				-drive if=pflash,format=raw,file=/usr/share/OVMF/OVMF_VARS.fd

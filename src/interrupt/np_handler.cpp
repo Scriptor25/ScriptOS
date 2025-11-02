@@ -1,6 +1,6 @@
 #include <scriptos/interrupt.h>
 
-extern "C" void NP_Handler(interrupt::StackFrameError* stack_frame)
+extern "C" void __np_handler(interrupt::StackFrameError* stack_frame)
 {
     auto external = stack_frame->error_code & 0b1;
     auto table = (stack_frame->error_code >> 1) & 0b11;

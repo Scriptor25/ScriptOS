@@ -1,6 +1,6 @@
 #include <scriptos/interrupt.h>
 
-extern "C" void PF_Handler(interrupt::StackFrameError* stack_frame)
+extern "C" void __pf_handler(interrupt::StackFrameError* stack_frame)
 {
     auto present = stack_frame->error_code & 0b1;
     auto read_write = (stack_frame->error_code >> 1) & 0b1;

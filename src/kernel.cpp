@@ -5,6 +5,7 @@
 #include <scriptos/asm.h>
 #include <scriptos/bitmap.h>
 #include <scriptos/boot/limine.h>
+#include <scriptos/common.h>
 #include <scriptos/fpu.h>
 #include <scriptos/gdt.h>
 #include <scriptos/graphics.h>
@@ -30,7 +31,7 @@ kernel::InstanceT kernel::Instance = {
     .Renderer = nullptr,
 };
 
-__attribute__((noreturn)) static void error(
+NORETURN static void error(
     cstr format,
     ...)
 {
@@ -340,7 +341,7 @@ static void find_ahci(const acpi::MCFG* mcfg)
 
                     auto ahci = reinterpret_cast<const pci::PCIDevice*>(function);
                     auto abar = reinterpret_cast<ahci::hba::MEM_T*>(ahci->BAR5 & 0xFFFFF000);
-                    paging::MapPage(abar, abar, true, true, false, false, true, false);
+                    paging::MapPage(abar, abar, true, false, false, true, false);
 
                     abar->GHC.AE = true;
 
@@ -363,7 +364,7 @@ static void find_ahci(const acpi::MCFG* mcfg)
                         }
 
                         auto base_address = kernel::Instance.Allocator->AllocatePhysicalPages(0x10);
-                        paging::MapPages(base_address, base_address, 0x10, true, true);
+                        paging::MapPages(base_address, base_address, 0x10, true);
 
                         if (!ahci::Initialize(abar, port, reinterpret_cast<uptr>(base_address)))
                         {
@@ -371,7 +372,7 @@ static void find_ahci(const acpi::MCFG* mcfg)
                         }
 
                         auto buffer = kernel::Instance.Allocator->AllocatePhysicalPage();
-                        paging::MapPage(buffer, buffer, true, true);
+                        paging::MapPage(buffer, buffer, true);
 
                         memory::Fill(buffer, 0, PAGE_SIZE);
 
@@ -415,23 +416,6 @@ static void find_ahci(const acpi::MCFG* mcfg)
     }
 }
 
-struct print_task_t
-{
-    cstr message;
-};
-
-// static void print_task(void* arg)
-// {
-//     auto t = reinterpret_cast<const print_task_t*>(arg);
-//
-//     for (;;)
-//     {
-//         cli();
-//         kputs(t->message);
-//         sti();
-//     }
-// }
-
 static void ping_pong_task(void* arg)
 {
     task::Task* task;
@@ -456,39 +440,12 @@ static void ping_pong_task(void* arg)
     task::EnqueueTask(task);
 }
 
-__attribute__((noreturn)) static void kernel_task(void* arg)
+NORETURN static void kernel_task(void* arg)
 {
     (void) arg;
 
-    // {
-    //     auto arg = memory::Allocate<print_task_t>();
-    //     arg->message = "A";
-    //     auto task = task::CreateTask("print a", 1, print_task, arg);
-    //     task::EnqueueTask(task);
-    // }
-    // {
-    //     auto arg = memory::Allocate<print_task_t>();
-    //     arg->message = "B";
-    //     auto task = task::CreateTask("print b", 2, print_task, arg);
-    //     task::EnqueueTask(task);
-    // }
-    // {
-    //     auto arg = memory::Allocate<print_task_t>();
-    //     arg->message = "C";
-    //     auto task = task::CreateTask("print c", 3, print_task, arg);
-    //     task::EnqueueTask(task);
-    // }
-    // {
-    //     auto arg = memory::Allocate<print_task_t>();
-    //     arg->message = "D";
-    //     auto task = task::CreateTask("print d", 4, print_task, arg);
-    //     task::EnqueueTask(task);
-    // }
-
-    {
-        auto task = task::CreateTask("ping", 0, ping_pong_task, nullptr);
-        task::EnqueueTask(task);
-    }
+    auto task = task::CreateTask("ping", 0, ping_pong_task, nullptr);
+    task::EnqueueTask(task);
 
     for (;;)
     {
@@ -499,7 +456,7 @@ __attribute__((noreturn)) static void kernel_task(void* arg)
     }
 }
 
-extern "C" __attribute__((noreturn)) void kmain()
+extern "C" NORETURN void kmain()
 {
     cli();
 
@@ -562,7 +519,7 @@ extern "C" __attribute__((noreturn)) void kmain()
     initialize_allocator();
 
     auto kernel_stack = kernel::Instance.Allocator->AllocatePhysicalPage();
-    paging::MapPage(kernel_stack, kernel_stack, true, true);
+    paging::MapPage(kernel_stack, kernel_stack, true);
     tss::Initialize(kernel_stack, nullptr, nullptr);
 
     memory::InitializeHeap(0x400000);

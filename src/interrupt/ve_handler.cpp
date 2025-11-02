@@ -1,6 +1,6 @@
 #include <scriptos/interrupt.h>
 
-extern "C" void VE_Handler(interrupt::StackFrame* stack_frame)
+extern "C" void __ve_handler(interrupt::StackFrame* stack_frame)
 {
     interrupt::Panic(
         stack_frame,

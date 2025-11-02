@@ -1,7 +1,7 @@
 #include <scriptos/interrupt.h>
 #include <scriptos/pic.h>
 
-extern "C" void IRQ6_Handler(interrupt::StackFrame* stack_frame)
+extern "C" void __irq6_handler(interrupt::StackFrame* stack_frame)
 {
     (void) stack_frame;
 

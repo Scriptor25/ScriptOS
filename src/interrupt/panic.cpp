@@ -1,10 +1,11 @@
 #include <scriptos/asm.h>
+#include <scriptos/common.h>
 #include <scriptos/interrupt.h>
 #include <scriptos/print.h>
 #include <scriptos/serial.h>
 #include <scriptos/types.h>
 
-__attribute__((noreturn)) static void __panic(
+NORETURN static void __panic(
     const interrupt::StackFrame& stack_frame,
     bool serious,
     cstr format,
@@ -56,7 +57,7 @@ __attribute__((noreturn)) static void __panic(
     }
 }
 
-__attribute__((noreturn)) void interrupt::Panic(
+NORETURN void interrupt::Panic(
     interrupt::StackFrame* stack_frame,
     bool serious,
     cstr format,
@@ -68,7 +69,7 @@ __attribute__((noreturn)) void interrupt::Panic(
     va_end(ap);
 }
 
-__attribute__((noreturn)) void interrupt::Panic(
+NORETURN void interrupt::Panic(
     interrupt::StackFrameError* stack_frame,
     bool serious,
     cstr format,

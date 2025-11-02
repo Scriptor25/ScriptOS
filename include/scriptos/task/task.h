@@ -20,7 +20,6 @@ namespace task
         u64 PID;
         cstr Name;
         interrupt::StackFrame Frame;
-        u64 CR3;
         void* Stack;
         TaskState State;
         u64 Priority;

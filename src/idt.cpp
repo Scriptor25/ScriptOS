@@ -24,45 +24,45 @@ void idt::Initialize()
 {
     memory::Fill(entries, 0, sizeof(entries));
 
-    entries[0x00] = { reinterpret_cast<uptr>(DE_Proxy), 0x0008, 0b000, 0xE, 0b00 };
-    entries[0x01] = { reinterpret_cast<uptr>(DB_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x02] = { reinterpret_cast<uptr>(NI_Proxy), 0x0008, 0b000, 0xE, 0b00 };
-    entries[0x03] = { reinterpret_cast<uptr>(BP_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x04] = { reinterpret_cast<uptr>(OF_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x05] = { reinterpret_cast<uptr>(BR_Proxy), 0x0008, 0b000, 0xE, 0b00 };
-    entries[0x06] = { reinterpret_cast<uptr>(UD_Proxy), 0x0008, 0b000, 0xE, 0b00 };
-    entries[0x07] = { reinterpret_cast<uptr>(NM_Proxy), 0x0008, 0b000, 0xE, 0b00 };
-    entries[0x08] = { reinterpret_cast<uptr>(DF_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x0A] = { reinterpret_cast<uptr>(TS_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x0B] = { reinterpret_cast<uptr>(NP_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x0C] = { reinterpret_cast<uptr>(SS_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x0D] = { reinterpret_cast<uptr>(GP_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x0E] = { reinterpret_cast<uptr>(PF_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x10] = { reinterpret_cast<uptr>(MF_Proxy), 0x0008, 0b000, 0xE, 0b00 };
-    entries[0x11] = { reinterpret_cast<uptr>(AC_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x12] = { reinterpret_cast<uptr>(MC_Proxy), 0x0008, 0b000, 0xE, 0b00 };
-    entries[0x13] = { reinterpret_cast<uptr>(XM_Proxy), 0x0008, 0b000, 0xE, 0b00 };
-    entries[0x14] = { reinterpret_cast<uptr>(VE_Proxy), 0x0008, 0b000, 0xE, 0b00 };
-    entries[0x15] = { reinterpret_cast<uptr>(CP_Proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x00] = { reinterpret_cast<uptr>(__de_proxy), 0x0008, 0b000, 0xE, 0b00 };
+    entries[0x01] = { reinterpret_cast<uptr>(__db_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x02] = { reinterpret_cast<uptr>(__ni_proxy), 0x0008, 0b000, 0xE, 0b00 };
+    entries[0x03] = { reinterpret_cast<uptr>(__bp_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x04] = { reinterpret_cast<uptr>(__of_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x05] = { reinterpret_cast<uptr>(__br_proxy), 0x0008, 0b000, 0xE, 0b00 };
+    entries[0x06] = { reinterpret_cast<uptr>(__ud_proxy), 0x0008, 0b000, 0xE, 0b00 };
+    entries[0x07] = { reinterpret_cast<uptr>(__nm_proxy), 0x0008, 0b000, 0xE, 0b00 };
+    entries[0x08] = { reinterpret_cast<uptr>(__df_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x0A] = { reinterpret_cast<uptr>(__ts_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x0B] = { reinterpret_cast<uptr>(__np_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x0C] = { reinterpret_cast<uptr>(__ss_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x0D] = { reinterpret_cast<uptr>(__gp_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x0E] = { reinterpret_cast<uptr>(__pf_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x10] = { reinterpret_cast<uptr>(__mf_proxy), 0x0008, 0b000, 0xE, 0b00 };
+    entries[0x11] = { reinterpret_cast<uptr>(__ac_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x12] = { reinterpret_cast<uptr>(__mc_proxy), 0x0008, 0b000, 0xE, 0b00 };
+    entries[0x13] = { reinterpret_cast<uptr>(__xm_proxy), 0x0008, 0b000, 0xE, 0b00 };
+    entries[0x14] = { reinterpret_cast<uptr>(__ve_proxy), 0x0008, 0b000, 0xE, 0b00 };
+    entries[0x15] = { reinterpret_cast<uptr>(__cp_proxy), 0x0008, 0b000, 0xF, 0b00 };
 
-    entries[0x20] = { reinterpret_cast<uptr>(IRQ0_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x21] = { reinterpret_cast<uptr>(IRQ1_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x22] = { reinterpret_cast<uptr>(IRQ2_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x23] = { reinterpret_cast<uptr>(IRQ3_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x24] = { reinterpret_cast<uptr>(IRQ4_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x25] = { reinterpret_cast<uptr>(IRQ5_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x26] = { reinterpret_cast<uptr>(IRQ6_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x27] = { reinterpret_cast<uptr>(IRQ7_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x28] = { reinterpret_cast<uptr>(IRQ8_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x29] = { reinterpret_cast<uptr>(IRQ9_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x2A] = { reinterpret_cast<uptr>(IRQA_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x2B] = { reinterpret_cast<uptr>(IRQB_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x2C] = { reinterpret_cast<uptr>(IRQC_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x2D] = { reinterpret_cast<uptr>(IRQD_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x2E] = { reinterpret_cast<uptr>(IRQE_Proxy), 0x0008, 0b000, 0xF, 0b00 };
-    entries[0x2F] = { reinterpret_cast<uptr>(IRQF_Proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x20] = { reinterpret_cast<uptr>(__irq0_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x21] = { reinterpret_cast<uptr>(__irq1_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x22] = { reinterpret_cast<uptr>(__irq2_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x23] = { reinterpret_cast<uptr>(__irq3_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x24] = { reinterpret_cast<uptr>(__irq4_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x25] = { reinterpret_cast<uptr>(__irq5_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x26] = { reinterpret_cast<uptr>(__irq6_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x27] = { reinterpret_cast<uptr>(__irq7_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x28] = { reinterpret_cast<uptr>(__irq8_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x29] = { reinterpret_cast<uptr>(__irq9_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x2A] = { reinterpret_cast<uptr>(__irq10_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x2B] = { reinterpret_cast<uptr>(__irq11_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x2C] = { reinterpret_cast<uptr>(__irq12_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x2D] = { reinterpret_cast<uptr>(__irq13_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x2E] = { reinterpret_cast<uptr>(__irq14_proxy), 0x0008, 0b000, 0xF, 0b00 };
+    entries[0x2F] = { reinterpret_cast<uptr>(__irq15_proxy), 0x0008, 0b000, 0xF, 0b00 };
 
-    entries[0x69] = { reinterpret_cast<uptr>(KE_Proxy), 0x0008, 0b000, 0xE, 0b00 };
+    entries[0x69] = { reinterpret_cast<uptr>(__ke_proxy), 0x0008, 0b000, 0xE, 0b00 };
 
     const Descriptor descriptor = {
         static_cast<u16>(sizeof(entries) - 1),

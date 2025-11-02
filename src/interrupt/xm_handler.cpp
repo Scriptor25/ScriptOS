@@ -1,6 +1,6 @@
 #include <scriptos/interrupt.h>
 
-extern "C" void XM_Handler(interrupt::StackFrame* stack_frame)
+extern "C" void __xm_handler(interrupt::StackFrame* stack_frame)
 {
     interrupt::Panic(
         stack_frame,

@@ -57,7 +57,7 @@ static void __extend_heap()
 
     auto address = reinterpret_cast<HeapHeader*>(kernel::Instance.Allocator->AllocatePhysicalPages(page_count));
 
-    paging::MapPages(address, address, page_count, true, true);
+    paging::MapPages(address, address, page_count, true);
 
     auto heap_extension = address;
 
@@ -80,7 +80,7 @@ void memory::InitializeHeap(usize size)
 
     auto address = reinterpret_cast<HeapHeader*>(kernel::Instance.Allocator->AllocatePhysicalPages(page_count));
 
-    paging::MapPages(address, address, page_count, true, true);
+    paging::MapPages(address, address, page_count, true);
 
     __heap_begin = address;
     __heap_size = size;
@@ -136,17 +136,6 @@ void* memory::Allocate(usize count)
     return header + 1;
 }
 
-void memory::FreeAligned(void* block)
-{
-    if (!block)
-    {
-        return;
-    }
-
-    auto raw = reinterpret_cast<void**>(block)[-1];
-    Free(raw);
-}
-
 void* memory::Reallocate(
     void* block,
     usize count)
@@ -192,4 +181,15 @@ void memory::Free(void* block)
     {
         header = __merge(header, header->right);
     }
+}
+
+void memory::FreeAligned(void* block)
+{
+    if (!block)
+    {
+        return;
+    }
+
+    auto raw = reinterpret_cast<void**>(block)[-1];
+    Free(raw);
 }
