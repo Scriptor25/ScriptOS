@@ -1,10 +1,8 @@
 #include <efi.h>
 #include <limine.h>
 #include <scriptos/acpi.h>
-#include <scriptos/ahci.h>
 #include <scriptos/asm.h>
 #include <scriptos/bitmap.h>
-#include <scriptos/boot/limine.h>
 #include <scriptos/common.h>
 #include <scriptos/fpu.h>
 #include <scriptos/gdt.h>
@@ -12,6 +10,7 @@
 #include <scriptos/idt.h>
 #include <scriptos/io.h>
 #include <scriptos/kernel.h>
+#include <scriptos/limine.h>
 #include <scriptos/memory.h>
 #include <scriptos/paging.h>
 #include <scriptos/pci.h>
@@ -21,12 +20,11 @@
 #include <scriptos/processor.h>
 #include <scriptos/range.h>
 #include <scriptos/serial.h>
-#include <scriptos/task/schedule.h>
-#include <scriptos/task/task.h>
+#include <scriptos/task.h>
 #include <scriptos/tss.h>
 #include <scriptos/types.h>
 
-kernel::InstanceT kernel::Instance = {
+kernel::KernelInstance kernel::Instance = {
     .Allocator = nullptr,
     .Renderer = nullptr,
 };
@@ -83,7 +81,7 @@ static void initialize_allocator()
     auto virtual_buffer = paging::PhysicalToVirtual<u8*>(physical_buffer);
 
     auto page_count = memory_end / PAGE_SIZE;
-    Bitmap bitmap(virtual_buffer, page_count);
+    kernel::Bitmap bitmap(virtual_buffer, page_count);
 
     bitmap.Clear();
     for (auto entry : memmap)
@@ -258,7 +256,7 @@ static void print_system_information()
     }
 }
 
-static void print_mcfg(const acpi::MCFG* mcfg)
+static void print_mcfg(const acpi::Mcfg* mcfg)
 {
     for (auto& entry : *mcfg)
     {
@@ -315,101 +313,6 @@ static void print_mcfg(const acpi::MCFG* mcfg)
                         kprintf("%04X", function->DeviceID);
                     }
                     kputs("\r\n");
-                }
-            }
-        }
-    }
-}
-
-static void find_ahci(const acpi::MCFG* mcfg)
-{
-    for (auto& entry : *mcfg)
-    {
-        auto base_address = reinterpret_cast<const u8*>(entry.BaseAddress);
-        const pci::RootIterable root(base_address, entry.StartBus, entry.EndBus);
-
-        for (const auto [bus_index, bus] : root)
-        {
-            for (const auto [device_index, device] : bus)
-            {
-                for (const auto [function_index, function] : device)
-                {
-                    if (function->BaseClass != 0x01 || function->SubClass != 0x06 || function->ProgIF != 0x01)
-                    {
-                        continue;
-                    }
-
-                    auto ahci = reinterpret_cast<const pci::PCIDevice*>(function);
-                    auto abar = reinterpret_cast<ahci::hba::MEM_T*>(ahci->BAR5 & 0xFFFFF000);
-                    paging::MapPage(abar, abar, true, false, false, true, false);
-
-                    abar->GHC.AE = true;
-
-                    for (unsigned i = 0; i < abar->CAP.NP; ++i)
-                    {
-                        if (!(abar->PI & (1 << i)))
-                        {
-                            continue;
-                        }
-
-                        auto port = abar->PCR + i;
-
-                        if (port->SATAStatus.DeviceDetection != ahci::hba::HBA_PORT_DET_PRESENT)
-                        {
-                            continue;
-                        }
-                        if (port->SATAStatus.InterfacePowerManagement != ahci::hba::HBA_PORT_IPM_ACTIVE)
-                        {
-                            continue;
-                        }
-
-                        auto base_address = kernel::Instance.Allocator->AllocatePhysicalPages(0x10);
-                        paging::MapPages(base_address, base_address, 0x10, true);
-
-                        if (!ahci::Initialize(abar, port, reinterpret_cast<uptr>(base_address)))
-                        {
-                            kprintf("failed to rebase port %u\r\n", i);
-                        }
-
-                        auto buffer = kernel::Instance.Allocator->AllocatePhysicalPage();
-                        paging::MapPage(buffer, buffer, true);
-
-                        memory::Fill(buffer, 0, PAGE_SIZE);
-
-                        switch (*reinterpret_cast<const u32*>(&port->Signature))
-                        {
-                        case ahci::hba::HBA_PORT_SIG_ATA:
-                            kprintf("located ATA drive at port %u\r\n", i);
-                            if (!ahci::ReadATA(abar, port, 0, 1, buffer))
-                            {
-                                kprintf("failed to read from port %u\r\n", i);
-                            }
-                            break;
-
-                        case ahci::hba::HBA_PORT_SIG_ATAPI:
-                            kprintf("located ATAPI drive at port %u\r\n", i);
-                            if (!ahci::ReadATAPI(abar, port, 0, 1, buffer))
-                            {
-                                kprintf("failed to read from port %u\r\n", i);
-                            }
-                            break;
-
-                        case ahci::hba::HBA_PORT_SIG_SEMB:
-                            kprintf("located SEMB drive at port %u\r\n", i);
-                            break;
-
-                        case ahci::hba::HBA_PORT_SIG_PM:
-                            kprintf("located PM drive at port %u\r\n", i);
-                            break;
-
-                        default:
-                            continue;
-                        }
-
-                        kprintmem(buffer, 0x80);
-
-                        kernel::Instance.Allocator->FreePage(buffer);
-                    }
                 }
             }
         }
@@ -530,19 +433,19 @@ extern "C" NORETURN void kmain()
 
     print_system_information();
 
-    auto xsdp = reinterpret_cast<acpi::XSDP*>(rsdp_request.response->address);
+    auto xsdp = reinterpret_cast<acpi::XsdPointer*>(rsdp_request.response->address);
     paging::MapPage(xsdp, xsdp);
 
-    const acpi::MCFG* mcfg;
+    const acpi::Mcfg* mcfg;
     switch (xsdp->Revision)
     {
     case 0:
     case 1:
     {
-        auto rsdt = reinterpret_cast<const acpi::RSDT*>(xsdp->RSDT_Address);
+        auto rsdt = reinterpret_cast<const acpi::RsdTable*>(xsdp->RsdtAddress);
         paging::MapPage(rsdt, rsdt);
 
-        mcfg = rsdt->Find<acpi::MCFG>("MCFG");
+        mcfg = rsdt->Find<acpi::Mcfg>("MCFG");
         if (!mcfg)
         {
             error("no mcfg table");
@@ -553,10 +456,10 @@ extern "C" NORETURN void kmain()
 
     case 2:
     {
-        auto xsdt = reinterpret_cast<const acpi::XSDT*>(xsdp->XSDT_Address);
+        auto xsdt = reinterpret_cast<const acpi::XsdTable*>(xsdp->XsdtAddress);
         paging::MapPage(xsdt, xsdt);
 
-        mcfg = xsdt->Find<acpi::MCFG>("MCFG");
+        mcfg = xsdt->Find<acpi::Mcfg>("MCFG");
         if (!mcfg)
         {
             error("no mcfg table");
@@ -570,10 +473,6 @@ extern "C" NORETURN void kmain()
     }
 
     print_mcfg(mcfg);
-
-    // TODO: read drivers from disk
-    // find_ahci(mcfg);
-    (void) find_ahci;
 
     kflush();
 

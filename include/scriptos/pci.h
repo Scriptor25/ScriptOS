@@ -14,7 +14,7 @@ namespace pci
         u16 vendor_id,
         u16 device_id);
 
-    struct PCIHeader
+    struct PciHeader
     {
         u16 VendorID;
         u16 DeviceID;
@@ -36,9 +36,9 @@ namespace pci
         u8 BIST;
     } __attribute__((packed));
 
-    struct PCIDevice
+    struct PciDevice
     {
-        PCIHeader Header;
+        PciHeader Header;
 
         u32 BAR0;
         u32 BAR1;
@@ -65,16 +65,16 @@ namespace pci
         u8 MaxLatency;
     } __attribute__((packed));
 
-    struct PCI_To_PCI_Bridge
+    struct PciToPciBridge
     {
-        PCIHeader Header;
+        PciHeader Header;
 
         // TODO
     } __attribute__((packed));
 
-    struct PCI_To_CardBus_Bridge
+    struct PciToCardBusBridge
     {
-        PCIHeader Header;
+        PciHeader Header;
 
         // TODO
     } __attribute__((packed));
@@ -89,9 +89,9 @@ namespace pci
                 u8 function_index);
 
             bool operator==(const Iterator& iterator) const;
-            pair<
+            Pair<
                 u8,
-                const PCIHeader*>
+                const PciHeader*>
             operator*() const;
             Iterator& operator++();
 
@@ -120,7 +120,7 @@ namespace pci
                 u8 device_index);
 
             bool operator==(const Iterator& iterator) const;
-            pair<
+            Pair<
                 u8,
                 DeviceIterable>
             operator*() const;
@@ -153,7 +153,7 @@ namespace pci
                 u8 bus_index);
 
             bool operator==(const Iterator& iterator) const;
-            pair<
+            Pair<
                 u8,
                 BusIterable>
             operator*() const;

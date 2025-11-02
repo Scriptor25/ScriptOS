@@ -1,6 +1,6 @@
 #include <scriptos/paging.h>
 
-paging::PageFrameAllocator::PageFrameAllocator(const Bitmap& bitmap)
+paging::PageFrameAllocator::PageFrameAllocator(const kernel::Bitmap& bitmap)
     : m_Bitmap(bitmap)
 {
 }

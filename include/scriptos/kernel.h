@@ -5,7 +5,7 @@
 
 namespace kernel
 {
-    extern struct InstanceT
+    extern struct KernelInstance
     {
         paging::PageFrameAllocator* Allocator;
         graphics::Renderer* Renderer;

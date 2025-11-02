@@ -2,8 +2,7 @@
 #include <scriptos/interrupt.h>
 #include <scriptos/pic.h>
 #include <scriptos/processor.h>
-#include <scriptos/task/schedule.h>
-#include <scriptos/task/task.h>
+#include <scriptos/task.h>
 #include <scriptos/types.h>
 
 extern "C" void __irq0_handler(interrupt::StackFrame* stack_frame)

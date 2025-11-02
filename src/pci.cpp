@@ -15,15 +15,15 @@ bool pci::DeviceIterable::Iterator::operator==(const Iterator& iterator) const
         && m_FunctionIndex == iterator.m_FunctionIndex;
 }
 
-pair<
+Pair<
     u8,
-    const pci::PCIHeader*>
+    const pci::PciHeader*>
 pci::DeviceIterable::Iterator::operator*() const
 {
     auto function_address = m_DeviceAddress + (static_cast<uptr>(m_FunctionIndex) << 12);
     paging::MapPage(function_address, function_address);
 
-    auto function = reinterpret_cast<const PCIHeader*>(function_address);
+    auto function = reinterpret_cast<const PciHeader*>(function_address);
 
     return { m_FunctionIndex, function };
 }
@@ -46,7 +46,7 @@ pci::DeviceIterable::Iterator pci::DeviceIterable::begin() const
 
 pci::DeviceIterable::Iterator pci::DeviceIterable::end() const
 {
-    auto device = reinterpret_cast<const PCIHeader*>(m_DeviceAddress);
+    auto device = reinterpret_cast<const PciHeader*>(m_DeviceAddress);
     paging::MapPage(device, device);
 
     if (device->HeaderType & 0x80)
@@ -70,7 +70,7 @@ bool pci::BusIterable::Iterator::operator==(const Iterator& iterator) const
     return m_BusAddress == iterator.m_BusAddress && m_DeviceIndex == iterator.m_DeviceIndex;
 }
 
-pair<
+Pair<
     u8,
     pci::DeviceIterable>
 pci::BusIterable::Iterator::operator*() const
@@ -115,7 +115,7 @@ bool pci::RootIterable::Iterator::operator==(const Iterator& iterator) const
     return m_RootAddress == iterator.m_RootAddress && m_BusIndex == iterator.m_BusIndex;
 }
 
-pair<
+Pair<
     u8,
     pci::BusIterable>
 pci::RootIterable::Iterator::operator*() const

@@ -14,7 +14,7 @@ namespace paging
     class PageFrameAllocator
     {
     public:
-        PageFrameAllocator(const Bitmap& bitmap);
+        PageFrameAllocator(const kernel::Bitmap& bitmap);
 
         void LockPage(const void* address);
         void FreePage(const void* address);
@@ -30,7 +30,7 @@ namespace paging
         void* AllocatePhysicalPages(usize count);
 
     private:
-        Bitmap m_Bitmap;
+        kernel::Bitmap m_Bitmap;
     };
 
     union PageTableEntry

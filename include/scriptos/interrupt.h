@@ -3,11 +3,11 @@
 #include <scriptos/common.h>
 #include <scriptos/types.h>
 
-#define GENERATE_INTERRUPT(NAME)                                         \
+#define GENERATE_INTERRUPT(NAME)                                            \
     extern "C" void __##NAME##_handler(interrupt::StackFrame* stack_frame); \
     extern "C" void __##NAME##_proxy(void);
 
-#define GENERATE_INTERRUPT_ERROR(NAME)                                        \
+#define GENERATE_INTERRUPT_ERROR(NAME)                                           \
     extern "C" void __##NAME##_handler(interrupt::StackFrameError* stack_frame); \
     extern "C" void __##NAME##_proxy(void);
 

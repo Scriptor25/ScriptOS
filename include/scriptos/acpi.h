@@ -5,66 +5,78 @@
 
 namespace acpi
 {
-    struct RSDP
+    /**
+     * Root System Description Pointer
+     */
+    struct RsdPointer
     {
         char Signature[8];
         u8 Checksum;
-        char OEMID[6];
+        char OemId[6];
         u8 Revision;
-        u32 RSDT_Address;
+        u32 RsdtAddress;
     } __attribute__((packed));
 
-    struct XSDP
+    /**
+     * Extended Root System Description Pointer
+     */
+    struct XsdPointer
     {
         char Signature[8];
         u8 Checksum;
-        char OEMID[6];
+        char OemId[6];
         u8 Revision;
-        u32 RSDT_Address;
+        u32 RsdtAddress;
 
         u32 Length;
-        u64 XSDT_Address;
+        u64 XsdtAddress;
         u8 ExtendedChecksum;
-        u8 Reserved[3];
+        u8 _rsv0[3];
     } __attribute__((packed));
 
-    struct SDT_Header
+    /**
+     * System Description Table Header
+     */
+    struct SdtHeader
     {
         char Signature[4];
         u32 Length;
         u8 Revision;
         u8 Checksum;
-        char OEMID[6];
-        char OEMTableID[8];
-        u32 OEMRevision;
-        u32 CreatorID;
+        char OemId[6];
+        char OemTableId[8];
+        u32 OemRevision;
+        u32 CreatorId;
         u32 CreatorRevision;
     } __attribute__((packed));
 
-    template<typename BaseT>
-    struct Iterator
+    template<typename T>
+    struct TableIterator
     {
-        bool operator==(const Iterator& iterator) const
+        bool operator==(const TableIterator& iterator) const
         {
             return &Base == &iterator.Base && Offset == iterator.Offset;
         }
 
-        const SDT_Header* operator*() const
+        const SdtHeader* operator*() const
         {
-            return reinterpret_cast<SDT_Header*>(Base.Table[Offset]);
+            return reinterpret_cast<SdtHeader*>(Base.Table[Offset]);
         }
 
-        Iterator& operator++()
+        TableIterator& operator++()
         {
             Offset++;
             return *this;
         }
 
-        const BaseT& Base;
+        const T& Base;
         usize Offset;
     };
 
-    struct RSDT
+    /**
+     * Root System Description Table
+     */
+    struct RsdTable
     {
         template<typename T>
         const T* Find(cstr signature) const
@@ -72,16 +84,19 @@ namespace acpi
             return reinterpret_cast<const T*>(Find(signature));
         }
 
-        const SDT_Header* Find(cstr signature) const;
+        const SdtHeader* Find(cstr signature) const;
 
-        Iterator<RSDT> begin() const;
-        Iterator<RSDT> end() const;
+        TableIterator<RsdTable> begin() const;
+        TableIterator<RsdTable> end() const;
 
-        SDT_Header Header;
+        SdtHeader Header;
         u32 Table[];
     } __attribute__((packed));
 
-    struct XSDT
+    /**
+     * Extended Root System Description Table
+     */
+    struct XsdTable
     {
         template<typename T>
         const T* Find(cstr signature) const
@@ -89,32 +104,32 @@ namespace acpi
             return reinterpret_cast<const T*>(Find(signature));
         }
 
-        const SDT_Header* Find(cstr signature) const;
+        const SdtHeader* Find(cstr signature) const;
 
-        Iterator<XSDT> begin() const;
-        Iterator<XSDT> end() const;
+        TableIterator<XsdTable> begin() const;
+        TableIterator<XsdTable> end() const;
 
-        SDT_Header Header;
+        SdtHeader Header;
         u64 Table[];
     } __attribute__((packed));
 
-    struct MCFG_Entry
+    struct McfgEntry
     {
         u64 BaseAddress;
         u16 SegmentGroup;
         u8 StartBus;
         u8 EndBus;
-        u8 Reserved[4];
+        u8 _rsv0[4];
     } __attribute__((packed));
 
-    struct MCFG
+    struct Mcfg
     {
-        const MCFG_Entry* begin() const;
-        const MCFG_Entry* end() const;
+        const McfgEntry* begin() const;
+        const McfgEntry* end() const;
 
-        SDT_Header Header;
-        u8 Reserved[8];
+        SdtHeader Header;
+        u8 _rsv0[8];
 
-        MCFG_Entry Table[];
+        McfgEntry Table[];
     } __attribute__((packed));
 }

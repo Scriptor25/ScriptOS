@@ -103,33 +103,33 @@ namespace memory
     }
 
     template<typename T>
-    class UniquePtr
+    class UniquePointer
     {
     public:
-        UniquePtr() = default;
+        UniquePointer() = default;
 
-        UniquePtr(T* ptr)
+        UniquePointer(T* ptr)
             : m_Ptr(ptr)
         {
         }
 
-        UniquePtr(const UniquePtr& other) = delete;
+        UniquePointer(const UniquePointer& other) = delete;
 
-        UniquePtr& operator=(const UniquePtr& other) = delete;
+        UniquePointer& operator=(const UniquePointer& other) = delete;
 
-        UniquePtr(UniquePtr&& other) noexcept
+        UniquePointer(UniquePointer&& other) noexcept
             : m_Ptr(other.m_Ptr)
         {
             other.m_Ptr = nullptr;
         }
 
-        UniquePtr& operator=(UniquePtr&& other) noexcept
+        UniquePointer& operator=(UniquePointer&& other) noexcept
         {
             Swap(m_Ptr, other.m_Ptr);
             return *this;
         }
 
-        ~UniquePtr() { Reset(); }
+        ~UniquePointer() { Reset(); }
 
         void Reset()
         {
@@ -149,10 +149,10 @@ namespace memory
     template<
         typename T,
         typename... Args>
-    UniquePtr<T> MakeUnique(Args... args)
+    UniquePointer<T> MakeUnique(Args... args)
     {
         T* ptr = reinterpret_cast<T*>(Allocate(sizeof(T)));
         *ptr = T(args...);
-        return UniquePtr(ptr);
+        return UniquePointer(ptr);
     }
 }

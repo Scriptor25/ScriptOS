@@ -4,33 +4,33 @@
 #include <scriptos/types.h>
 
 template<typename T>
-class vector;
+class Vector;
 
 template<typename T>
-class view;
+class View;
 
 template<typename K, typename V>
-struct pair
+struct Pair
 {
     K Index;
     V Value;
 };
 
 template<typename T>
-class vector
+class Vector
 {
 public:
-    vector(usize size = 10)
+    Vector(usize size = 10)
     {
         m_First = memory::AllocateArray<T>(size);
         m_Last = m_First;
         m_End = m_First + size;
     }
 
-    vector(
+    Vector(
         const T* begin,
         const T* end)
-        : vector(end - begin)
+        : Vector(end - begin)
     {
         auto size = end - begin;
         auto count = size * sizeof(T);
@@ -38,23 +38,23 @@ public:
         m_Last = m_First + size;
     }
 
-    vector(
+    Vector(
         const T* buffer,
         usize size)
-        : vector(
+        : Vector(
               buffer,
               buffer + size)
     {
     }
 
-    vector(const vector& v)
-        : vector(
+    Vector(const Vector& v)
+        : Vector(
               v.begin(),
               v.end())
     {
     }
 
-    vector(vector&& v) noexcept
+    Vector(Vector&& v) noexcept
         : m_First(v.m_First),
           m_Last(v.m_Last),
           m_End(v.m_End)
@@ -62,7 +62,7 @@ public:
         v.m_First = v.m_Last = v.m_End = nullptr;
     }
 
-    ~vector()
+    ~Vector()
     {
         for (auto p = m_First; p < m_Last; ++p)
             p->~T();
@@ -70,7 +70,7 @@ public:
         m_First = m_Last = m_End = nullptr;
     }
 
-    vector& operator=(const vector& v)
+    Vector& operator=(const Vector& v)
     {
         auto size = v.m_Last - v.m_First;
         auto count = size * sizeof(T);
@@ -84,7 +84,7 @@ public:
         return *this;
     }
 
-    vector& operator=(vector&& v) noexcept
+    Vector& operator=(Vector&& v) noexcept
     {
         memory::Swap(m_First, v.m_First);
         memory::Swap(m_Last, v.m_Last);
@@ -197,16 +197,16 @@ protected:
 };
 
 template<typename T>
-class view
+class View
 {
 public:
-    view()
+    View()
         : m_First(nullptr),
           m_Last(nullptr)
     {
     }
 
-    view(
+    View(
         const T* begin,
         const T* end)
         : m_First(begin),
@@ -214,8 +214,8 @@ public:
     {
     }
 
-    view(const vector<T>& v)
-        : view(
+    View(const Vector<T>& v)
+        : View(
               v.begin(),
               v.end())
     {
@@ -229,34 +229,34 @@ protected:
 };
 
 template<typename T = char>
-class string : public vector<T>
+class String : public Vector<T>
 {
 public:
-    string(usize size = 10)
-        : vector<T>(size)
+    String(usize size = 10)
+        : Vector<T>(size)
     {
     }
 
-    string(const T* value)
-        : vector<T>(
+    String(const T* value)
+        : Vector<T>(
               value,
               memory::StringLength(value))
     {
     }
 
-    string& operator+=(T value)
+    String& operator+=(T value)
     {
         push_back(value);
         return *this;
     }
 
-    string& operator+=(const T* value)
+    String& operator+=(const T* value)
     {
         push_range(value, value + memory::StringLength(value));
         return *this;
     }
 
-    string& operator+=(const string& value)
+    String& operator+=(const String& value)
     {
         push_range(value.begin(), value.end());
         return *this;
@@ -264,25 +264,25 @@ public:
 };
 
 template<typename T = char>
-class string_view : public view<T>
+class StringView : public View<T>
 {
 public:
-    string_view()
-        : view<T>()
+    StringView()
+        : View<T>()
     {
     }
 
-    string_view(
+    StringView(
         const T* begin,
         const T* end)
-        : view<T>(
+        : View<T>(
               begin,
               end)
     {
     }
 
-    string_view(const vector<T>& v)
-        : view<T>(v)
+    StringView(const Vector<T>& v)
+        : View<T>(v)
     {
     }
 };

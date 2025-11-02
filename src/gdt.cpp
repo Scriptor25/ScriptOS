@@ -54,20 +54,20 @@ void gdt::Initialize()
 usize gdt::Insert(
     void* buffer,
     usize offset,
-    const SegmentDescriptor& desc)
+    const SegmentDescriptor& descriptor)
 {
     auto dst = reinterpret_cast<u64*>(reinterpret_cast<uptr>(buffer) + offset);
-    dst[0] = desc.Value;
+    dst[0] = descriptor.Value;
     return offset + 8;
 }
 
 usize gdt::Insert(
     void* buffer,
     usize offset,
-    const SystemSegmentDescriptor& desc)
+    const SystemSegmentDescriptor& descriptor)
 {
     auto dst = reinterpret_cast<u64*>(reinterpret_cast<uptr>(buffer) + offset);
-    dst[0] = desc.ValueLo;
-    dst[1] = desc.ValueHi;
+    dst[0] = descriptor.ValueLo;
+    dst[1] = descriptor.ValueHi;
     return offset + 16;
 }

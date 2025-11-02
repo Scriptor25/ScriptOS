@@ -2,7 +2,7 @@
 #include <scriptos/memory.h>
 #include <scriptos/paging.h>
 
-const acpi::SDT_Header* acpi::RSDT::Find(cstr signature) const
+const acpi::SdtHeader* acpi::RsdTable::Find(cstr signature) const
 {
     for (auto header : *this)
     {
@@ -17,18 +17,18 @@ const acpi::SDT_Header* acpi::RSDT::Find(cstr signature) const
     return nullptr;
 }
 
-acpi::Iterator<acpi::RSDT> acpi::RSDT::begin() const
+acpi::TableIterator<acpi::RsdTable> acpi::RsdTable::begin() const
 {
     return { *this, 0 };
 }
 
-acpi::Iterator<acpi::RSDT> acpi::RSDT::end() const
+acpi::TableIterator<acpi::RsdTable> acpi::RsdTable::end() const
 {
-    auto count = (Header.Length - sizeof(SDT_Header)) / sizeof(u32);
+    auto count = (Header.Length - sizeof(SdtHeader)) / sizeof(u32);
     return { *this, count };
 }
 
-const acpi::SDT_Header* acpi::XSDT::Find(cstr signature) const
+const acpi::SdtHeader* acpi::XsdTable::Find(cstr signature) const
 {
     for (auto header : *this)
     {
@@ -43,23 +43,23 @@ const acpi::SDT_Header* acpi::XSDT::Find(cstr signature) const
     return nullptr;
 }
 
-acpi::Iterator<acpi::XSDT> acpi::XSDT::begin() const
+acpi::TableIterator<acpi::XsdTable> acpi::XsdTable::begin() const
 {
     return { *this, 0 };
 }
 
-acpi::Iterator<acpi::XSDT> acpi::XSDT::end() const
+acpi::TableIterator<acpi::XsdTable> acpi::XsdTable::end() const
 {
-    auto count = (Header.Length - sizeof(SDT_Header)) / sizeof(u64);
+    auto count = (Header.Length - sizeof(SdtHeader)) / sizeof(u64);
     return { *this, count };
 }
 
-const acpi::MCFG_Entry* acpi::MCFG::begin() const
+const acpi::McfgEntry* acpi::Mcfg::begin() const
 {
     return Table;
 }
 
-const acpi::MCFG_Entry* acpi::MCFG::end() const
+const acpi::McfgEntry* acpi::Mcfg::end() const
 {
-    return Table + ((Header.Length - sizeof(SDT_Header)) / sizeof(MCFG_Entry));
+    return Table + ((Header.Length - sizeof(SdtHeader)) / sizeof(McfgEntry));
 }

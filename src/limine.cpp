@@ -1,4 +1,4 @@
-#include <scriptos/boot/limine.h>
+#include <scriptos/limine.h>
 
 #define LIMINE_REQUEST __attribute__((used, section(".limine_requests")))
 #define LIMINE_REQUEST_START                                 \

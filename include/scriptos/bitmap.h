@@ -2,51 +2,54 @@
 
 #include <scriptos/types.h>
 
-class Bitmap
+namespace kernel
 {
-    struct Entry
+    class Bitmap
     {
-        usize Index;
-        bool State;
-    };
+        struct Entry
+        {
+            usize index;
+            bool state;
+        };
 
-    class Iterator
-    {
+        class Iterator
+        {
+        public:
+            Iterator(
+                const Bitmap& bitmap,
+                usize index);
+
+            Entry operator*() const;
+            Iterator& operator++();
+            bool operator!=(const Iterator& other) const;
+
+        private:
+            const Bitmap& m_bitmap;
+            usize m_index;
+        };
+
     public:
-        Iterator(
-            const Bitmap& bitmap,
-            usize index);
+        Bitmap() = default;
+        Bitmap(
+            u8* buffer,
+            usize size_in_bits);
 
-        Entry operator*() const;
-        Iterator& operator++();
-        bool operator!=(const Iterator& other) const;
+        void Clear();
+
+        void Set(
+            usize index,
+            bool state);
+        void Fill(
+            usize index,
+            usize count,
+            bool state);
+        bool Get(usize index) const;
+
+        Iterator begin() const;
+        Iterator end() const;
 
     private:
-        const Bitmap& m_Bitmap;
-        usize m_Index;
+        u8* m_Buffer = nullptr;
+        usize m_SizeBits = 0;
     };
-
-public:
-    Bitmap() = default;
-    Bitmap(
-        u8* buffer,
-        usize size_in_bits);
-
-    void Clear();
-
-    void Set(
-        usize index,
-        bool state);
-    void Fill(
-        usize index,
-        usize count,
-        bool state);
-    bool Get(usize index) const;
-
-    Iterator begin() const;
-    Iterator end() const;
-
-private:
-    u8* m_Buffer = nullptr;
-    usize m_SizeInBits = 0;
-};
+}

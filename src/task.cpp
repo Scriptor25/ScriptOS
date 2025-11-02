@@ -4,8 +4,7 @@
 #include <scriptos/paging.h>
 #include <scriptos/print.h>
 #include <scriptos/processor.h>
-#include <scriptos/task/schedule.h>
-#include <scriptos/task/task.h>
+#include <scriptos/task.h>
 #include <scriptos/types.h>
 
 static u64 task_next_pid = 0;

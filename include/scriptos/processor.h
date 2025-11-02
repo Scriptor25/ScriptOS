@@ -1,13 +1,13 @@
 #pragma once
 
 #include <scriptos/asm.h>
-#include <scriptos/task/task.h>
+#include <scriptos/task.h>
 
 namespace processor
 {
-    struct ProcessorState
+    struct State
     {
-        u64 CPUID;
+        u64 CpuId;
         task::Task* ActiveTask;
     } __attribute__((aligned(0x40)));
 
@@ -17,20 +17,20 @@ namespace processor
 
     void Initialize(u64 cpuid);
 
-    inline ProcessorState* GetProcessorState()
+    inline State* GetProcessorState()
     {
-        ProcessorState* state;
+        State* state;
         asm volatile("movq %%gs:0, %0" : "=r"(state));
         return state;
     }
 
     inline u64 GetProcessorCPUID()
     {
-        u64 cpuid;
+        u64 cpu_id;
         asm volatile("movq %%gs:%c1, %0"
-                     : "=r"(cpuid)
-                     : "i"(offsetof(ProcessorState, CPUID)));
-        return cpuid;
+                     : "=r"(cpu_id)
+                     : "i"(offsetof(State, CpuId)));
+        return cpu_id;
     }
 
     inline task::Task* GetProcessorActiveTask()
@@ -38,7 +38,7 @@ namespace processor
         task::Task* task;
         asm volatile("movq %%gs:%c1, %0"
                      : "=r"(task)
-                     : "i"(offsetof(ProcessorState, ActiveTask)));
+                     : "i"(offsetof(State, ActiveTask)));
         return task;
     }
 
@@ -46,7 +46,7 @@ namespace processor
     {
         asm volatile("movq %0, %%gs:%c1"
                      :
-                     : "r"(task), "i"(offsetof(ProcessorState, ActiveTask))
+                     : "r"(task), "i"(offsetof(State, ActiveTask))
                      : "memory");
     }
 
