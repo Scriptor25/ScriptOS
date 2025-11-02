@@ -3,6 +3,7 @@
 extern "C" void CP_Handler(interrupt::StackFrameError* stack_frame)
 {
     interrupt::Panic(
+        stack_frame,
         false,
         "Control Protection Exception %016X (%02X:%016X, %02X:%016X)",
         stack_frame->error_code,

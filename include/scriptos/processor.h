@@ -11,7 +11,9 @@ namespace processor
         task::Task* ActiveTask;
     } __attribute__((aligned(0x40)));
 
-    constexpr u32 IA32_GS_BASE = 0xC0000101;
+    constexpr u32 FS_BASE = 0xC0000100;
+    constexpr u32 GS_BASE = 0xC0000101;
+    constexpr u32 KERNEL_GS_BASE = 0xC0000102;
 
     void Initialize(u64 cpuid);
 
@@ -50,7 +52,7 @@ namespace processor
 
     inline bool NoProcessorState()
     {
-        auto base = rdmsr(IA32_GS_BASE);
+        auto base = rdmsr(GS_BASE);
         return !base;
     }
 }

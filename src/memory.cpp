@@ -2,7 +2,7 @@
 
 void memory::Fill(
     void* dst,
-    int value,
+    u8 value,
     usize count)
 {
     if (!dst || !count)
@@ -10,17 +10,18 @@ void memory::Fill(
         return;
     }
 
-    auto word_count = (count / sizeof(int)) * sizeof(int);
+    auto block_count = (count / sizeof(u64)) * sizeof(u64);
 
-    for (unsigned i = 0; i < sizeof(int) * 8; i += 8)
+    u64 block = 0;
+    for (unsigned i = 0; i < sizeof(u64) * 8; i += 8)
     {
-        value |= ((value & 0xff) << i);
+        block |= ((value & 0xff) << i);
     }
 
     usize i;
-    for (i = 0; i < word_count; i += sizeof(int))
+    for (i = 0; i < block_count; i += sizeof(u64))
     {
-        *reinterpret_cast<int*>(reinterpret_cast<uptr>(dst) + i) = value;
+        *reinterpret_cast<u64*>(reinterpret_cast<uptr>(dst) + i) = block;
     }
     for (; i < count; ++i)
     {
@@ -38,12 +39,12 @@ void memory::Copy(
         return;
     }
 
-    auto word_count = (count / sizeof(int)) * sizeof(int);
+    auto block_count = (count / sizeof(u64)) * sizeof(u64);
 
     usize i;
-    for (i = 0; i < word_count; i += sizeof(int))
+    for (i = 0; i < block_count; i += sizeof(u64))
     {
-        *reinterpret_cast<int*>(reinterpret_cast<uptr>(dst) + i) = *reinterpret_cast<const int*>(reinterpret_cast<uptr>(src) + i);
+        *reinterpret_cast<u64*>(reinterpret_cast<uptr>(dst) + i) = *reinterpret_cast<const u64*>(reinterpret_cast<uptr>(src) + i);
     }
     for (; i < count; ++i)
     {

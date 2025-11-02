@@ -3,6 +3,7 @@
 #include <scriptos/types.h>
 #include <scriptos/vararg.h>
 
+void kstdout(int c);
 void kflush();
 
 void kputc(int c);

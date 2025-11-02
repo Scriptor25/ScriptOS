@@ -1,5 +1,10 @@
 .global __load_gdt
 .type __load_gdt, @function
+/*
+ * rdi: pointer to gdt
+ * si: code segment selector
+ * dx: data segment selector
+ */
 __load_gdt:
     lgdt (%rdi)
     

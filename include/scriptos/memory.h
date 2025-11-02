@@ -6,7 +6,7 @@ namespace memory
 {
     void Fill(
         void* dst,
-        int value,
+        u8 value,
         usize count);
     void Copy(
         void* dst,

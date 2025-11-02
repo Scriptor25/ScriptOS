@@ -24,6 +24,7 @@ extern "C" void GP_Handler(interrupt::StackFrameError* stack_frame)
     }
 
     interrupt::Panic(
+        stack_frame,
         false,
         "General Protection Fault %s%s [ %u ] (%02X:%016X, %02X:%016X)",
         external ? "EXT " : "",

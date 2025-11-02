@@ -3,6 +3,7 @@
 extern "C" void AC_Handler(interrupt::StackFrameError* stack_frame)
 {
     interrupt::Panic(
+        stack_frame,
         false,
         "Alignment Check %016X (%02X:%016X, %02X:%016X)",
         stack_frame->error_code,

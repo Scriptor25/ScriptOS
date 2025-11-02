@@ -3,6 +3,7 @@
 extern "C" void BR_Handler(interrupt::StackFrame* stack_frame)
 {
     interrupt::Panic(
+        stack_frame,
         false,
         "Bound Range Exceeded (%02X:%016X, %02X:%016X)",
         stack_frame->cs,

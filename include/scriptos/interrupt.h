@@ -21,13 +21,46 @@ namespace interrupt
 
     struct StackFrameError
     {
+        inline operator StackFrame() const
+        {
+            return {
+                .r15 = r15,
+                .r14 = r14,
+                .r13 = r13,
+                .r12 = r12,
+                .r11 = r11,
+                .r10 = r10,
+                .r9 = r9,
+                .r8 = r8,
+                .rsi = rsi,
+                .rdi = rdi,
+                .rbp = rbp,
+                .rdx = rdx,
+                .rcx = rcx,
+                .rbx = rbx,
+                .rax = rax,
+                .rip = rip,
+                .cs = cs,
+                .rflags = rflags,
+                .rsp = rsp,
+                .ss = ss,
+            };
+        }
+
         u64 r15, r14, r13, r12, r11, r10, r9, r8;
         u64 rsi, rdi, rbp, rdx, rcx, rbx, rax;
         u64 error_code;
         u64 rip, cs, rflags, rsp, ss;
     };
 
-    void Panic(
+    __attribute__((noreturn)) void Panic(
+        StackFrame* stack_frame,
+        bool serious,
+        cstr format,
+        ...);
+
+    __attribute__((noreturn)) void Panic(
+        StackFrameError* stack_frame,
         bool serious,
         cstr format,
         ...);

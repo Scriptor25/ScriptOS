@@ -3,6 +3,7 @@
 extern "C" void OF_Handler(interrupt::StackFrame* stack_frame)
 {
     interrupt::Panic(
+        stack_frame,
         false,
         "Overflow (%02X:%016X, %02X:%016X)",
         stack_frame->cs,

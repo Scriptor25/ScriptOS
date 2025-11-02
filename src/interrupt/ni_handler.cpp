@@ -3,6 +3,7 @@
 extern "C" void NI_Handler(interrupt::StackFrame* stack_frame)
 {
     interrupt::Panic(
+        stack_frame,
         false,
         "Non Maskable Interrupt (%02X:%016X, %02X:%016X)",
         stack_frame->cs,

@@ -3,6 +3,7 @@
 extern "C" void DF_Handler(interrupt::StackFrameError* stack_frame)
 {
     interrupt::Panic(
+        stack_frame,
         true,
         "Double Fault (%02X:%016X, %02X:%016X)",
         stack_frame->cs,

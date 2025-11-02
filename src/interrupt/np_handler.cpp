@@ -24,6 +24,7 @@ extern "C" void NP_Handler(interrupt::StackFrameError* stack_frame)
     }
 
     interrupt::Panic(
+        stack_frame,
         false,
         "Segment Not Present %s%s [ %u ] (%02X:%016X, %02X:%016X)",
         external ? "EXT " : "",

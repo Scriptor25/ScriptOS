@@ -11,5 +11,5 @@ void processor::Initialize(u64 cpuid)
     state->CPUID = cpuid;
     state->ActiveTask = nullptr;
 
-    wrmsr(IA32_GS_BASE, reinterpret_cast<uptr>(state));
+    wrmsr(GS_BASE, reinterpret_cast<uptr>(state));
 }

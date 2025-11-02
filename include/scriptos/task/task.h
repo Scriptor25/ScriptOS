@@ -21,7 +21,7 @@ namespace task
         cstr Name;
         interrupt::StackFrame Frame;
         u64 CR3;
-        void* KernelStack;
+        void* Stack;
         TaskState State;
         u64 Priority;
         u64 Timeslice;

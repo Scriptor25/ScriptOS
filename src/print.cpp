@@ -3,7 +3,7 @@
 #include <scriptos/print.h>
 #include <scriptos/serial.h>
 
-static void kstdout(int c)
+void kstdout(int c)
 {
     serial::WriteDefault(c);
 

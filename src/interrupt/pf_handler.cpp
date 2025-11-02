@@ -15,6 +15,7 @@ extern "C" void PF_Handler(interrupt::StackFrameError* stack_frame)
     asm volatile("mov %%cr2, %0" : "=a"(address));
 
     interrupt::Panic(
+        stack_frame,
         false,
         "Page Fault %016X "
         "[ ... ][ %u ][ ... ][ %u ][ %u ][ %u ][ %u ][ %u ][ %u ][ %u ] "

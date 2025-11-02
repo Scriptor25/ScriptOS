@@ -613,9 +613,10 @@ extern "C" __attribute__((noreturn)) void kmain()
     }
 
     print_mcfg(mcfg);
-    find_ahci(mcfg);
 
     // TODO: read drivers from disk
+    // find_ahci(mcfg);
+    (void) find_ahci;
 
     kflush();
 

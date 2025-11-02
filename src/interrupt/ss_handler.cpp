@@ -24,6 +24,7 @@ extern "C" void SS_Handler(interrupt::StackFrameError* stack_frame)
     }
 
     interrupt::Panic(
+        stack_frame,
         false,
         "Stack-Segment Fault %s%s [ %u ] (%02X:%016X, %02X:%016X)",
         external ? "EXT " : "",
