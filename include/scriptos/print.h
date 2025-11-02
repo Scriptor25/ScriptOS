@@ -16,18 +16,18 @@ void fkputs(
     out_stream stream,
     cstr s);
 
-unsigned kprintf(
+int kprintf(
     cstr format,
     ...);
-unsigned vkprintf(
+int vkprintf(
     cstr format,
     va_list ap);
 
-unsigned fkprintf(
+int fkprintf(
     out_stream stream,
     cstr format,
     ...);
-unsigned vfkprintf(
+int vfkprintf(
     out_stream stream,
     cstr format,
     va_list ap);

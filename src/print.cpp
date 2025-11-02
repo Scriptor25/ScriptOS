@@ -51,7 +51,7 @@ void fkputs(
     }
 }
 
-unsigned kprintf(
+int kprintf(
     cstr format,
     ...)
 {
@@ -62,14 +62,14 @@ unsigned kprintf(
     return count;
 }
 
-unsigned vkprintf(
+int vkprintf(
     cstr format,
     va_list ap)
 {
     return vfkprintf(kstdout, format, ap);
 }
 
-unsigned fkprintf(
+int fkprintf(
     out_stream stream,
     cstr format,
     ...)

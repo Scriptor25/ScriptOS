@@ -11,10 +11,10 @@ void fkprintmem(
     {
         auto p = reinterpret_cast<const u8*>(buffer) + n;
 
-        fkprintf(stream, "%016x | ", p);
+        fkprintf(stream, "%016llx | ", p);
         for (usize d = 0; d < CHUNK_SIZE; ++d)
         {
-            fkprintf(stream, "%02X ", p[d]);
+            fkprintf(stream, "%02x ", p[d]);
         }
 
         fkputs(stream, "| ");

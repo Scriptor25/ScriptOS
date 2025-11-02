@@ -5,10 +5,7 @@
 
 namespace acpi
 {
-    /**
-     * Root System Description Pointer
-     */
-    struct RsdPointer
+    struct SystemDescriptorPointer
     {
         char Signature[8];
         u8 Checksum;
@@ -17,10 +14,7 @@ namespace acpi
         u32 RsdtAddress;
     } __attribute__((packed));
 
-    /**
-     * Extended Root System Description Pointer
-     */
-    struct XsdPointer
+    struct XSystemDescriptorPointer
     {
         char Signature[8];
         u8 Checksum;
@@ -37,7 +31,7 @@ namespace acpi
     /**
      * System Description Table Header
      */
-    struct SdtHeader
+    struct SystemDescriptorTableHeader
     {
         char Signature[4];
         u32 Length;
@@ -58,9 +52,9 @@ namespace acpi
             return &Base == &iterator.Base && Offset == iterator.Offset;
         }
 
-        const SdtHeader* operator*() const
+        const SystemDescriptorTableHeader* operator*() const
         {
-            return reinterpret_cast<SdtHeader*>(Base.Table[Offset]);
+            return reinterpret_cast<SystemDescriptorTableHeader*>(Base.Table[Offset]);
         }
 
         TableIterator& operator++()
@@ -74,9 +68,9 @@ namespace acpi
     };
 
     /**
-     * Root System Description Table
+     * System Description Table
      */
-    struct RsdTable
+    struct SystemDescriptorTable
     {
         template<typename T>
         const T* Find(cstr signature) const
@@ -84,19 +78,19 @@ namespace acpi
             return reinterpret_cast<const T*>(Find(signature));
         }
 
-        const SdtHeader* Find(cstr signature) const;
+        const SystemDescriptorTableHeader* Find(cstr signature) const;
 
-        TableIterator<RsdTable> begin() const;
-        TableIterator<RsdTable> end() const;
+        TableIterator<SystemDescriptorTable> begin() const;
+        TableIterator<SystemDescriptorTable> end() const;
 
-        SdtHeader Header;
+        SystemDescriptorTableHeader Header;
         u32 Table[];
     } __attribute__((packed));
 
     /**
-     * Extended Root System Description Table
+     * Extended System Description Table
      */
-    struct XsdTable
+    struct XSystemDescriptorTable
     {
         template<typename T>
         const T* Find(cstr signature) const
@@ -104,12 +98,12 @@ namespace acpi
             return reinterpret_cast<const T*>(Find(signature));
         }
 
-        const SdtHeader* Find(cstr signature) const;
+        const SystemDescriptorTableHeader* Find(cstr signature) const;
 
-        TableIterator<XsdTable> begin() const;
-        TableIterator<XsdTable> end() const;
+        TableIterator<XSystemDescriptorTable> begin() const;
+        TableIterator<XSystemDescriptorTable> end() const;
 
-        SdtHeader Header;
+        SystemDescriptorTableHeader Header;
         u64 Table[];
     } __attribute__((packed));
 
@@ -127,7 +121,7 @@ namespace acpi
         const McfgEntry* begin() const;
         const McfgEntry* end() const;
 
-        SdtHeader Header;
+        SystemDescriptorTableHeader Header;
         u8 _rsv0[8];
 
         McfgEntry Table[];

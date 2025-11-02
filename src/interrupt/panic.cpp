@@ -18,13 +18,13 @@ NORETURN static void __panic(
 
     fkprintf(
         stream,
-        "r15=%016x r14=%016x r13=%016x r12=%016x\r\n"
-        "r11=%016x r10=%016x r9=%016x r8=%016x\r\n"
-        "rsi=%016x rdi=%016x rbp=%016x\r\n"
-        "rdx=%016x rcx=%016x rbx=%016x rax=%016x\r\n"
-        "rip=%016x cs=%04x\r\n"
-        "rflags=%016x\r\n"
-        "rsp=%016x ss=%04x\r\n",
+        "r15=%016llx r14=%016llx r13=%016llx r12=%016llx\r\n"
+        "r11=%016llx r10=%016llx r9=%016llx r8=%016llx\r\n"
+        "rsi=%016llx rdi=%016llx rbp=%016llx\r\n"
+        "rdx=%016llx rcx=%016llx rbx=%016llx rax=%016llx\r\n"
+        "rip=%016llx cs=%04x\r\n"
+        "rflags=%016llx\r\n"
+        "rsp=%016llx ss=%04x\r\n",
         stack_frame.r15,
         stack_frame.r14,
         stack_frame.r13,

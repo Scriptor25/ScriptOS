@@ -2,7 +2,7 @@
 #include <scriptos/memory.h>
 #include <scriptos/paging.h>
 
-const acpi::SdtHeader* acpi::RsdTable::Find(cstr signature) const
+const acpi::SystemDescriptorTableHeader* acpi::SystemDescriptorTable::Find(cstr signature) const
 {
     for (auto header : *this)
     {
@@ -17,18 +17,18 @@ const acpi::SdtHeader* acpi::RsdTable::Find(cstr signature) const
     return nullptr;
 }
 
-acpi::TableIterator<acpi::RsdTable> acpi::RsdTable::begin() const
+acpi::TableIterator<acpi::SystemDescriptorTable> acpi::SystemDescriptorTable::begin() const
 {
     return { *this, 0 };
 }
 
-acpi::TableIterator<acpi::RsdTable> acpi::RsdTable::end() const
+acpi::TableIterator<acpi::SystemDescriptorTable> acpi::SystemDescriptorTable::end() const
 {
-    auto count = (Header.Length - sizeof(SdtHeader)) / sizeof(u32);
+    auto count = (Header.Length - sizeof(SystemDescriptorTableHeader)) / sizeof(u32);
     return { *this, count };
 }
 
-const acpi::SdtHeader* acpi::XsdTable::Find(cstr signature) const
+const acpi::SystemDescriptorTableHeader* acpi::XSystemDescriptorTable::Find(cstr signature) const
 {
     for (auto header : *this)
     {
@@ -43,14 +43,14 @@ const acpi::SdtHeader* acpi::XsdTable::Find(cstr signature) const
     return nullptr;
 }
 
-acpi::TableIterator<acpi::XsdTable> acpi::XsdTable::begin() const
+acpi::TableIterator<acpi::XSystemDescriptorTable> acpi::XSystemDescriptorTable::begin() const
 {
     return { *this, 0 };
 }
 
-acpi::TableIterator<acpi::XsdTable> acpi::XsdTable::end() const
+acpi::TableIterator<acpi::XSystemDescriptorTable> acpi::XSystemDescriptorTable::end() const
 {
-    auto count = (Header.Length - sizeof(SdtHeader)) / sizeof(u64);
+    auto count = (Header.Length - sizeof(SystemDescriptorTableHeader)) / sizeof(u64);
     return { *this, count };
 }
 
@@ -61,5 +61,5 @@ const acpi::McfgEntry* acpi::Mcfg::begin() const
 
 const acpi::McfgEntry* acpi::Mcfg::end() const
 {
-    return Table + ((Header.Length - sizeof(SdtHeader)) / sizeof(McfgEntry));
+    return Table + ((Header.Length - sizeof(SystemDescriptorTableHeader)) / sizeof(McfgEntry));
 }

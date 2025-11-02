@@ -161,7 +161,7 @@ static void print_system_information()
     for (auto framebuffer : framebuffers)
     {
         kprintf(
-            " %016X |     |       |        |       |       \r\n",
+            " %016llx |     |       |        |       |       \r\n",
             framebuffer->address);
 
         Range modes(framebuffer->modes, framebuffer->mode_count);
@@ -172,7 +172,7 @@ static void print_system_information()
                        && mode->height == framebuffer->height
                        && mode->pitch == framebuffer->pitch
                        && mode->memory_model == framebuffer->memory_model;
-            kprintf("              [%c] | %-3u | %-5u | %-6u | %-5u | %02X    \r\n", active ? '*' : ' ', mode->bpp, mode->width, mode->height, mode->pitch, mode->memory_model);
+            kprintf("              [%c] | %-3u | %-5u | %-6u | %-5u | %02x    \r\n", active ? '*' : ' ', mode->bpp, mode->width, mode->height, mode->pitch, mode->memory_model);
         }
     }
 
@@ -221,12 +221,12 @@ static void print_system_information()
             break;
         }
 
-        kprintf(" %016X | %016X | %-22s \r\n", entry->base, entry->length, type_string);
+        kprintf(" %016llx | %016llx | %-22s \r\n", entry->base, entry->length, type_string);
     }
 
     kputs("\r\n");
 
-    kprintf("total size: %016X (%u KiB)\r\n", end_address, end_address / 1024);
+    kprintf("total size: %016llx (%u KiB)\r\n", end_address, end_address / 1024);
 
     kputs("\r\n");
 
@@ -236,7 +236,7 @@ static void print_system_information()
     Range cpus(mp_request.response->cpus, mp_request.response->cpu_count);
     for (auto cpu : cpus)
     {
-        kprintf(" %-4u         | %-4u     | %016X \r\n", cpu->processor_id, cpu->lapic_id, cpu->goto_address);
+        kprintf(" %-4u         | %-4u     | %016llx \r\n", cpu->processor_id, cpu->lapic_id, cpu->goto_address);
     }
 
     kputs("\r\n");
@@ -247,7 +247,7 @@ static void print_system_information()
             efi_system_table_request.response->address);
         paging::MapPage(system_table, system_table);
 
-        kprintf("efi system table: %016X\r\n", system_table);
+        kprintf("efi system table: %016llx\r\n", system_table);
 
         auto firmware_vendor = system_table->FirmwareVendor;
         paging::MapPage(firmware_vendor, firmware_vendor);
@@ -283,7 +283,7 @@ static void print_mcfg(const acpi::Mcfg* mcfg)
                         function->VendorID,
                         function->DeviceID);
 
-                    kprintf("[ %02X:%02X:%02X ] ", bus_index, device_index, function_index);
+                    kprintf("[ %02x:%02x:%02x ] ", bus_index, device_index, function_index);
                     if (device_descriptor)
                     {
                         kprintf("%s, ", device_descriptor);
@@ -291,7 +291,7 @@ static void print_mcfg(const acpi::Mcfg* mcfg)
                     else
                     {
                         kprintf(
-                            "%02X-%02X-%02X, ",
+                            "%02x-%02x-%02x, ",
                             function->BaseClass,
                             function->SubClass,
                             function->ProgIF);
@@ -302,7 +302,7 @@ static void print_mcfg(const acpi::Mcfg* mcfg)
                     }
                     else
                     {
-                        kprintf("%04X, ", function->VendorID);
+                        kprintf("%04x, ", function->VendorID);
                     }
                     if (device_name)
                     {
@@ -310,7 +310,7 @@ static void print_mcfg(const acpi::Mcfg* mcfg)
                     }
                     else
                     {
-                        kprintf("%04X", function->DeviceID);
+                        kprintf("%04x", function->DeviceID);
                     }
                     kputs("\r\n");
                 }
@@ -433,7 +433,8 @@ extern "C" NORETURN void kmain()
 
     print_system_information();
 
-    auto xsdp = reinterpret_cast<acpi::XsdPointer*>(rsdp_request.response->address);
+    auto xsdp = reinterpret_cast<acpi::XSystemDescriptorPointer*>(
+        rsdp_request.response->address);
     paging::MapPage(xsdp, xsdp);
 
     const acpi::Mcfg* mcfg;
@@ -442,7 +443,7 @@ extern "C" NORETURN void kmain()
     case 0:
     case 1:
     {
-        auto rsdt = reinterpret_cast<const acpi::RsdTable*>(xsdp->RsdtAddress);
+        auto rsdt = reinterpret_cast<const acpi::SystemDescriptorTable*>(xsdp->RsdtAddress);
         paging::MapPage(rsdt, rsdt);
 
         mcfg = rsdt->Find<acpi::Mcfg>("MCFG");
@@ -456,7 +457,7 @@ extern "C" NORETURN void kmain()
 
     case 2:
     {
-        auto xsdt = reinterpret_cast<const acpi::XsdTable*>(xsdp->XsdtAddress);
+        auto xsdt = reinterpret_cast<const acpi::XSystemDescriptorTable*>(xsdp->XsdtAddress);
         paging::MapPage(xsdt, xsdt);
 
         mcfg = xsdt->Find<acpi::Mcfg>("MCFG");
