@@ -2,30 +2,30 @@
 
 #include <scriptos/types.h>
 
-#define SERIAL_PORT_COM1 0x3F8
-#define SERIAL_PORT_COM2 0x2F8
-#define SERIAL_PORT_COM3 0x3E8
-#define SERIAL_PORT_COM4 0x2E8
-#define SERIAL_PORT_COM5 0x5F8
-#define SERIAL_PORT_COM6 0x4F8
-#define SERIAL_PORT_COM7 0x5E8
-#define SERIAL_PORT_COM8 0x4E8
+constexpr u16 SERIAL_PORT_COM1 = 0x03F8;
+constexpr u16 SERIAL_PORT_COM2 = 0x02F8;
+constexpr u16 SERIAL_PORT_COM3 = 0x03E8;
+constexpr u16 SERIAL_PORT_COM4 = 0x02E8;
+constexpr u16 SERIAL_PORT_COM5 = 0x05F8;
+constexpr u16 SERIAL_PORT_COM6 = 0x04F8;
+constexpr u16 SERIAL_PORT_COM7 = 0x05E8;
+constexpr u16 SERIAL_PORT_COM8 = 0x04E8;
 
-namespace serial
+namespace kernel
 {
-    u8 InitializeAll();
+    u8 InitializeAllSerial();
 
-    bool Initialize(u16 port);
+    bool InitializeSerial(u16 port);
 
-    bool IsTransmitEmpty(u16 port);
+    bool IsSerialTransmitEmpty(u16 port);
 
-    void Write(
+    void WriteSerial(
         u16 port,
         u8 data);
 
-    bool HasReceived(u16 port);
+    bool HasSerialReceived(u16 port);
 
-    u8 Read(u16 port);
+    u8 ReadSerial(u16 port);
 
-    void WriteDefault(int data);
+    void WriteSerialDefault(int data);
 }

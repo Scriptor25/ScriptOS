@@ -38,7 +38,7 @@ kernel::Bitmap::Bitmap(
 
 void kernel::Bitmap::Clear()
 {
-    memory::Fill(m_Buffer, 0, m_SizeBits / 8);
+    kernel::Fill(m_Buffer, 0, m_SizeBits / 8);
 }
 
 void kernel::Bitmap::Set(
@@ -51,8 +51,8 @@ void kernel::Bitmap::Set(
     }
 
     auto byte_index = index / 8;
-    auto bit_index = index % 8;
-    u8 mask = 1 << bit_index;
+    auto bit_index  = index % 8;
+    u8 mask         = 1 << bit_index;
 
     if (state)
     {
@@ -88,8 +88,8 @@ void kernel::Bitmap::Fill(
 bool kernel::Bitmap::Get(usize index) const
 {
     auto byte_index = index / 8;
-    auto bit_index = index % 8;
-    u8 mask = 1 << bit_index;
+    auto bit_index  = index % 8;
+    u8 mask         = 1 << bit_index;
 
     return m_Buffer[byte_index] & mask;
 }

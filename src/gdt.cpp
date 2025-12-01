@@ -2,7 +2,12 @@
 #include <scriptos/tss.h>
 #include <scriptos/types.h>
 
-gdt::SegmentDescriptor::SegmentDescriptor(
+extern "C" void __load_gdt(
+    const kernel::GlobalDescriptor* descriptor,
+    u16 code_segment,
+    u16 data_segment);
+
+kernel::GlobalSegmentDescriptor::GlobalSegmentDescriptor(
     u32 base,
     u32 limit,
     u8 access,
@@ -16,7 +21,7 @@ gdt::SegmentDescriptor::SegmentDescriptor(
 {
 }
 
-gdt::SystemSegmentDescriptor::SystemSegmentDescriptor(
+kernel::GlobalSystemSegmentDescriptor::GlobalSystemSegmentDescriptor(
     u64 base,
     u32 limit,
     u8 access,
@@ -32,18 +37,18 @@ gdt::SystemSegmentDescriptor::SystemSegmentDescriptor(
 
 __attribute__((aligned(0x10))) static u8 entries[0x38];
 
-void gdt::Initialize()
+void kernel::InitializeGDT()
 {
-    Insert(entries, 0x00, SegmentDescriptor(0x00000000, 0x00000, 0x00, 0x0));
-    Insert(entries, 0x08, SegmentDescriptor(0x00000000, 0xfffff, GDT_PRESENT | GDT_LEVEL_0 | GDT_CODE_DATA | GDT_EXECUTABLE | GDT_READABLE_WRITEABLE, GDT_PAGE_GRANULARITY | GDT_LONG_MODE));
-    Insert(entries, 0x10, SegmentDescriptor(0x00000000, 0xfffff, GDT_PRESENT | GDT_LEVEL_0 | GDT_CODE_DATA | GDT_READABLE_WRITEABLE, GDT_PAGE_GRANULARITY | GDT_32_BIT_SEGMENT));
-    Insert(entries, 0x18, SegmentDescriptor(0x00000000, 0xfffff, GDT_PRESENT | GDT_LEVEL_3 | GDT_CODE_DATA | GDT_EXECUTABLE | GDT_READABLE_WRITEABLE, GDT_PAGE_GRANULARITY | GDT_LONG_MODE));
-    Insert(entries, 0x20, SegmentDescriptor(0x00000000, 0xfffff, GDT_PRESENT | GDT_LEVEL_3 | GDT_CODE_DATA | GDT_READABLE_WRITEABLE, GDT_PAGE_GRANULARITY | GDT_32_BIT_SEGMENT));
+    InsertGlobalSegmentDescriptor(entries, 0x00, GlobalSegmentDescriptor(0x00000000, 0x00000, 0x00, 0x0));
+    InsertGlobalSegmentDescriptor(entries, 0x08, GlobalSegmentDescriptor(0x00000000, 0xfffff, GDT_PRESENT | GDT_LEVEL_0 | GDT_CODE_DATA | GDT_EXECUTABLE | GDT_READABLE_WRITEABLE, GDT_PAGE_GRANULARITY | GDT_LONG_MODE));
+    InsertGlobalSegmentDescriptor(entries, 0x10, GlobalSegmentDescriptor(0x00000000, 0xfffff, GDT_PRESENT | GDT_LEVEL_0 | GDT_CODE_DATA | GDT_READABLE_WRITEABLE, GDT_PAGE_GRANULARITY | GDT_32_BIT_SEGMENT));
+    InsertGlobalSegmentDescriptor(entries, 0x18, GlobalSegmentDescriptor(0x00000000, 0xfffff, GDT_PRESENT | GDT_LEVEL_3 | GDT_CODE_DATA | GDT_EXECUTABLE | GDT_READABLE_WRITEABLE, GDT_PAGE_GRANULARITY | GDT_LONG_MODE));
+    InsertGlobalSegmentDescriptor(entries, 0x20, GlobalSegmentDescriptor(0x00000000, 0xfffff, GDT_PRESENT | GDT_LEVEL_3 | GDT_CODE_DATA | GDT_READABLE_WRITEABLE, GDT_PAGE_GRANULARITY | GDT_32_BIT_SEGMENT));
 
-    auto tss0_address = reinterpret_cast<uptr>(&tss::TSS0);
-    Insert(entries, 0x28, SystemSegmentDescriptor(tss0_address, sizeof(tss::TaskStateSegment) - 1, GDT_PRESENT | GDT_LEVEL_0 | GDT_EXECUTABLE | GDT_ACCESSED, 0x0));
+    auto tss0_address = reinterpret_cast<uptr>(&kernel::TSS0);
+    InsertGlobalSystemSegmentDescriptor(entries, 0x28, GlobalSystemSegmentDescriptor(tss0_address, sizeof(kernel::TaskStateSegment) - 1, GDT_PRESENT | GDT_LEVEL_0 | GDT_EXECUTABLE | GDT_ACCESSED, 0x0));
 
-    const Descriptor descriptor = {
+    const GlobalDescriptor descriptor = {
         static_cast<u16>(sizeof(entries) - 1),
         entries,
     };
@@ -51,23 +56,23 @@ void gdt::Initialize()
     __load_gdt(&descriptor, 0x08, 0x10);
 }
 
-usize gdt::Insert(
+usize kernel::InsertGlobalSegmentDescriptor(
     void* buffer,
     usize offset,
-    const SegmentDescriptor& descriptor)
+    const GlobalSegmentDescriptor& descriptor)
 {
     auto dst = reinterpret_cast<u64*>(reinterpret_cast<uptr>(buffer) + offset);
-    dst[0] = descriptor.Value;
+    dst[0]   = descriptor.Value;
     return offset + 8;
 }
 
-usize gdt::Insert(
+usize kernel::InsertGlobalSystemSegmentDescriptor(
     void* buffer,
     usize offset,
-    const SystemSegmentDescriptor& descriptor)
+    const GlobalSystemSegmentDescriptor& descriptor)
 {
     auto dst = reinterpret_cast<u64*>(reinterpret_cast<uptr>(buffer) + offset);
-    dst[0] = descriptor.ValueLo;
-    dst[1] = descriptor.ValueHi;
+    dst[0]   = descriptor.ValueLo;
+    dst[1]   = descriptor.ValueHi;
     return offset + 16;
 }

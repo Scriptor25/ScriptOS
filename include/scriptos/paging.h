@@ -3,13 +3,13 @@
 #include <scriptos/bitmap.h>
 #include <scriptos/types.h>
 
-#define PAGE_SIZE 0x1000
+constexpr u16 PAGE_SIZE = 0x1000;
 
-#define PAGE_PRESENT  0x001
-#define PAGE_WRITABLE 0x002
-#define PAGE_USER     0x004
+constexpr u16 PAGE_PRESENT  = 0x001;
+constexpr u16 PAGE_WRITABLE = 0x002;
+constexpr u16 PAGE_USER     = 0x004;
 
-namespace paging
+namespace kernel
 {
     class PageFrameAllocator
     {
@@ -78,39 +78,39 @@ namespace paging
         return reinterpret_cast<T>(GetMapping(virtual_address));
     }
 
-    void Initialize(uptr hhdm_offset);
+    void InitializePaging(uptr hhdm_offset);
 
     void WalkTable(
         out_stream stream,
         PageTable table,
         uptr virtual_base = 0,
-        u8 level = 4);
+        u8 level          = 4);
 
     bool MapPage(
         const void* virtual_address,
         const void* physical_address,
-        bool writable = false,
-        bool user = false,
+        bool writable      = false,
+        bool user          = false,
         bool write_through = false,
         bool cache_disable = false,
-        bool accessed = false);
+        bool accessed      = false);
 
     bool MapPages(
         const void* virtual_address,
         const void* physical_address,
         usize count,
-        bool writable = false,
-        bool user = false,
+        bool writable      = false,
+        bool user          = false,
         bool write_through = false,
         bool cache_disable = false,
-        bool accessed = false);
+        bool accessed      = false);
 
-    PageTable GetOrCreateNextLevel(
+    PageTable GetOrCreateNextPageLevel(
         PageTable table,
         usize index,
         bool create);
 
-    void* GetMapping(const void* virtual_address);
+    void* GetPageMapping(const void* virtual_address);
 
     inline void FlushPage(const void* virtual_address)
     {

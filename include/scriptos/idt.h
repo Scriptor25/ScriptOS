@@ -2,7 +2,7 @@
 
 #include <scriptos/types.h>
 
-namespace idt
+namespace kernel
 {
     union GateDescriptor
     {
@@ -35,13 +35,11 @@ namespace idt
         } __attribute__((packed));
     };
 
-    struct Descriptor
+    struct InterruptDescriptor
     {
         u16 Size;
         void* Offset;
     } __attribute__((packed));
 
-    void Initialize();
-
-    extern "C" void __load_idt(const Descriptor* descriptor);
+    void InitializeIDT();
 }

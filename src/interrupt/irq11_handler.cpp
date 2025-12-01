@@ -5,5 +5,5 @@ extern "C" void __irq11_handler(interrupt::StackFrame* stack_frame)
 {
     (void) stack_frame;
 
-    pic::SendEOI(0xB);
+    kernel::SendPicEoi(0xB);
 }

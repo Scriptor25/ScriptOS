@@ -1,7 +1,7 @@
 #include <scriptos/io.h>
 #include <scriptos/pic.h>
 
-void pic::Remap(
+void kernel::RemapPic(
     int offset1,
     int offset2)
 {
@@ -31,13 +31,13 @@ void pic::Remap(
     io::outb(PIC2_DATA, 0);
 }
 
-void pic::Disable()
+void kernel::DisablePic()
 {
     io::outb(PIC1_DATA, 0xFF);
     io::outb(PIC2_DATA, 0xFF);
 }
 
-void pic::SendEOI(u8 irq)
+void kernel::SendPicEoi(u8 irq)
 {
     if (irq >= 8)
     {
@@ -47,7 +47,7 @@ void pic::SendEOI(u8 irq)
     io::outb(PIC1_CMD, PIC_EOI);
 }
 
-void pic::SetMask(u8 irq)
+void kernel::SetPicMask(u8 irq)
 {
     u16 port;
     u8 value;
@@ -66,7 +66,7 @@ void pic::SetMask(u8 irq)
     io::outb(port, value);
 }
 
-void pic::ClearMask(u8 irq)
+void kernel::ClearPicMask(u8 irq)
 {
     u16 port;
     u8 value;

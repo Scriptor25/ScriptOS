@@ -1,23 +1,23 @@
 #include <scriptos/io.h>
 #include <scriptos/serial.h>
 
-u8 serial::InitializeAll()
+u8 kernel::InitializeAllSerial()
 {
     u8 status = 0;
 
-    status |= (Initialize(SERIAL_PORT_COM1) & 0x1) << 0x0;
-    status |= (Initialize(SERIAL_PORT_COM2) & 0x1) << 0x1;
-    status |= (Initialize(SERIAL_PORT_COM3) & 0x1) << 0x2;
-    status |= (Initialize(SERIAL_PORT_COM4) & 0x1) << 0x3;
-    status |= (Initialize(SERIAL_PORT_COM5) & 0x1) << 0x4;
-    status |= (Initialize(SERIAL_PORT_COM6) & 0x1) << 0x5;
-    status |= (Initialize(SERIAL_PORT_COM7) & 0x1) << 0x6;
-    status |= (Initialize(SERIAL_PORT_COM8) & 0x1) << 0x7;
+    status |= (InitializeSerial(SERIAL_PORT_COM1) & 0x1) << 0x0;
+    status |= (InitializeSerial(SERIAL_PORT_COM2) & 0x1) << 0x1;
+    status |= (InitializeSerial(SERIAL_PORT_COM3) & 0x1) << 0x2;
+    status |= (InitializeSerial(SERIAL_PORT_COM4) & 0x1) << 0x3;
+    status |= (InitializeSerial(SERIAL_PORT_COM5) & 0x1) << 0x4;
+    status |= (InitializeSerial(SERIAL_PORT_COM6) & 0x1) << 0x5;
+    status |= (InitializeSerial(SERIAL_PORT_COM7) & 0x1) << 0x6;
+    status |= (InitializeSerial(SERIAL_PORT_COM8) & 0x1) << 0x7;
 
     return status;
 }
 
-bool serial::Initialize(u16 port)
+bool kernel::InitializeSerial(u16 port)
 {
     io::outb(port + 0x1, 0x00);
     io::outb(port + 0x3, 0x80);
@@ -38,35 +38,35 @@ bool serial::Initialize(u16 port)
     return true;
 }
 
-bool serial::IsTransmitEmpty(u16 port)
+bool kernel::IsSerialTransmitEmpty(u16 port)
 {
     return io::inb(port + 0x5) & 0x20;
 }
 
-void serial::Write(
+void kernel::WriteSerial(
     u16 port,
     u8 data)
 {
-    while (!IsTransmitEmpty(port))
+    while (!IsSerialTransmitEmpty(port))
         ;
 
     io::outb(port + 0x0, data);
 }
 
-bool serial::HasReceived(u16 port)
+bool kernel::HasSerialReceived(u16 port)
 {
     return io::inb(port + 0x5) & 0x01;
 }
 
-u8 serial::Read(u16 port)
+u8 kernel::ReadSerial(u16 port)
 {
-    while (!HasReceived(port))
+    while (!HasSerialReceived(port))
         ;
 
     return io::inb(port + 0x0);
 }
 
-void serial::WriteDefault(int data)
+void kernel::WriteSerialDefault(int data)
 {
-    Write(SERIAL_PORT_COM1, data);
+    WriteSerial(SERIAL_PORT_COM1, data);
 }

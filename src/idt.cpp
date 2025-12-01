@@ -2,7 +2,9 @@
 #include <scriptos/interrupt.h>
 #include <scriptos/memory.h>
 
-idt::GateDescriptor::GateDescriptor(
+extern "C" void __load_idt(const kernel::InterruptDescriptor* descriptor);
+
+kernel::GateDescriptor::GateDescriptor(
     u64 offset,
     u16 segment_selector,
     u8 interrupt_stack_table,
@@ -18,11 +20,11 @@ idt::GateDescriptor::GateDescriptor(
 {
 }
 
-__attribute__((aligned(0x10))) static idt::GateDescriptor entries[256];
+__attribute__((aligned(0x10))) static kernel::GateDescriptor entries[256];
 
-void idt::Initialize()
+void kernel::InitializeIDT()
 {
-    memory::Fill(entries, 0, sizeof(entries));
+    kernel::Fill(entries, 0, sizeof(entries));
 
     entries[0x00] = { reinterpret_cast<uptr>(__de_proxy), 0x0008, 0b000, 0xE, 0b00 };
     entries[0x01] = { reinterpret_cast<uptr>(__db_proxy), 0x0008, 0b000, 0xF, 0b00 };
@@ -64,7 +66,7 @@ void idt::Initialize()
 
     entries[0x69] = { reinterpret_cast<uptr>(__ke_proxy), 0x0008, 0b000, 0xE, 0b00 };
 
-    const Descriptor descriptor = {
+    const InterruptDescriptor descriptor = {
         static_cast<u16>(sizeof(entries) - 1),
         entries,
     };

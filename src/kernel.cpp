@@ -26,7 +26,7 @@
 
 kernel::KernelInstance kernel::Instance = {
     .Allocator = nullptr,
-    .Renderer = nullptr,
+    .Renderer  = nullptr,
 };
 
 NORETURN static void error(
@@ -53,8 +53,8 @@ NORETURN static void error(
 static void initialize_allocator()
 {
     u8* physical_buffer = nullptr;
-    usize max_length = 0;
-    usize memory_end = 0;
+    usize max_length    = 0;
+    usize memory_end    = 0;
 
     Range memmap(memmap_request.response->entries, memmap_request.response->entry_count);
     for (auto entry : memmap)
@@ -75,10 +75,10 @@ static void initialize_allocator()
         }
 
         physical_buffer = reinterpret_cast<u8*>(entry->base);
-        max_length = entry->length;
+        max_length      = entry->length;
     }
 
-    auto virtual_buffer = paging::PhysicalToVirtual<u8*>(physical_buffer);
+    auto virtual_buffer = kernel::PhysicalToVirtual<u8*>(physical_buffer);
 
     auto page_count = memory_end / PAGE_SIZE;
     kernel::Bitmap bitmap(virtual_buffer, page_count);
@@ -92,16 +92,16 @@ static void initialize_allocator()
     bitmap.Fill(0, 0x100, true);
     bitmap.Fill(reinterpret_cast<uptr>(physical_buffer) / PAGE_SIZE, page_count / 8 + 1, true);
 
-    kernel::Instance.Allocator = reinterpret_cast<paging::PageFrameAllocator*>(virtual_buffer + memory_end / 8);
+    kernel::Instance.Allocator = reinterpret_cast<kernel::PageFrameAllocator*>(virtual_buffer + memory_end / 8);
     *kernel::Instance.Allocator = { bitmap };
 }
 
 static void initialize_renderer()
 {
     auto framebuffer = framebuffer_request.response->framebuffers[0];
-    auto back_buffer = memory::Allocate(framebuffer->pitch * framebuffer->height);
+    auto back_buffer = kernel::Allocate(framebuffer->pitch * framebuffer->height);
 
-    kernel::Instance.Renderer = memory::Allocate<graphics::Renderer>(
+    kernel::Instance.Renderer = kernel::Allocate<kernel::BasicRenderer>(
         framebuffer->address,
         back_buffer,
         framebuffer->width,
@@ -245,12 +245,12 @@ static void print_system_information()
     {
         auto system_table = reinterpret_cast<EFI_SYSTEM_TABLE*>(
             efi_system_table_request.response->address);
-        paging::MapPage(system_table, system_table);
+        kernel::MapPage(system_table, system_table);
 
         kprintf("efi system table: %016llx\r\n", system_table);
 
         auto firmware_vendor = system_table->FirmwareVendor;
-        paging::MapPage(firmware_vendor, firmware_vendor);
+        kernel::MapPage(firmware_vendor, firmware_vendor);
 
         kprintf("firmware vendor: %h\r\n", firmware_vendor);
     }
@@ -261,7 +261,7 @@ static void print_mcfg(const acpi::Mcfg* mcfg)
     for (auto& entry : *mcfg)
     {
         auto base_address = reinterpret_cast<const u8*>(entry.BaseAddress);
-        const pci::RootIterable root(base_address, entry.StartBus, entry.EndBus);
+        const kernel::PciIterable root(base_address, entry.StartBus, entry.EndBus);
 
         for (const auto [bus_index, bus] : root)
         {
@@ -274,12 +274,12 @@ static void print_mcfg(const acpi::Mcfg* mcfg)
                         continue;
                     }
 
-                    auto device_descriptor = pci::GetDeviceDescriptor(
+                    auto device_descriptor = kernel::GetPciDeviceDescriptor(
                         function->BaseClass,
                         function->SubClass,
                         function->ProgIF);
-                    auto vendor_name = pci::GetVendorName(function->VendorID);
-                    auto device_name = pci::GetDeviceName(
+                    auto vendor_name = kernel::GetPciVendorName(function->VendorID);
+                    auto device_name = kernel::GetPciDeviceName(
                         function->VendorID,
                         function->DeviceID);
 
@@ -321,7 +321,7 @@ static void print_mcfg(const acpi::Mcfg* mcfg)
 
 static void ping_pong_task(void* arg)
 {
-    task::Task* task;
+    kernel::Task* task;
 
     if (arg)
     {
@@ -329,7 +329,7 @@ static void ping_pong_task(void* arg)
         kputs("pong\r\n");
         sti();
 
-        task = task::CreateTask("ping", 0, ping_pong_task, nullptr);
+        task = kernel::CreateTask("ping", 0, ping_pong_task, nullptr);
     }
     else
     {
@@ -337,18 +337,18 @@ static void ping_pong_task(void* arg)
         kputs("ping\r\n");
         sti();
 
-        task = task::CreateTask("pong", 0, ping_pong_task, reinterpret_cast<void*>(0xDEADBEEF));
+        task = kernel::CreateTask("pong", 0, ping_pong_task, reinterpret_cast<void*>(0xDEADBEEF));
     }
 
-    task::EnqueueTask(task);
+    kernel::EnqueueTask(task);
 }
 
 NORETURN static void kernel_task(void* arg)
 {
     (void) arg;
 
-    auto task = task::CreateTask("ping", 0, ping_pong_task, nullptr);
-    task::EnqueueTask(task);
+    auto task = kernel::CreateTask("ping", 0, ping_pong_task, nullptr);
+    kernel::EnqueueTask(task);
 
     for (;;)
     {
@@ -363,17 +363,17 @@ extern "C" NORETURN void kmain()
 {
     cli();
 
-    serial::InitializeAll();
+    kernel::InitializeAllSerial();
 
-    fpu::Initialize();
-    gdt::Initialize();
-    idt::Initialize();
+    kernel::InitializeFPU();
+    kernel::InitializeGDT();
+    kernel::InitializeIDT();
 
-    pic::Disable();
-    pic::Remap(0x20, 0x28);
+    kernel::DisablePic();
+    kernel::RemapPic(0x20, 0x28);
 
-    pit::Initialize(500);
-    pic::ClearMask(0);
+    kernel::InitializePit(500);
+    kernel::ClearPicMask(0);
 
     sti();
 
@@ -417,25 +417,25 @@ extern "C" NORETURN void kmain()
         error("no rsdp response");
     }
 
-    paging::Initialize(hhdm_request.response->offset);
+    kernel::InitializePaging(hhdm_request.response->offset);
 
     initialize_allocator();
 
     auto kernel_stack = kernel::Instance.Allocator->AllocatePhysicalPage();
-    paging::MapPage(kernel_stack, kernel_stack, true);
-    tss::Initialize(kernel_stack, nullptr, nullptr);
+    kernel::MapPage(kernel_stack, kernel_stack, true);
+    kernel::InitializeTss(kernel_stack, nullptr, nullptr);
 
-    memory::InitializeHeap(0x400000);
+    kernel::InitializeHeap(0x400000);
 
-    processor::Initialize(0);
+    kernel::InitializeProcessorState(0);
 
     initialize_renderer();
 
     print_system_information();
 
-    auto xsdp = reinterpret_cast<acpi::XSystemDescriptorPointer*>(
+    auto xsdp = reinterpret_cast<acpi::ExtendedSystemDescriptorPointer*>(
         rsdp_request.response->address);
-    paging::MapPage(xsdp, xsdp);
+    kernel::MapPage(xsdp, xsdp);
 
     const acpi::Mcfg* mcfg;
     switch (xsdp->Revision)
@@ -444,7 +444,7 @@ extern "C" NORETURN void kmain()
     case 1:
     {
         auto rsdt = reinterpret_cast<const acpi::SystemDescriptorTable*>(xsdp->RsdtAddress);
-        paging::MapPage(rsdt, rsdt);
+        kernel::MapPage(rsdt, rsdt);
 
         mcfg = rsdt->Find<acpi::Mcfg>("MCFG");
         if (!mcfg)
@@ -457,8 +457,8 @@ extern "C" NORETURN void kmain()
 
     case 2:
     {
-        auto xsdt = reinterpret_cast<const acpi::XSystemDescriptorTable*>(xsdp->XsdtAddress);
-        paging::MapPage(xsdt, xsdt);
+        auto xsdt = reinterpret_cast<const acpi::ExtendedSystemDescriptorTable*>(xsdp->XsdtAddress);
+        kernel::MapPage(xsdt, xsdt);
 
         mcfg = xsdt->Find<acpi::Mcfg>("MCFG");
         if (!mcfg)
@@ -477,8 +477,8 @@ extern "C" NORETURN void kmain()
 
     kflush();
 
-    auto task = task::CreateTask("kernel", 0, kernel_task, nullptr);
-    task::EnqueueTask(task);
+    auto task = kernel::CreateTask("kernel", 0, kernel_task, nullptr);
+    kernel::EnqueueTask(task);
 
     for (;;)
     {

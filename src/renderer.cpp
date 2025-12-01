@@ -2,7 +2,7 @@
 #include <scriptos/graphics.h>
 #include <scriptos/memory.h>
 
-graphics::Renderer::Renderer(
+kernel::BasicRenderer::BasicRenderer(
     void* front_buffer,
     void* back_buffer,
     usize width,
@@ -34,7 +34,7 @@ graphics::Renderer::Renderer(
 {
 }
 
-u32 graphics::Renderer::RepackColor(u32 color) const
+u32 kernel::BasicRenderer::RepackColor(u32 color) const
 {
     if (!m_RequireRepack)
     {
@@ -56,19 +56,19 @@ u32 graphics::Renderer::RepackColor(u32 color) const
     return ((rm & m_RedMask) << m_RedShift) | ((gm & m_GreenMask) << m_GreenShift) | ((bm & m_BlueMask) << m_BlueShift);
 }
 
-void graphics::Renderer::SetForeground(u32 color)
+void kernel::BasicRenderer::SetForeground(u32 color)
 {
     m_Foreground = RepackColor(color);
 }
 
-void graphics::Renderer::SetBackground(u32 color)
+void kernel::BasicRenderer::SetBackground(u32 color)
 {
     m_Background = RepackColor(color);
 }
 
-void graphics::Renderer::Clear()
+void kernel::BasicRenderer::Clear()
 {
-    memory::Fill(m_BackBuffer, 0, m_Size);
+    kernel::Fill(m_BackBuffer, 0, m_Size);
 
     for (usize i = 0; i < m_Size; i += m_Stride)
     {
@@ -79,17 +79,17 @@ void graphics::Renderer::Clear()
     m_Dirty = true;
 }
 
-void graphics::Renderer::Shift(usize up)
+void kernel::BasicRenderer::Shift(usize up)
 {
     auto area_height = m_Height >= up ? m_Height - up : 0;
-    auto offset = up * m_Pitch;
-    auto area_size = area_height * m_Pitch;
+    auto offset      = up * m_Pitch;
+    auto area_size   = area_height * m_Pitch;
 
-    memory::Copy(m_BackBuffer, m_BackBuffer + offset, area_size);
+    kernel::Copy(m_BackBuffer, m_BackBuffer + offset, area_size);
 
     auto end = m_BackBuffer + area_size;
 
-    memory::Fill(end, 0, offset);
+    kernel::Fill(end, 0, offset);
 
     for (usize i = 0; i < offset; i += m_Stride)
     {
@@ -99,22 +99,22 @@ void graphics::Renderer::Shift(usize up)
     m_Dirty = true;
 }
 
-void graphics::Renderer::SwapBuffers()
+void kernel::BasicRenderer::SwapBuffers()
 {
-    memory::Copy(m_FrontBuffer, m_BackBuffer, m_Size);
+    kernel::Copy(m_FrontBuffer, m_BackBuffer, m_Size);
 }
 
-usize graphics::Renderer::CursorX() const
+usize kernel::BasicRenderer::CursorX() const
 {
     return m_Cursor.X;
 }
 
-usize graphics::Renderer::CursorY() const
+usize kernel::BasicRenderer::CursorY() const
 {
     return m_Cursor.Y;
 }
 
-void graphics::Renderer::DrawPixel(
+void kernel::BasicRenderer::DrawPixel(
     usize x,
     usize y,
     u32 color)
@@ -129,7 +129,7 @@ void graphics::Renderer::DrawPixel(
     m_Dirty = true;
 }
 
-void graphics::Renderer::DrawChar(
+void kernel::BasicRenderer::DrawChar(
     int c,
     usize x,
     usize y)
@@ -142,7 +142,7 @@ void graphics::Renderer::DrawChar(
         for (usize i = 0; i < 8 && x + i < m_Width; ++i)
         {
             auto& dst = *reinterpret_cast<u32*>(row + (x + i) * m_Stride);
-            auto bit = font8x8::GetBit(bitmap, i, j);
+            auto bit  = font8x8::GetBit(bitmap, i, j);
 
             u32 mask = 0;
             for (usize i = 0; i < sizeof(u32) * 8; ++i)
@@ -158,12 +158,12 @@ void graphics::Renderer::DrawChar(
     m_Dirty = true;
 }
 
-void graphics::Renderer::Reset()
+void kernel::BasicRenderer::Reset()
 {
     m_Cursor.X = m_Cursor.Y = 0;
 }
 
-void graphics::Renderer::PushChar(int c)
+void kernel::BasicRenderer::PushChar(int c)
 {
     switch (c)
     {

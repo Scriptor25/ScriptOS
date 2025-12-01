@@ -49,7 +49,7 @@ namespace kernel
         Iterator end() const;
 
     private:
-        u8* m_Buffer = nullptr;
+        u8* m_Buffer     = nullptr;
         usize m_SizeBits = 0;
     };
 }

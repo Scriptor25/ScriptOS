@@ -7,15 +7,15 @@
 #include <scriptos/task.h>
 #include <scriptos/types.h>
 
-static u64 task_next_pid = 0;
-static task::Task* task_queue_root = nullptr;
+static u64 task_next_pid             = 0;
+static kernel::Task* task_queue_root = nullptr;
 
 static void __task_exit()
 {
     cli();
 
-    auto task = processor::GetProcessorActiveTask();
-    task->State = task::TaskState_Zombie;
+    auto task   = kernel::GetProcessorActiveTask();
+    task->State = kernel::TaskState_Zombie;
 
     sti();
 
@@ -25,31 +25,31 @@ static void __task_exit()
     }
 }
 
-task::Task* task::CreateTask(
+kernel::Task* kernel::CreateTask(
     cstr name,
     u64 priority,
     void (*entry)(void*),
     void* arg)
 {
-    auto task = memory::Allocate<Task>();
+    auto task = kernel::Allocate<Task>();
 
     auto pid = task_next_pid++;
 
     auto stack = kernel::Instance.Allocator->AllocatePhysicalPage();
-    paging::MapPage(stack, stack, true);
+    kernel::MapPage(stack, stack, true);
 
-    memory::Fill(stack, 0, PAGE_SIZE);
+    kernel::Fill(stack, 0, PAGE_SIZE);
 
     *task = {
-        .PID = pid,
-        .Name = name,
-        .Frame = {},
-        .Stack = stack,
-        .State = TaskState_Runnable,
-        .Priority = priority,
+        .PID       = pid,
+        .Name      = name,
+        .Frame     = {},
+        .Stack     = stack,
+        .State     = TaskState_Runnable,
+        .Priority  = priority,
         .Timeslice = priority ? priority * TASK_TIMESLICE : 1,
-        .PrevTask = nullptr,
-        .NextTask = nullptr,
+        .PrevTask  = nullptr,
+        .NextTask  = nullptr,
     };
 
     auto stack_top = reinterpret_cast<u8*>(stack) + PAGE_SIZE;
@@ -57,18 +57,18 @@ task::Task* task::CreateTask(
 
     *reinterpret_cast<u64*>(stack_top -= 8) = reinterpret_cast<u64>(__task_exit);
 
-    task->Frame.rip = reinterpret_cast<u64>(entry);
-    task->Frame.rsp = reinterpret_cast<u64>(stack_top);
+    task->Frame.rip    = reinterpret_cast<u64>(entry);
+    task->Frame.rsp    = reinterpret_cast<u64>(stack_top);
     task->Frame.rflags = 0x202;
-    task->Frame.cs = 0x08;
-    task->Frame.ss = 0x10;
+    task->Frame.cs     = 0x08;
+    task->Frame.ss     = 0x10;
 
     task->Frame.rdi = reinterpret_cast<u64>(arg);
 
     return task;
 }
 
-void task::EnqueueTask(Task* task)
+void kernel::EnqueueTask(Task* task)
 {
     cli();
 
@@ -85,16 +85,16 @@ void task::EnqueueTask(Task* task)
         for (it = task_queue_root; it->NextTask; it = it->NextTask)
             ;
 
-        it->NextTask = task;
+        it->NextTask   = task;
         task->PrevTask = it;
     }
 
     sti();
 }
 
-task::Task* task::NextTask(Task* active)
+kernel::Task* kernel::NextTask(Task* active)
 {
-    Reaper();
+    TaskReaper();
 
     if (!task_queue_root)
     {
@@ -132,7 +132,7 @@ task::Task* task::NextTask(Task* active)
     return task;
 }
 
-void task::Reaper()
+void kernel::TaskReaper()
 {
     for (auto task = task_queue_root; task;)
     {
@@ -156,9 +156,9 @@ void task::Reaper()
 
             kernel::Instance.Allocator->FreePage(task->Stack);
 
-            *reinterpret_cast<u8*>(task->Stack) = 0x69;
+            *reinterpret_cast<u64*>(task->Stack) = 0x6969'6969'6969'6969llu;
 
-            memory::Free(task);
+            kernel::Free(task);
 
             task = next;
             continue;

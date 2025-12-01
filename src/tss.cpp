@@ -1,8 +1,10 @@
 #include <scriptos/tss.h>
 
-tss::TaskStateSegment tss::TSS0;
+extern "C" void __load_tr(u16 segment);
 
-void tss::Initialize(
+kernel::TaskStateSegment kernel::TSS0;
+
+void kernel::InitializeTss(
     void* stack0,
     void* stack1,
     void* stack2)
@@ -19,7 +21,7 @@ void tss::Initialize(
     TSS0.IST6 = 0;
     TSS0.IST7 = 0;
 
-    TSS0.IOPB = sizeof(tss::TaskStateSegment);
+    TSS0.IOPB = sizeof(kernel::TaskStateSegment);
 
     // __load_tr(0x28);
 }

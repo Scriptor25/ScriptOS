@@ -7,22 +7,25 @@
 
 extern "C" void __irq0_handler(interrupt::StackFrame* stack_frame)
 {
-    if (processor::NoProcessorState())
+    cli();
+
+    if (kernel::NoProcessorState())
     {
-        pic::SendEOI(0x0);
+        sti();
+        kernel::SendPicEoi(0x0);
         return;
     }
 
-    auto active = processor::GetProcessorActiveTask();
+    auto active = kernel::GetProcessorActiveTask();
     if (active)
     {
         active->Frame = *stack_frame;
     }
 
-    auto next = task::NextTask(active);
+    auto next = kernel::NextTask(active);
     if (next)
     {
-        next->State = task::TaskState_Running;
+        next->State = kernel::TaskState_Running;
         if (next != active)
         {
             *stack_frame = next->Frame;
@@ -31,8 +34,9 @@ extern "C" void __irq0_handler(interrupt::StackFrame* stack_frame)
 
     if (next != active)
     {
-        processor::SetProcessorActiveTask(next);
+        kernel::SetProcessorActiveTask(next);
     }
 
-    pic::SendEOI(0x0);
+    sti();
+    kernel::SendPicEoi(0x0);
 }

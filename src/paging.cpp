@@ -4,15 +4,15 @@
 #include <scriptos/print.h>
 #include <scriptos/types.h>
 
-uptr paging::HHDM_Offset;
-paging::PageTable paging::PML4_Base;
+uptr kernel::HHDM_Offset;
+kernel::PageTable kernel::PML4_Base;
 
-bool paging::IsPhysical(const void* maybe_physical_address)
+bool kernel::IsPhysical(const void* maybe_physical_address)
 {
     return !((reinterpret_cast<uptr>(maybe_physical_address) >> 48) & 0xffff);
 }
 
-void paging::Initialize(uptr hhdm_offset)
+void kernel::InitializePaging(uptr hhdm_offset)
 {
     HHDM_Offset = hhdm_offset;
 
@@ -21,7 +21,7 @@ void paging::Initialize(uptr hhdm_offset)
     PML4_Base = reinterpret_cast<PageTable>(reg & ~((1lu << 12) - 1));
 }
 
-void paging::WalkTable(
+void kernel::WalkTable(
     out_stream stream,
     PageTable table,
     uptr virtual_base,
@@ -66,7 +66,7 @@ inline static usize extract(
     return (reinterpret_cast<uptr>(virtual_address) >> shift) & mask;
 }
 
-bool paging::MapPage(
+bool kernel::MapPage(
     const void* virtual_address,
     const void* physical_address,
     bool writable,
@@ -84,19 +84,19 @@ bool paging::MapPage(
     // lvl1 = [20:12]
     auto lvl1 = extract(virtual_address, 12, 0x1FF);
 
-    auto pdpt = GetOrCreateNextLevel(PML4_Base, lvl4, true);
+    auto pdpt = GetOrCreateNextPageLevel(PML4_Base, lvl4, true);
     if (!pdpt)
     {
         return false;
     }
 
-    auto pd = GetOrCreateNextLevel(pdpt, lvl3, true);
+    auto pd = GetOrCreateNextPageLevel(pdpt, lvl3, true);
     if (!pd)
     {
         return false;
     }
 
-    auto pt = GetOrCreateNextLevel(pd, lvl2, true);
+    auto pt = GetOrCreateNextPageLevel(pd, lvl2, true);
     if (!pt)
     {
         return false;
@@ -110,19 +110,19 @@ bool paging::MapPage(
     auto& pte = pt[lvl1];
     pte.Value = 0;
 
-    pte.Present = 1;
-    pte.ReadWrite = writable;
+    pte.Present        = 1;
+    pte.ReadWrite      = writable;
     pte.UserSupervisor = user;
-    pte.WriteThrough = write_through;
-    pte.CacheDisable = cache_disable;
-    pte.Accessed = accessed;
-    pte.Address = reinterpret_cast<uptr>(physical_address) >> 12;
+    pte.WriteThrough   = write_through;
+    pte.CacheDisable   = cache_disable;
+    pte.Accessed       = accessed;
+    pte.Address        = reinterpret_cast<uptr>(physical_address) >> 12;
 
     FlushPage(virtual_address);
     return true;
 }
 
-bool paging::MapPages(
+bool kernel::MapPages(
     const void* virtual_address,
     const void* physical_address,
     usize count,
@@ -147,7 +147,7 @@ bool paging::MapPages(
     return true;
 }
 
-paging::PageTable paging::GetOrCreateNextLevel(
+kernel::PageTable kernel::GetOrCreateNextPageLevel(
     PageTable table,
     usize index,
     bool create)
@@ -174,19 +174,19 @@ paging::PageTable paging::GetOrCreateNextLevel(
     }
 
     auto virtual_address = PhysicalToVirtual<PageTable>(physical_address);
-    memory::Fill(virtual_address, 0, 512 * sizeof(PageTable));
+    kernel::Fill(virtual_address, 0, 512 * sizeof(PageTable));
 
     auto& pte = table[index];
     pte.Value = 0;
 
-    pte.Present = true;
+    pte.Present   = true;
     pte.ReadWrite = true;
-    pte.Address = reinterpret_cast<uptr>(physical_address) >> 12;
+    pte.Address   = reinterpret_cast<uptr>(physical_address) >> 12;
 
     return virtual_address;
 }
 
-void* paging::GetMapping(const void* virtual_address)
+void* kernel::GetPageMapping(const void* virtual_address)
 {
     // lvl4 = [47:39]
     auto lvl4 = extract(virtual_address, 39, 0x1FF);
@@ -197,19 +197,19 @@ void* paging::GetMapping(const void* virtual_address)
     // lvl1 = [20:12]
     auto lvl1 = extract(virtual_address, 12, 0x1FF);
 
-    auto pdpt = GetOrCreateNextLevel(PML4_Base, lvl4, false);
+    auto pdpt = GetOrCreateNextPageLevel(PML4_Base, lvl4, false);
     if (!pdpt)
     {
         return nullptr;
     }
 
-    auto pd = GetOrCreateNextLevel(pdpt, lvl3, false);
+    auto pd = GetOrCreateNextPageLevel(pdpt, lvl3, false);
     if (!pd)
     {
         return nullptr;
     }
 
-    auto pt = GetOrCreateNextLevel(pd, lvl2, false);
+    auto pt = GetOrCreateNextPageLevel(pd, lvl2, false);
     if (!pt)
     {
         return nullptr;

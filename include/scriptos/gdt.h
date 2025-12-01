@@ -2,26 +2,26 @@
 
 #include <scriptos/types.h>
 
-#define GDT_ACCESSED             0b00000001
-#define GDT_READABLE_WRITEABLE   0b00000010
-#define GDT_DIRECTION_CONFORMING 0b00000100
-#define GDT_EXECUTABLE           0b00001000
-#define GDT_CODE_DATA            0b00010000
-#define GDT_LEVEL_0              0b00000000
-#define GDT_LEVEL_1              0b00100000
-#define GDT_LEVEL_2              0b01000000
-#define GDT_LEVEL_3              0b01100000
-#define GDT_PRESENT              0b10000000
-
-#define GDT_LONG_MODE        0b0010
-#define GDT_32_BIT_SEGMENT   0b0100
-#define GDT_PAGE_GRANULARITY 0b1000
-
-namespace gdt
+namespace kernel
 {
-    union SegmentDescriptor
+    constexpr u8 GDT_ACCESSED             = 0b00000001;
+    constexpr u8 GDT_READABLE_WRITEABLE   = 0b00000010;
+    constexpr u8 GDT_DIRECTION_CONFORMING = 0b00000100;
+    constexpr u8 GDT_EXECUTABLE           = 0b00001000;
+    constexpr u8 GDT_CODE_DATA            = 0b00010000;
+    constexpr u8 GDT_LEVEL_0              = 0b00000000;
+    constexpr u8 GDT_LEVEL_1              = 0b00100000;
+    constexpr u8 GDT_LEVEL_2              = 0b01000000;
+    constexpr u8 GDT_LEVEL_3              = 0b01100000;
+    constexpr u8 GDT_PRESENT              = 0b10000000;
+
+    constexpr u8 GDT_LONG_MODE        = 0b0010;
+    constexpr u8 GDT_32_BIT_SEGMENT   = 0b0100;
+    constexpr u8 GDT_PAGE_GRANULARITY = 0b1000;
+
+    union GlobalSegmentDescriptor
     {
-        SegmentDescriptor(
+        GlobalSegmentDescriptor(
             u32 base,
             u32 limit,
             u8 access,
@@ -40,9 +40,9 @@ namespace gdt
         u64 Value;
     };
 
-    union SystemSegmentDescriptor
+    union GlobalSystemSegmentDescriptor
     {
-        SystemSegmentDescriptor(
+        GlobalSystemSegmentDescriptor(
             u64 base,
             u32 limit,
             u8 access,
@@ -66,25 +66,20 @@ namespace gdt
         } __attribute__((packed));
     };
 
-    struct Descriptor
+    struct GlobalDescriptor
     {
         u16 Size;
         void* Offset;
     } __attribute__((packed));
 
-    void Initialize();
+    void InitializeGDT();
 
-    usize Insert(
+    usize InsertGlobalSegmentDescriptor(
         void* buffer,
         usize offset,
-        const SegmentDescriptor& descriptor);
-    usize Insert(
+        const GlobalSegmentDescriptor& descriptor);
+    usize InsertGlobalSystemSegmentDescriptor(
         void* buffer,
         usize offset,
-        const SystemSegmentDescriptor& descriptor);
-
-    extern "C" void __load_gdt(
-        const Descriptor* descriptor,
-        u16 code_segment,
-        u16 data_segment);
+        const GlobalSystemSegmentDescriptor& descriptor);
 }

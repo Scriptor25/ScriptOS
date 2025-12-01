@@ -5,7 +5,7 @@
 
 void kstdout(int c)
 {
-    serial::WriteDefault(c);
+    kernel::WriteSerialDefault(c);
 
     if (kernel::Instance.Renderer)
     {

@@ -22,9 +22,9 @@ class Vector
 public:
     Vector(usize size = 10)
     {
-        m_First = memory::AllocateArray<T>(size);
-        m_Last = m_First;
-        m_End = m_First + size;
+        m_First = kernel::AllocateArray<T>(size);
+        m_Last  = m_First;
+        m_End   = m_First + size;
     }
 
     Vector(
@@ -32,9 +32,9 @@ public:
         const T* end)
         : Vector(end - begin)
     {
-        auto size = end - begin;
+        auto size  = end - begin;
         auto count = size * sizeof(T);
-        memory::Copy(m_First, begin, count);
+        kernel::Copy(m_First, begin, count);
         m_Last = m_First + size;
     }
 
@@ -66,18 +66,18 @@ public:
     {
         for (auto p = m_First; p < m_Last; ++p)
             p->~T();
-        memory::Free(m_First);
+        kernel::Free(m_First);
         m_First = m_Last = m_End = nullptr;
     }
 
     Vector& operator=(const Vector& v)
     {
-        auto size = v.m_Last - v.m_First;
+        auto size  = v.m_Last - v.m_First;
         auto count = size * sizeof(T);
 
-        m_First = memory::Reallocate<T>(m_First, size);
+        m_First = kernel::Reallocate<T>(m_First, size);
 
-        memory::Copy(m_First, v.m_First, count);
+        kernel::Copy(m_First, v.m_First, count);
 
         m_Last = m_End = m_First + size;
 
@@ -86,9 +86,9 @@ public:
 
     Vector& operator=(Vector&& v) noexcept
     {
-        memory::Swap(m_First, v.m_First);
-        memory::Swap(m_Last, v.m_Last);
-        memory::Swap(m_End, v.m_End);
+        kernel::Swap(m_First, v.m_First);
+        kernel::Swap(m_Last, v.m_Last);
+        kernel::Swap(m_End, v.m_End);
         return *this;
     }
 
@@ -125,7 +125,7 @@ public:
     void push_back(T&& e)
     {
         expand();
-        *(m_Last++) = memory::Move(e);
+        *(m_Last++) = kernel::Move(e);
     }
 
     void push_range(
@@ -152,14 +152,14 @@ public:
     T& emplace_back(T&& e)
     {
         expand();
-        return *(m_Last++) = memory::Move(e);
+        return *(m_Last++) = kernel::Move(e);
     }
 
     template<typename... I>
     T& emplace_back(I&&... initializer)
     {
         expand();
-        return *(m_Last++) = T(memory::Move(initializer)...);
+        return *(m_Last++) = T(kernel::Move(initializer)...);
     }
 
     void reserve(usize size)
@@ -168,9 +168,9 @@ public:
         auto reserved = m_End - m_First;
         auto extended = reserved + size;
 
-        m_First = memory::Reallocate<T>(m_First, extended);
-        m_Last = m_First + elements;
-        m_End = m_First + extended;
+        m_First = kernel::Reallocate<T>(m_First, extended);
+        m_Last  = m_First + elements;
+        m_End   = m_First + extended;
     }
 
     void resize(usize size)
@@ -240,7 +240,7 @@ public:
     String(const T* value)
         : Vector<T>(
               value,
-              memory::StringLength(value))
+              kernel::StringLength(value))
     {
     }
 
@@ -252,7 +252,7 @@ public:
 
     String& operator+=(const T* value)
     {
-        push_range(value, value + memory::StringLength(value));
+        push_range(value, value + kernel::StringLength(value));
         return *this;
     }
 

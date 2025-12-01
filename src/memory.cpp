@@ -1,6 +1,6 @@
 #include <scriptos/memory.h>
 
-void memory::Fill(
+void kernel::Fill(
     void* dst,
     u8 value,
     usize count)
@@ -29,7 +29,7 @@ void memory::Fill(
     }
 }
 
-void memory::Copy(
+void kernel::Copy(
     void* dst,
     const void* src,
     usize count)
@@ -52,7 +52,7 @@ void memory::Copy(
     }
 }
 
-bool memory::Compare(
+bool kernel::Compare(
     cstr s1,
     cstr s2,
     usize count)

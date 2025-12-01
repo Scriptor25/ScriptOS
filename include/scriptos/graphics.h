@@ -2,11 +2,11 @@
 
 #include <scriptos/memory.h>
 
-#define CHAR_WIDTH  8
-#define CHAR_HEIGHT 12
-
-namespace graphics
+namespace kernel
 {
+    constexpr u8 CHAR_WIDTH  = 8;
+    constexpr u8 CHAR_HEIGHT = 12;
+
     struct Framebuffer
     {
         void* BaseAddress;
@@ -20,10 +20,10 @@ namespace graphics
         T X{}, Y{};
     };
 
-    class Renderer
+    class BasicRenderer
     {
     public:
-        Renderer(
+        BasicRenderer(
             void* front_buffer,
             void* back_buffer,
             usize width,

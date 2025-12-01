@@ -6,9 +6,9 @@ const acpi::SystemDescriptorTableHeader* acpi::SystemDescriptorTable::Find(cstr 
 {
     for (auto header : *this)
     {
-        paging::MapPage(header, header);
+        kernel::MapPage(header, header);
 
-        if (memory::Compare(header->Signature, signature, 4))
+        if (kernel::Compare(header->Signature, signature, 4))
         {
             return header;
         }
@@ -28,13 +28,13 @@ acpi::TableIterator<acpi::SystemDescriptorTable> acpi::SystemDescriptorTable::en
     return { *this, count };
 }
 
-const acpi::SystemDescriptorTableHeader* acpi::XSystemDescriptorTable::Find(cstr signature) const
+const acpi::SystemDescriptorTableHeader* acpi::ExtendedSystemDescriptorTable::Find(cstr signature) const
 {
     for (auto header : *this)
     {
-        paging::MapPage(header, header);
+        kernel::MapPage(header, header);
 
-        if (memory::Compare(header->Signature, signature, 4))
+        if (kernel::Compare(header->Signature, signature, 4))
         {
             return header;
         }
@@ -43,12 +43,12 @@ const acpi::SystemDescriptorTableHeader* acpi::XSystemDescriptorTable::Find(cstr
     return nullptr;
 }
 
-acpi::TableIterator<acpi::XSystemDescriptorTable> acpi::XSystemDescriptorTable::begin() const
+acpi::TableIterator<acpi::ExtendedSystemDescriptorTable> acpi::ExtendedSystemDescriptorTable::begin() const
 {
     return { *this, 0 };
 }
 
-acpi::TableIterator<acpi::XSystemDescriptorTable> acpi::XSystemDescriptorTable::end() const
+acpi::TableIterator<acpi::ExtendedSystemDescriptorTable> acpi::ExtendedSystemDescriptorTable::end() const
 {
     auto count = (Header.Length - sizeof(SystemDescriptorTableHeader)) / sizeof(u64);
     return { *this, count };

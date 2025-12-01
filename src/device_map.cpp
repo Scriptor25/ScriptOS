@@ -1,7 +1,7 @@
 #include <scriptos/pci.h>
 #include <scriptos/types.h>
 
-cstr pci::GetDeviceDescriptor(
+cstr kernel::GetPciDeviceDescriptor(
     u8 base_class,
     u8 sub_class,
     u8 prog_if)
@@ -799,7 +799,7 @@ cstr pci::GetDeviceDescriptor(
     }
 }
 
-cstr pci::GetVendorName(u16 vendor_id)
+cstr kernel::GetPciVendorName(u16 vendor_id)
 {
     switch (vendor_id)
     {
@@ -820,7 +820,7 @@ cstr pci::GetVendorName(u16 vendor_id)
     }
 }
 
-cstr pci::GetDeviceName(
+cstr kernel::GetPciDeviceName(
     u16 vendor_id,
     u16 device_id)
 {

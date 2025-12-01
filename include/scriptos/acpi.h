@@ -14,7 +14,7 @@ namespace acpi
         u32 RsdtAddress;
     } __attribute__((packed));
 
-    struct XSystemDescriptorPointer
+    struct ExtendedSystemDescriptorPointer
     {
         char Signature[8];
         u8 Checksum;
@@ -28,9 +28,6 @@ namespace acpi
         u8 _rsv0[3];
     } __attribute__((packed));
 
-    /**
-     * System Description Table Header
-     */
     struct SystemDescriptorTableHeader
     {
         char Signature[4];
@@ -67,9 +64,6 @@ namespace acpi
         usize Offset;
     };
 
-    /**
-     * System Description Table
-     */
     struct SystemDescriptorTable
     {
         template<typename T>
@@ -87,10 +81,7 @@ namespace acpi
         u32 Table[];
     } __attribute__((packed));
 
-    /**
-     * Extended System Description Table
-     */
-    struct XSystemDescriptorTable
+    struct ExtendedSystemDescriptorTable
     {
         template<typename T>
         const T* Find(cstr signature) const
@@ -100,8 +91,8 @@ namespace acpi
 
         const SystemDescriptorTableHeader* Find(cstr signature) const;
 
-        TableIterator<XSystemDescriptorTable> begin() const;
-        TableIterator<XSystemDescriptorTable> end() const;
+        TableIterator<ExtendedSystemDescriptorTable> begin() const;
+        TableIterator<ExtendedSystemDescriptorTable> end() const;
 
         SystemDescriptorTableHeader Header;
         u64 Table[];

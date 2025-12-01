@@ -2,7 +2,7 @@
 
 #include <scriptos/types.h>
 
-namespace tss
+namespace kernel
 {
     struct TaskStateSegment
     {
@@ -27,12 +27,10 @@ namespace tss
         u16 IOPB;
     } __attribute__((packed));
 
-    void Initialize(
+    void InitializeTss(
         void* stack0,
         void* stack1,
         void* stack2);
-
-    extern "C" void __load_tr(u16 segment);
 
     extern TaskStateSegment TSS0;
 }

@@ -1,6 +1,6 @@
 #include <scriptos/print.h>
 
-#define CHUNK_SIZE 0x10
+constexpr auto CHUNK_SIZE = 0x10;
 
 void fkprintmem(
     out_stream stream,

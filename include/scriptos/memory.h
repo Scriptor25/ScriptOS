@@ -2,7 +2,7 @@
 
 #include <scriptos/types.h>
 
-namespace memory
+namespace kernel
 {
     void Fill(
         void* dst,
@@ -22,7 +22,7 @@ namespace memory
     usize StringLength(const T* value)
     {
         usize length = 0;
-        for (auto p = const_cast<T*>(value); *p; ++p, ++length)
+        for (; *value; ++value, ++length)
             ;
         return length;
     }
@@ -43,7 +43,7 @@ namespace memory
     T* Allocate(Args&&... args)
     {
         auto p = reinterpret_cast<T*>(Allocate(sizeof(T)));
-        *p = T(args...);
+        *p     = T(args...);
         return p;
     }
 
@@ -98,8 +98,8 @@ namespace memory
         T& b)
     {
         T c = a;
-        a = Move(b);
-        b = Move(c);
+        a   = Move(b);
+        b   = Move(c);
     }
 
     template<typename T>
@@ -152,7 +152,7 @@ namespace memory
     UniquePointer<T> MakeUnique(Args... args)
     {
         T* ptr = reinterpret_cast<T*>(Allocate(sizeof(T)));
-        *ptr = T(args...);
+        *ptr   = T(args...);
         return UniquePointer(ptr);
     }
 }

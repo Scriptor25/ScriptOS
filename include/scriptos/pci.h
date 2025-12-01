@@ -3,14 +3,14 @@
 #include <scriptos/stl.h>
 #include <scriptos/types.h>
 
-namespace pci
+namespace kernel
 {
-    cstr GetDeviceDescriptor(
+    cstr GetPciDeviceDescriptor(
         u8 base_class,
         u8 sub_class,
         u8 prog_if);
-    cstr GetVendorName(u16 vendor_id);
-    cstr GetDeviceName(
+    cstr GetPciVendorName(u16 vendor_id);
+    cstr GetPciDeviceName(
         u16 vendor_id,
         u16 device_id);
 
@@ -79,7 +79,7 @@ namespace pci
         // TODO
     } __attribute__((packed));
 
-    struct DeviceIterable
+    struct PciDeviceIterable
     {
     private:
         struct Iterator
@@ -101,7 +101,7 @@ namespace pci
         };
 
     public:
-        DeviceIterable(const u8* device_address);
+        PciDeviceIterable(const u8* device_address);
 
         Iterator begin() const;
         Iterator end() const;
@@ -110,7 +110,7 @@ namespace pci
         const u8* m_DeviceAddress;
     };
 
-    struct BusIterable
+    struct PciBusIterable
     {
     private:
         struct Iterator
@@ -122,7 +122,7 @@ namespace pci
             bool operator==(const Iterator& iterator) const;
             Pair<
                 u8,
-                DeviceIterable>
+                PciDeviceIterable>
             operator*() const;
             Iterator& operator++();
 
@@ -132,7 +132,7 @@ namespace pci
         };
 
     public:
-        BusIterable(const u8* bus_address);
+        PciBusIterable(const u8* bus_address);
 
         Iterator begin() const;
         Iterator end() const;
@@ -143,7 +143,7 @@ namespace pci
         const u8* m_BusAddress;
     };
 
-    struct RootIterable
+    struct PciIterable
     {
     private:
         struct Iterator
@@ -155,7 +155,7 @@ namespace pci
             bool operator==(const Iterator& iterator) const;
             Pair<
                 u8,
-                BusIterable>
+                PciBusIterable>
             operator*() const;
             Iterator& operator++();
 
@@ -165,7 +165,7 @@ namespace pci
         };
 
     public:
-        RootIterable(
+        PciIterable(
             const u8* root_address,
             u8 start_bus,
             u8 end_bus);

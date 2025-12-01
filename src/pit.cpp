@@ -1,7 +1,7 @@
 #include <scriptos/io.h>
 #include <scriptos/pit.h>
 
-void pit::Initialize(u32 frequency)
+void kernel::InitializePit(u32 frequency)
 {
     auto divisor = static_cast<u16>(PIT_FREQUENCY / frequency);
 

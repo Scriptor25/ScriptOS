@@ -3,10 +3,10 @@
 #include <scriptos/interrupt.h>
 #include <scriptos/types.h>
 
-#define TASK_TIMESLICE 10
-
-namespace task
+namespace kernel
 {
+    constexpr u64 TASK_TIMESLICE = 10;
+
     enum TaskState
     {
         TaskState_Runnable,
@@ -38,5 +38,5 @@ namespace task
 
     Task* NextTask(Task* active);
 
-    void Reaper();
+    void TaskReaper();
 }

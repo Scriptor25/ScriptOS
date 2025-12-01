@@ -11,7 +11,7 @@ NORETURN static void __panic(
     cstr format,
     va_list& ap)
 {
-    out_stream stream = serious ? serial::WriteDefault : kstdout;
+    out_stream stream = serious ? kernel::WriteSerialDefault : kstdout;
 
     vfkprintf(stream, format, ap);
     fkputs(stream, "\r\n");
