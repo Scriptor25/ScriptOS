@@ -41,7 +41,6 @@ BracedInitializerIndentWidth: 4
 
 BreakAdjacentStringLiterals: true
 BreakAfterAttributes: Leave
-BreakAfterJavaFieldAnnotations: false
 BreakAfterReturnType: Automatic
 BreakArrays: false
 BreakBeforeBinaryOperators: NonAssignment
@@ -102,9 +101,6 @@ IntegerLiteralSeparator:
   Hex: 4
   HexMinDigits: 16
 
-JavaScriptQuotes: Double
-JavaScriptWrapImports: true
-
 KeepEmptyLines:
   AtEndOfFile: false
   AtStartOfBlock: false
@@ -158,7 +154,6 @@ ShortNamespaceLines: 1
 SkipMacroDefinitionBody: false
 
 SortIncludes: CaseSensitive
-SortJavaStaticImport: After
 SortUsingDeclarations: Lexicographic
 
 SpaceAfterCStyleCast: true
@@ -170,7 +165,6 @@ SpaceBeforeCaseColon: false
 SpaceBeforeCpp11BracedList: false
 SpaceBeforeCtorInitializerColon: true
 SpaceBeforeInheritanceColon: true
-SpaceBeforeJsonColon: false
 
 SpaceBeforeParens: Custom
 SpaceBeforeParensOptions:

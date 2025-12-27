@@ -1,935 +1,489 @@
 #include <scriptos/pci.h>
 #include <scriptos/types.h>
 
+constexpr u32 pci_key(
+    u8 base_class,
+    u8 sub_class,
+    u8 prog_if)
+{
+    return (u32(base_class) << 16u) | (u32(sub_class) << 8u) | u32(prog_if);
+}
+
+template<typename K, typename V>
+struct key_val_t
+{
+    K key;
+    V val;
+};
+
+constexpr key_val_t<u32, cstr> pci_device_table[]{
+
+    /* 0x00 */
+
+    { pci_key(0x00, 0x00, 0xFF),                                                        "Non-VGA Compatible Unclassified Device" },
+
+    { pci_key(0x00, 0x01, 0xFF),                                                            "VGA Compatible Unclassified Device" },
+
+    { pci_key(0x00, 0x05, 0xFF),                                                                            "Image Co-Processor" },
+
+    { pci_key(0x00, 0xFF, 0xFF),                                                                           "Unclassified Device" },
+
+    /* 0x01 */
+
+    { pci_key(0x01, 0x00, 0x00),                                                                       "SCSI Storage Controller" },
+    { pci_key(0x01, 0x00, 0xFF),                                                                       "SCSI Storage Controller" },
+
+    { pci_key(0x01, 0x01, 0x00),                                                        "ISA Compatibility Mode-Only Controller" },
+    { pci_key(0x01, 0x01, 0x05),                                                               "PCI Native Mode-Only Controller" },
+    { pci_key(0x01, 0x01, 0x0A),                   "ISA Compatibility Mode Controller with Dual-Channel PCI Native Mode Support" },
+    { pci_key(0x01, 0x01, 0x0F),                   "PCI Native Mode Controller with Dual-Channel ISA Compatibility Mode Support" },
+    { pci_key(0x01, 0x01, 0x80),                                     "ISA Compatibility Mode-Only Controller with Bus Mastering" },
+    { pci_key(0x01, 0x01, 0x85),                                            "PCI Native Mode-Only Controller with Bus Mastering" },
+    { pci_key(0x01, 0x01, 0x8A), "ISA Compatibility Mode Controller with Dual-Channel PCI Native Mode Support and Bus Mastering" },
+    { pci_key(0x01, 0x01, 0x8F), "PCI Native Mode Controller with Dual-Channel ISA Compatibility Mode Support and Bus Mastering" },
+    { pci_key(0x01, 0x01, 0xFF),                                                                                 "IDE Interface" },
+
+    { pci_key(0x01, 0x02, 0x00),                                                                        "Floppy Disk Controller" },
+    { pci_key(0x01, 0x02, 0xFF),                                                                        "Floppy Disk Controller" },
+
+    { pci_key(0x01, 0x03, 0x00),                                                                            "IPI Bus Controller" },
+    { pci_key(0x01, 0x03, 0xFF),                                                                            "IPI Bus Controller" },
+
+    { pci_key(0x01, 0x04, 0x00),                                                                           "RAID Bus Controller" },
+    { pci_key(0x01, 0x04, 0xFF),                                                                           "RAID Bus Controller" },
+
+    { pci_key(0x01, 0x05, 0x20),                                                           "ADMA Single Stepping ATA Controller" },
+    { pci_key(0x01, 0x05, 0x30),                                                      "ADMA Continuous Operation ATA Controller" },
+    { pci_key(0x01, 0x05, 0xFF),                                                                                "ATA Controller" },
+
+    { pci_key(0x01, 0x06, 0x00),                                                               "Vendor Specific SATA Controller" },
+    { pci_key(0x01, 0x06, 0x01),                                                                           "AHCI 1.0 Controller" },
+    { pci_key(0x01, 0x06, 0x02),                                                                 "Serial Storage Bus Controller" },
+    { pci_key(0x01, 0x06, 0xFF),                                                                               "SATA Controller" },
+
+    { pci_key(0x01, 0x07, 0x01),                                                                            "Serial Storage Bus" },
+    { pci_key(0x01, 0x07, 0xFF),                                                               "Serial Attached SCSI Controller" },
+
+    { pci_key(0x01, 0x08, 0x01),                                                                             "NVMHCI Controller" },
+    { pci_key(0x01, 0x08, 0x02),                                                                        "NVM Express Controller" },
+    { pci_key(0x01, 0x08, 0xFF),                                                                "Non-Volatile Memory Controller" },
+
+    { pci_key(0x01, 0x09, 0x00),                                                              "Vendor Specific Flash Controller" },
+    { pci_key(0x01, 0x09, 0x01),                                                                             "UFSHCI Controller" },
+    { pci_key(0x01, 0x09, 0xFF),                                                            "Universal Flash Storage Controller" },
+
+    { pci_key(0x01, 0xFF, 0xFF),                                                                       "Mass Storage Controller" },
+
+    /* 0x02 */
+
+    { pci_key(0x02, 0x00, 0xFF),                                                                           "Ethernet Controller" },
+
+    { pci_key(0x02, 0x01, 0xFF),                                                                 "Token Ring Network Controller" },
+
+    { pci_key(0x02, 0x02, 0xFF),                                                                       "FDDI Network Controller" },
+
+    { pci_key(0x02, 0x03, 0xFF),                                                                        "ATM Network Controller" },
+
+    { pci_key(0x02, 0x04, 0xFF),                                                                               "ISDN Controller" },
+
+    { pci_key(0x02, 0x05, 0xFF),                                                                           "WorldFip Controller" },
+
+    { pci_key(0x02, 0x06, 0xFF),                                                                              "PICMG Controller" },
+
+    { pci_key(0x02, 0x07, 0xFF),                                                                         "Infiniband Controller" },
+
+    { pci_key(0x02, 0x08, 0xFF),                                                                             "Fabric Controller" },
+
+    { pci_key(0x02, 0xFF, 0xFF),                                                                            "Network Controller" },
+
+    /* 0x03 */
+
+    { pci_key(0x03, 0x00, 0x00),                                                                                "VGA Controller" },
+    { pci_key(0x03, 0x00, 0x01),                                                                               "8514 Controller" },
+    { pci_key(0x03, 0x00, 0xFF),                                                                     "VGA Compatible Controller" },
+
+    { pci_key(0x03, 0x01, 0xFF),                                                                     "XGA Compatible Controller" },
+
+    { pci_key(0x03, 0x02, 0xFF),                                                                                 "3D Controller" },
+
+    { pci_key(0x03, 0xFF, 0xFF),                                                                            "Display Controller" },
+
+    /* 0x04 */
+
+    { pci_key(0x04, 0x00, 0xFF),                                                                   "Multimedia Video Controller" },
+
+    { pci_key(0x04, 0x01, 0xFF),                                                                   "Multimedia Audio Controller" },
+
+    { pci_key(0x04, 0x02, 0xFF),                                                                     "Computer Telephony Device" },
+
+    { pci_key(0x04, 0x03, 0xFF),                                                                                  "Audio Device" },
+
+    { pci_key(0x04, 0xFF, 0xFF),                                                                         "Multimedia Controller" },
+
+    /* 0x05 */
+
+    { pci_key(0x05, 0x00, 0xFF),                                                                                    "RAM Memory" },
+
+    { pci_key(0x05, 0x01, 0xFF),                                                                                  "FLASH Memory" },
+
+    { pci_key(0x05, 0x02, 0x00),                                                             "CXL Memory Vendor Specific Device" },
+    { pci_key(0x05, 0x02, 0x10),                                                                   "CXL Memory Device (CXL 2.x)" },
+    { pci_key(0x05, 0x02, 0xFF),                                                                                           "CXL" },
+
+    { pci_key(0x05, 0xFF, 0xFF),                                                                             "Memory Controller" },
+
+    /* 0x06 */
+
+    { pci_key(0x06, 0x00, 0x00),                                                                                   "Host Bridge" },
+    { pci_key(0x06, 0x00, 0xFF),                                                                                   "Host Bridge" },
+
+    { pci_key(0x06, 0x01, 0x00),                                                                                    "ISA Bridge" },
+    { pci_key(0x06, 0x01, 0xFF),                                                                                    "ISA Bridge" },
+
+    { pci_key(0x06, 0x02, 0x00),                                                                                   "EISA Bridge" },
+    { pci_key(0x06, 0x02, 0xFF),                                                                                   "EISA Bridge" },
+
+    { pci_key(0x06, 0x03, 0x00),                                                                                    "MCA Bridge" },
+    { pci_key(0x06, 0x03, 0xFF),                                                                                    "MCA Bridge" },
+
+    { pci_key(0x06, 0x04, 0x00),                                                                    "PCI-to-PCI Bridge (Normal)" },
+    { pci_key(0x06, 0x04, 0x01),                                                               "PCI-to-PCI Bridge (Subtractive)" },
+    { pci_key(0x06, 0x04, 0xFF),                                                                             "PCI-to-PCI Bridge" },
+
+    { pci_key(0x06, 0x05, 0x00),                                                                                 "PCMCIA Bridge" },
+    { pci_key(0x06, 0x05, 0xFF),                                                                                 "PCMCIA Bridge" },
+
+    { pci_key(0x06, 0x06, 0x00),                                                                                  "NuBus Bridge" },
+    { pci_key(0x06, 0x06, 0xFF),                                                                                  "NuBus Bridge" },
+
+    { pci_key(0x06, 0x07, 0x00),                                                                                "CardBus Bridge" },
+    { pci_key(0x06, 0x07, 0xFF),                                                                                "CardBus Bridge" },
+
+    { pci_key(0x06, 0x08, 0x00),                                                                  "RACEway Bridge (Transparent)" },
+    { pci_key(0x06, 0x08, 0x01),                                                                     "RACEway Bridge (Endpoint)" },
+    { pci_key(0x06, 0x08, 0xFF),                                                                                "RACEway Bridge" },
+
+    { pci_key(0x06, 0x09, 0x40),                                 "Semi-Transparent PCI-to-PCI Bridge (Primary Bus Towards Host)" },
+    { pci_key(0x06, 0x09, 0x80),                               "Semi-Transparent PCI-to-PCI Bridge (Secondary Bus Towards Host)" },
+    { pci_key(0x06, 0x09, 0xFF),                                                            "Semi-Transparent PCI-to-PCI Bridge" },
+
+    { pci_key(0x06, 0x0A, 0x00),                                                                 "InfiniBand-to-PCI Host Bridge" },
+    { pci_key(0x06, 0x0A, 0xFF),                                                                 "InfiniBand-to-PCI Host Bridge" },
+
+    { pci_key(0x06, 0x0B, 0x00),                                      "Advanced Switching to PCI Host Bridge (Custom Interface)" },
+    { pci_key(0x06, 0x0B, 0x01),                      "Advanced Switching to PCI Host Bridge (ASI-SIG Defined Portal Interface)" },
+    { pci_key(0x06, 0x0B, 0xFF),                                                         "Advanced Switching to PCI Host Bridge" },
+
+    { pci_key(0x06, 0x80, 0x00),                                                                           "Other Bridge Device" },
+    { pci_key(0x06, 0x80, 0xFF),                                                                           "Other Bridge Device" },
+
+    { pci_key(0x06, 0xFF, 0xFF),                                                                                 "Bridge Device" },
+
+    /* 0x07 */
+
+    { pci_key(0x07, 0x00, 0x00),                                                                                          "8250" },
+    { pci_key(0x07, 0x00, 0x01),                                                                                         "16450" },
+    { pci_key(0x07, 0x00, 0x02),                                                                                         "16550" },
+    { pci_key(0x07, 0x00, 0x03),                                                                                         "16650" },
+    { pci_key(0x07, 0x00, 0x04),                                                                                         "16750" },
+    { pci_key(0x07, 0x00, 0x05),                                                                                         "16850" },
+    { pci_key(0x07, 0x00, 0x06),                                                                                         "16950" },
+    { pci_key(0x07, 0x00, 0xFF),                                                                             "Serial Controller" },
+
+    { pci_key(0x07, 0x01, 0x00),                                                                                           "SPP" },
+    { pci_key(0x07, 0x01, 0x01),                                                                                         "BiDir" },
+    { pci_key(0x07, 0x01, 0x02),                                                                                           "ECP" },
+    { pci_key(0x07, 0x01, 0x03),                                                                                     "IEEE 1284" },
+    { pci_key(0x07, 0x01, 0xFE),                                                                              "IEEE 1284 Target" },
+    { pci_key(0x07, 0x01, 0xFF),                                                                           "Parallel Controller" },
+
+    { pci_key(0x07, 0x02, 0xFF),                                                                   "Multiport Serial Controller" },
+
+    { pci_key(0x07, 0x03, 0x00),                                                                                       "Generic" },
+    { pci_key(0x07, 0x03, 0x01),                                                                                   "Hayes/16450" },
+    { pci_key(0x07, 0x03, 0x02),                                                                                   "Hayes/16550" },
+    { pci_key(0x07, 0x03, 0x03),                                                                                   "Hayes/16650" },
+    { pci_key(0x07, 0x03, 0x04),                                                                                   "Hayes/16750" },
+    { pci_key(0x07, 0x03, 0xFF),                                                                                         "Modem" },
+
+    { pci_key(0x07, 0x04, 0xFF),                                                                               "GPIB Controller" },
+
+    { pci_key(0x07, 0x05, 0xFF),                                                                         "Smart Card Controller" },
+
+    { pci_key(0x07, 0xFF, 0xFF),                                                                      "Communication Controller" },
+
+    /* 0x08 */
+
+    { pci_key(0x08, 0x00, 0x00),                                                                                          "8259" },
+    { pci_key(0x08, 0x00, 0x01),                                                                                       "ISA PIC" },
+    { pci_key(0x08, 0x00, 0x02),                                                                                      "EISA PIC" },
+    { pci_key(0x08, 0x00, 0x10),                                                                                       "IO-APIC" },
+    { pci_key(0x08, 0x00, 0x20),                                                                                    "IO(X)-APIC" },
+    { pci_key(0x08, 0x00, 0xFF),                                                                                           "PIC" },
+
+    { pci_key(0x08, 0x01, 0x00),                                                                                          "8237" },
+    { pci_key(0x08, 0x01, 0x01),                                                                                       "ISA DMA" },
+    { pci_key(0x08, 0x01, 0x02),                                                                                      "EISA DMA" },
+    { pci_key(0x08, 0x01, 0xFF),                                                                                "DMA Controller" },
+
+    { pci_key(0x08, 0x02, 0x00),                                                                                          "8254" },
+    { pci_key(0x08, 0x02, 0x01),                                                                                     "ISA Timer" },
+    { pci_key(0x08, 0x02, 0x02),                                                                                    "EISA Timer" },
+    { pci_key(0x08, 0x02, 0x03),                                                                                          "HPET" },
+    { pci_key(0x08, 0x02, 0xFF),                                                                                         "Timer" },
+
+    { pci_key(0x08, 0x03, 0x00),                                                                                       "Generic" },
+    { pci_key(0x08, 0x03, 0x01),                                                                                       "ISA RTC" },
+    { pci_key(0x08, 0x03, 0xFF),                                                                                           "RTC" },
+
+    { pci_key(0x08, 0x04, 0xFF),                                                                       "PCI Hot-Plug Controller" },
+
+    { pci_key(0x08, 0x05, 0xFF),                                                                            "SD Host Controller" },
+
+    { pci_key(0x08, 0x06, 0xFF),                                                                                         "IOMMU" },
+
+    { pci_key(0x08, 0x99, 0x01),                                                                               "TAP Timing Card" },
+    { pci_key(0x08, 0x99, 0xFF),                                                                                   "Timing Card" },
+
+    { pci_key(0x08, 0xFF, 0xFF),                                                                     "Generic System Peripheral" },
+
+    /* 0x09 */
+
+    { pci_key(0x09, 0x00, 0xFF),                                                                           "Keyboard Controller" },
+
+    { pci_key(0x09, 0x01, 0xFF),                                                                                 "Digitizer Pen" },
+
+    { pci_key(0x09, 0x02, 0xFF),                                                                              "Mouse Controller" },
+
+    { pci_key(0x09, 0x03, 0xFF),                                                                            "Scanner Controller" },
+
+    { pci_key(0x09, 0x04, 0x00),                                                                                       "Generic" },
+    { pci_key(0x09, 0x04, 0x10),                                                                                      "Extended" },
+    { pci_key(0x09, 0x04, 0xFF),                                                                           "Gameport Controller" },
+
+    { pci_key(0x09, 0xFF, 0xFF),                                                                       "Input Device Controller" },
+
+    /* 0x0A */
+
+    { pci_key(0x0A, 0x00, 0xFF),                                                                       "Generic Docking Station" },
+
+    { pci_key(0x0A, 0xFF, 0xFF),                                                                               "Docking Station" },
+
+    /* 0x0B */
+
+    { pci_key(0x0B, 0x00, 0xFF),                                                                                           "386" },
+
+    { pci_key(0x0B, 0x01, 0xFF),                                                                                           "486" },
+
+    { pci_key(0x0B, 0x02, 0xFF),                                                                                       "Pentium" },
+
+    { pci_key(0x0B, 0x10, 0xFF),                                                                                         "Alpha" },
+
+    { pci_key(0x0B, 0x20, 0xFF),                                                                                       "PowerPC" },
+
+    { pci_key(0x0B, 0x30, 0xFF),                                                                                          "MIPS" },
+
+    { pci_key(0x0B, 0x40, 0xFF),                                                                                  "Co-Processor" },
+
+    { pci_key(0x0B, 0xFF, 0xFF),                                                                                     "Processor" },
+
+    /* 0x0C */
+
+    { pci_key(0x0C, 0x00, 0x00),                                                                                       "Generic" },
+    { pci_key(0x0C, 0x00, 0x10),                                                                                          "OHCI" },
+    { pci_key(0x0C, 0x00, 0xFF),                                                                          "FireWire (IEEE 1394)" },
+
+    { pci_key(0x0C, 0x01, 0xFF),                                                                                    "ACCESS Bus" },
+
+    { pci_key(0x0C, 0x02, 0xFF),                                                                                           "SSA" },
+
+    { pci_key(0x0C, 0x03, 0x00),                                                                                          "UHCI" },
+    { pci_key(0x0C, 0x03, 0x10),                                                                                          "OHCI" },
+    { pci_key(0x0C, 0x03, 0x20),                                                                                          "EHCI" },
+    { pci_key(0x0C, 0x03, 0x30),                                                                                          "XHCI" },
+    { pci_key(0x0C, 0x03, 0x40),                                                                           "USB4 Host Interface" },
+    { pci_key(0x0C, 0x03, 0xFE),                                                                                    "USB Device" },
+    { pci_key(0x0C, 0x03, 0xFF),                                                                                "USB Controller" },
+
+    { pci_key(0x0C, 0x04, 0xFF),                                                                                 "Fibre Channel" },
+
+    { pci_key(0x0C, 0x05, 0x00),                                                                                         "SMBus" },
+    { pci_key(0x0C, 0x05, 0xFF),                                                                                         "SMBus" },
+
+    { pci_key(0x0C, 0x06, 0xFF),                                                                                    "InfiniBand" },
+
+    { pci_key(0x0C, 0x07, 0x00),                                                                                          "SMIC" },
+    { pci_key(0x0C, 0x07, 0x01),                                                                                           "KCS" },
+    { pci_key(0x0C, 0x07, 0x02),                                                                                "Block Transfer" },
+    { pci_key(0x0C, 0x07, 0xFF),                                                                                "IPMI Interface" },
+
+    { pci_key(0x0C, 0x08, 0xFF),                                                                              "SERCOS Interface" },
+    { pci_key(0x0C, 0x09, 0xFF),                                                                                        "CANBUS" },
+    { pci_key(0x0C, 0xFF, 0xFF),                                                                         "Serial Bus Controller" },
+
+    /* 0x0D */
+
+    { pci_key(0x0D, 0x00, 0xFF),                                                                               "IRDA Controller" },
+
+    { pci_key(0x0D, 0x01, 0xFF),                                                                        "Consumer IR Controller" },
+
+    { pci_key(0x0D, 0x10, 0xFF),                                                                                 "RF Controller" },
+
+    { pci_key(0x0D, 0x11, 0xFF),                                                                                     "Bluetooth" },
+
+    { pci_key(0x0D, 0x12, 0xFF),                                                                                     "Broadband" },
+
+    { pci_key(0x0D, 0x20, 0xFF),                                                                             "802.1a Controller" },
+
+    { pci_key(0x0D, 0x21, 0xFF),                                                                             "802.1b Controller" },
+
+    { pci_key(0x0D, 0xFF, 0xFF),                                                                           "Wireless Controller" },
+
+    /* 0x0E */
+
+    { pci_key(0x0E, 0x00, 0xFF),                                                                                           "I2O" },
+
+    { pci_key(0x0E, 0xFF, 0xFF),                                                                        "Intelligent Controller" },
+
+    /* 0x0F */
+
+    { pci_key(0x0F, 0x01, 0xFF),                                                                       "Satellite TV Controller" },
+
+    { pci_key(0x0F, 0x02, 0xFF),                                                      "Satellite Audio Communication Controller" },
+
+    { pci_key(0x0F, 0x03, 0xFF),                                                      "Satellite Voice Communication Controller" },
+
+    { pci_key(0x0F, 0x04, 0xFF),                                                       "Satellite Data Communication Controller" },
+
+    { pci_key(0x0F, 0xFF, 0xFF),                                                            "Satellite Communication Controller" },
+
+    /* 0x10 */
+
+    { pci_key(0x10, 0x00, 0xFF),                                                       "Network And Computing Encryption Device" },
+
+    { pci_key(0x10, 0x10, 0xFF),                                                               "Entertainment Encryption Device" },
+
+    { pci_key(0x10, 0xFF, 0xFF),                                                                         "Encryption Controller" },
+
+    /* 0x11 */
+
+    { pci_key(0x11, 0x00, 0xFF),                                                                                   "DPIO Module" },
+
+    { pci_key(0x11, 0x01, 0xFF),                                                                          "Performance Counters" },
+
+    { pci_key(0x11, 0x10, 0xFF),                                                                    "Communication Synchronizer" },
+
+    { pci_key(0x11, 0x20, 0xFF),                                                                  "Signal Processing Management" },
+
+    { pci_key(0x11, 0xFF, 0xFF),                                                                  "Signal Processing Controller" },
+
+    /* 0x12 */
+
+    { pci_key(0x12, 0x01, 0xFF),                                       "SNIA Smart Data Accelerator Interface (SDXI) Controller" },
+
+    { pci_key(0x12, 0xFF, 0xFF),                                                                        "Processing Accelerator" },
+
+    /* 0x13 */
+
+    { pci_key(0x13, 0xFF, 0xFF),                                                                 "Non-Essential Instrumentation" },
+
+    /* 0x40 */
+
+    { pci_key(0x40, 0xFF, 0xFF),                                                                                  "Co-Processor" },
+
+    /* 0xFF */
+
+    { pci_key(0xFF, 0xFF, 0xFF),                                                                              "Unassigned Class" },
+};
+
 cstr kernel::GetPciDeviceDescriptor(
     u8 base_class,
     u8 sub_class,
     u8 prog_if)
 {
-    switch (base_class)
-    {
-    case 0x00:
-        switch (sub_class)
-        {
-        case 0x00:
-            return prog_if == 0xFF ? "Non-VGA Compatible Unclassified Device" : nullptr;
-        case 0x01:
-            return prog_if == 0xFF ? "VGA Compatible Unclassified Device" : nullptr;
-        case 0x05:
-            return prog_if == 0xFF ? "Image Co-Processor" : nullptr;
-        case 0xFF:
-            return prog_if == 0xFF ? "Unclassified Device" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x01:
-        switch (sub_class)
-        {
-        case 0x00:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "SCSI Storage Controller";
-            default:
-                return nullptr;
-            }
-        case 0x01:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "ISA Compatibility Mode-Only Controller";
-            case 0x05:
-                return "PCI Native Mode-Only Controller";
-            case 0x0A:
-                return "ISA Compatibility Mode Controller "
-                       "with Dual-Channel PCI Native Mode Support";
-            case 0x0F:
-                return "PCI Native Mode Controller "
-                       "with Dual-Channel ISA Compatibility Mode Support";
-            case 0x80:
-                return "ISA Compatibility Mode-Only Controller "
-                       "with Bus Mastering";
-            case 0x85:
-                return "PCI Native Mode-Only Controller "
-                       "with Bus Mastering";
-            case 0x8A:
-                return "ISA Compatibility Mode Controller "
-                       "with Dual-Channel PCI Native Mode Support "
-                       "and Bus Mastering";
-            case 0x8F:
-                return "PCI Native Mode Controller "
-                       "with Dual-Channel ISA Compatibility Mode Support "
-                       "and Bus Mastering";
-            case 0xFF:
-                return "IDE Interface";
-            default:
-                return nullptr;
-            }
-        case 0x02:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "Floppy Disk Controller";
-            default:
-                return nullptr;
-            }
-        case 0x03:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "IPI Bus Controller";
-            default:
-                return nullptr;
-            }
-        case 0x04:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "RAID Bus Controller";
-            default:
-                return nullptr;
-            }
-        case 0x05:
-            switch (prog_if)
-            {
-            case 0x20:
-                return "ADMA Single Stepping ATA Controller";
-            case 0x30:
-                return "ADMA Continuous Operation ATA Controller";
-            case 0xFF:
-                return "ATA Controller";
-            default:
-                return nullptr;
-            }
-        case 0x06:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "Vendor Specific SATA Controller";
-            case 0x01:
-                return "AHCI 1.0 Controller";
-            case 0x02:
-                return "Serial Storage Bus Controller";
-            case 0xFF:
-                return "SATA Controller";
-            default:
-                return nullptr;
-            }
-        case 0x07:
-            switch (prog_if)
-            {
-            case 0x01:
-                return "Serial Storage Bus";
-            case 0xFF:
-                return "Serial Attached SCSI Controller";
-            default:
-                return nullptr;
-            }
-        case 0x08:
-            switch (prog_if)
-            {
-            case 0x01:
-                return "NVMHCI Controller";
-            case 0x02:
-                return "NVM Express Controller";
-            case 0xFF:
-                return "Non-Volatile Memory Controller";
-            default:
-                return nullptr;
-            }
-        case 0x09:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "Vendor Specific Flash Controller";
-            case 0x01:
-                return "UFSHCI Controller";
-            case 0xFF:
-                return "Universal Flash Storage Controller";
-            default:
-                return nullptr;
-            }
-        case 0xFF:
-            switch (prog_if)
-            {
-            case 0xFF:
-                return "Mass Storage Controller";
-            default:
-                return nullptr;
-            }
-        default:
-            return nullptr;
-        }
-    case 0x02:
-        switch (sub_class)
-        {
-        case 0x00:
-            return prog_if == 0xFF ? "Ethernet Controller" : nullptr;
-        case 0x01:
-            return prog_if == 0xFF ? "Token Ring Network Controller" : nullptr;
-        case 0x02:
-            return prog_if == 0xFF ? "FDDI Network Controller" : nullptr;
-        case 0x03:
-            return prog_if == 0xFF ? "ATM Network Controller" : nullptr;
-        case 0x04:
-            return prog_if == 0xFF ? "ISDN Controller" : nullptr;
-        case 0x05:
-            return prog_if == 0xFF ? "WorldFip Controller" : nullptr;
-        case 0x06:
-            return prog_if == 0xFF ? "PICMG Controller" : nullptr;
-        case 0x07:
-            return prog_if == 0xFF ? "Infiniband Controller" : nullptr;
-        case 0x08:
-            return prog_if == 0xFF ? "Fabric Controller" : nullptr;
-        case 0xFF:
-            switch (prog_if)
-            {
-            case 0xFF:
-                return "Network Controller";
-            default:
-                return nullptr;
-            }
-        default:
-            return nullptr;
-        }
-    case 0x03:
-        switch (sub_class)
-        {
-        case 0x00:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "VGA Controller";
-            case 0x01:
-                return "8514 Controller";
-            case 0xFF:
-                return "VGA Compatible Controller";
-            default:
-                return nullptr;
-            }
-        case 0x01:
-            return prog_if == 0xFF ? "XGA Compatible Controller" : nullptr;
-        case 0x02:
-            return prog_if == 0xFF ? "3D Controller" : nullptr;
-        case 0xFF:
-            return prog_if == 0xFF ? "Display Controller" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x04:
-        switch (sub_class)
-        {
-        case 0x00:
-            return prog_if == 0xFF ? "Multimedia Video Controller" : nullptr;
-        case 0x01:
-            return prog_if == 0xFF ? "Multimedia Audio Controller" : nullptr;
-        case 0x02:
-            return prog_if == 0xFF ? "Computer Telephony Device" : nullptr;
-        case 0x03:
-            return prog_if == 0xFF ? "Audio Device" : nullptr;
-        case 0xFF:
-            return prog_if == 0xFF ? "Multimedia Controller" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x05:
-        switch (sub_class)
-        {
-        case 0x00:
-            return prog_if == 0xFF ? "RAM Memory" : nullptr;
-        case 0x01:
-            return prog_if == 0xFF ? "FLASH Memory" : nullptr;
-        case 0x02:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "CXL Memory Vendor Specific Device";
-            case 0x10:
-                return "CXL Memory Device (CXL 2.x)";
-            case 0xFF:
-                return "CXL";
-            default:
-                return nullptr;
-            }
-        case 0xFF:
-            return prog_if == 0xFF ? "Memory Controller" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x06:
-        switch (sub_class)
-        {
-        case 0x00:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "Host Bridge";
-            default:
-                return nullptr;
-            }
-        case 0x01:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "ISA Bridge";
-            default:
-                return nullptr;
-            }
-        case 0x02:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "EISA Bridge";
-            default:
-                return nullptr;
-            }
-        case 0x03:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "MCA Bridge";
-            default:
-                return nullptr;
-            }
-        case 0x04:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "PCI-to-PCI Bridge (Normal)";
-            case 0x01:
-                return "PCI-to-PCI Bridge (Subtractive)";
-            case 0xFF:
-                return "PCI-to-PCI Bridge";
-            default:
-                return nullptr;
-            }
-        case 0x05:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "PCMCIA Bridge";
-            default:
-                return nullptr;
-            }
-        case 0x06:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "NuBus Bridge";
-            default:
-                return nullptr;
-            }
-        case 0x07:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "CardBus Bridge";
-            default:
-                return nullptr;
-            }
-        case 0x08:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "RACEway Bridge (Transparent)";
-            case 0x01:
-                return "RACEway Bridge (Endpoint)";
-            case 0xFF:
-                return "RACEway Bridge";
-            default:
-                return nullptr;
-            }
-        case 0x09:
-            switch (prog_if)
-            {
-            case 0x40:
-                return "Semi-Transparent PCI-to-PCI Bridge (Primary Bus "
-                       "Towards Host)";
-            case 0x80:
-                return "Semi-Transparent PCI-to-PCI Bridge (Secondary Bus "
-                       "Towards Host)";
-            case 0xFF:
-                return "Semi-Transparent PCI-to-PCI Bridge";
-            default:
-                return nullptr;
-            }
-        case 0x0A:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "InfiniBand-to-PCI Host Bridge";
-            default:
-                return nullptr;
-            }
-        case 0x0B:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "Advanced Switching to PCI Host Bridge "
-                       "(Custom Interface)";
-            case 0x01:
-                return "Advanced Switching to PCI Host Bridge "
-                       "(ASI-SIG Defined Portal Interface)";
-            case 0xFF:
-                return "Advanced Switching to PCI Host Bridge";
-            default:
-                return nullptr;
-            }
-        case 0x80:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "Other Bridge Device";
-            default:
-                return nullptr;
-            }
-        case 0xFF:
-            switch (prog_if)
-            {
-            case 0xFF:
-                return "Bridge Device";
-            default:
-                return nullptr;
-            }
-        default:
-            return nullptr;
-        }
-    case 0x07:
-        switch (sub_class)
-        {
-        case 0x00:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "8250";
-            case 0x01:
-                return "16450";
-            case 0x02:
-                return "16550";
-            case 0x03:
-                return "16650";
-            case 0x04:
-                return "16750";
-            case 0x05:
-                return "16850";
-            case 0x06:
-                return "16950";
-            case 0xFF:
-                return "Serial Controller";
-            default:
-                return nullptr;
-            }
-        case 0x01:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "SPP";
-            case 0x01:
-                return "BiDir";
-            case 0x02:
-                return "ECP";
-            case 0x03:
-                return "IEEE 1284";
-            case 0xFE:
-                return "IEEE 1284 Target";
-            case 0xFF:
-                return "Parallel Controller";
-            default:
-                return nullptr;
-            }
-        case 0x02:
-            return prog_if == 0xFF ? "Multiport Serial Controller" : nullptr;
-        case 0x03:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "Generic";
-            case 0x01:
-                return "Hayes/16450";
-            case 0x02:
-                return "Hayes/16550";
-            case 0x03:
-                return "Hayes/16650";
-            case 0x04:
-                return "Hayes/16750";
-            case 0xFF:
-                return "Modem";
-            default:
-                return nullptr;
-            }
-        case 0x04:
-            return prog_if == 0xFF ? "GPIB Controller" : nullptr;
-        case 0x05:
-            return prog_if == 0xFF ? "Smart Card Controller" : nullptr;
-        case 0xFF:
-            return prog_if == 0xFF ? "Communication Controller" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x08:
-        switch (sub_class)
-        {
-        case 0x00:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "8259";
-            case 0x01:
-                return "ISA PIC";
-            case 0x02:
-                return "EISA PIC";
-            case 0x10:
-                return "IO-APIC";
-            case 0x20:
-                return "IO(X)-APIC";
-            case 0xFF:
-                return "PIC";
-            default:
-                return nullptr;
-            }
-        case 0x01:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "8237";
-            case 0x01:
-                return "ISA DMA";
-            case 0x02:
-                return "EISA DMA";
-            case 0xFF:
-                return "DMA Controller";
-            default:
-                return nullptr;
-            }
-        case 0x02:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "8254";
-            case 0x01:
-                return "ISA Timer";
-            case 0x02:
-                return "EISA Timer";
-            case 0x03:
-                return "HPET";
-            case 0xFF:
-                return "Timer";
-            default:
-                return nullptr;
-            }
-        case 0x03:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "Generic";
-            case 0x01:
-                return "ISA RTC";
-            case 0xFF:
-                return "RTC";
-            default:
-                return nullptr;
-            }
-        case 0x04:
-            return prog_if == 0xFF ? "PCI Hot-Plug Controller" : nullptr;
-        case 0x05:
-            return prog_if == 0xFF ? "SD Host Controller" : nullptr;
-        case 0x06:
-            return prog_if == 0xFF ? "IOMMU" : nullptr;
-        case 0x99:
-            switch (prog_if)
-            {
-            case 0x01:
-                return "TAP Timing Card";
-            case 0xFF:
-                return "Timing Card";
-            default:
-                return nullptr;
-            }
-        case 0xFF:
-            return prog_if == 0xFF ? "Generic System Peripheral" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x09:
-        switch (sub_class)
-        {
-        case 0x00:
-            return prog_if == 0xFF ? "Keyboard Controller" : nullptr;
-        case 0x01:
-            return prog_if == 0xFF ? "Digitizer Pen" : nullptr;
-        case 0x02:
-            return prog_if == 0xFF ? "Mouse Controller" : nullptr;
-        case 0x03:
-            return prog_if == 0xFF ? "Scanner Controller" : nullptr;
-        case 0x04:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "Generic";
-            case 0x10:
-                return "Extended";
-            case 0xFF:
-                return "Gameport Controller";
-            default:
-                return nullptr;
-            }
-        case 0xFF:
-            return prog_if == 0xFF ? "Input Device Controller" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x0A:
-        switch (sub_class)
-        {
-        case 0x00:
-            return prog_if == 0xFF ? "Generic Docking Station" : nullptr;
-        case 0xFF:
-            return prog_if == 0xFF ? "Docking Station" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x0B:
-        switch (sub_class)
-        {
-        case 0x00:
-            return prog_if == 0xFF ? "386" : nullptr;
-        case 0x01:
-            return prog_if == 0xFF ? "486" : nullptr;
-        case 0x02:
-            return prog_if == 0xFF ? "Pentium" : nullptr;
-        case 0x10:
-            return prog_if == 0xFF ? "Alpha" : nullptr;
-        case 0x20:
-            return prog_if == 0xFF ? "PowerPC" : nullptr;
-        case 0x30:
-            return prog_if == 0xFF ? "MIPS" : nullptr;
-        case 0x40:
-            return prog_if == 0xFF ? "Co-Processor" : nullptr;
-        case 0xFF:
-            return prog_if == 0xFF ? "Processor" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x0C:
-        switch (sub_class)
-        {
-        case 0x00:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "Generic";
-            case 0x10:
-                return "OHCI";
-            case 0xFF:
-                return "FireWire (IEEE 1394)";
-            default:
-                return nullptr;
-            }
-        case 0x01:
-            return prog_if == 0xFF ? "ACCESS Bus" : nullptr;
-        case 0x02:
-            return prog_if == 0xFF ? "SSA" : nullptr;
-        case 0x03:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "UHCI";
-            case 0x10:
-                return "OHCI";
-            case 0x20:
-                return "EHCI";
-            case 0x30:
-                return "XHCI";
-            case 0x40:
-                return "USB4 Host Interface";
-            case 0xFE:
-                return "USB Device";
-            case 0xFF:
-                return "USB Controller";
-            default:
-                return nullptr;
-            }
-        case 0x04:
-            return prog_if == 0xFF ? "Fibre Channel" : nullptr;
-        case 0x05:
-            switch (prog_if)
-            {
-            case 0x00:
-            case 0xFF:
-                return "SMBus";
-            default:
-                return nullptr;
-            }
-        case 0x06:
-            return prog_if == 0xFF ? "InfiniBand" : nullptr;
-        case 0x07:
-            switch (prog_if)
-            {
-            case 0x00:
-                return "SMIC";
-            case 0x01:
-                return "KCS";
-            case 0x02:
-                return "Block Transfer";
-            case 0xFF:
-                return "IPMI Interface";
-            default:
-                return nullptr;
-            }
-        case 0x08:
-            return prog_if == 0xFF ? "SERCOS Interface" : nullptr;
-        case 0x09:
-            return prog_if == 0xFF ? "CANBUS" : nullptr;
-        case 0xFF:
-            return prog_if == 0xFF ? "Serial Bus Controller" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x0D:
-        switch (sub_class)
-        {
-        case 0x00:
-            return prog_if == 0xFF ? "IRDA Controller" : nullptr;
-        case 0x01:
-            return prog_if == 0xFF ? "Consumer IR Controller" : nullptr;
-        case 0x10:
-            return prog_if == 0xFF ? "RF Controller" : nullptr;
-        case 0x11:
-            return prog_if == 0xFF ? "Bluetooth" : nullptr;
-        case 0x12:
-            return prog_if == 0xFF ? "Broadband" : nullptr;
-        case 0x20:
-            return prog_if == 0xFF ? "802.1a Controller" : nullptr;
-        case 0x21:
-            return prog_if == 0xFF ? "802.1b Controller" : nullptr;
-        case 0xFF:
-            return prog_if == 0xFF ? "Wireless Controller" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x0E:
-        switch (sub_class)
-        {
-        case 0x00:
-            return prog_if == 0xFF ? "I2O" : nullptr;
-        case 0xFF:
-            return prog_if == 0xFF ? "Intelligent Controller" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x0F:
-        switch (sub_class)
-        {
-        case 0x01:
-            return prog_if == 0xFF ? "Satellite TV Controller" : nullptr;
-        case 0x02:
-            return prog_if == 0xFF ? "Satellite Audio Communication Controller" : nullptr;
-        case 0x03:
-            return prog_if == 0xFF ? "Satellite Voice Communication Controller" : nullptr;
-        case 0x04:
-            return prog_if == 0xFF ? "Satellite Data Communication Controller" : nullptr;
-        case 0xFF:
-            return prog_if == 0xFF ? "Satellite Communication Controller" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x10:
-        switch (sub_class)
-        {
-        case 0x00:
-            return prog_if == 0xFF ? "Network And Computing Encryption Device" : nullptr;
-        case 0x10:
-            return prog_if == 0xFF ? "Entertainment Encryption Device" : nullptr;
-        case 0xFF:
-            return prog_if == 0xFF ? "Encryption Controller" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x11:
-        switch (sub_class)
-        {
-        case 0x00:
-            return prog_if == 0xFF ? "DPIO Module" : nullptr;
-        case 0x01:
-            return prog_if == 0xFF ? "Performance Counters" : nullptr;
-        case 0x10:
-            return prog_if == 0xFF ? "Communication Synchronizer" : nullptr;
-        case 0x20:
-            return prog_if == 0xFF ? "Signal Processing Management" : nullptr;
-        case 0xFF:
-            return prog_if == 0xFF ? "Signal Processing Controller" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x12:
-        switch (sub_class)
-        {
-        case 0x01:
-            return prog_if == 0xFF ? "SNIA Smart Data Accelerator Interface "
-                                     "(SDXI) Controller"
-                                   : nullptr;
-        case 0xFF:
-            return prog_if == 0xFF ? "Processing Accelerator" : nullptr;
-        default:
-            return nullptr;
-        }
-    case 0x13:
-        return sub_class == 0xFF && prog_if == 0xFF ? "Non-Essential "
-                                                      "Instrumentation"
-                                                    : nullptr;
-    case 0x40:
-        return sub_class == 0xFF && prog_if == 0xFF ? "Co-Processor" : nullptr;
-    case 0xFF:
-        return sub_class == 0xFF && prog_if == 0xFF ? "Unassigned Class" : nullptr;
-    default:
-        return nullptr;
-    }
+    auto key = pci_key(base_class, sub_class, prog_if);
+    for (auto& entry : pci_device_table)
+        if (entry.key == key)
+            return entry.val;
+    return nullptr;
 }
+
+constexpr key_val_t<u16, cstr> pci_vendor_table[]{
+    { 0x1002, "Advanced Micro Devices, Inc. [AMD/ATI]" },
+    { 0x1022,     "Advanced Micro Devices, Inc. [AMD]" },
+    { 0x10DE,                     "NVIDIA Corporation" },
+    { 0x10EC,        "Realtek Semiconductor Co., Ltd." },
+    { 0x1234,                                   "QEMU" },
+    { 0x8086,                            "Intel Corp." },
+};
 
 cstr kernel::GetPciVendorName(u16 vendor_id)
 {
-    switch (vendor_id)
-    {
-    case 0x1002:
-        return "Advanced Micro Devices, Inc. [AMD/ATI]";
-    case 0x1022:
-        return "Advanced Micro Devices, Inc. [AMD]";
-    case 0x10DE:
-        return "NVIDIA Corporation";
-    case 0x10EC:
-        return "Realtek Semiconductor Co., Ltd.";
-    case 0x1234:
-        return "QEMU";
-    case 0x8086:
-        return "Intel Corp.";
-    default:
-        return nullptr;
-    }
+    for (auto& entry : pci_vendor_table)
+        if (entry.key == vendor_id)
+            return entry.val;
+    return nullptr;
 }
+
+constexpr u32 pci_vendor_device_key(
+    u16 vendor_id,
+    u16 device_id)
+{
+    return (u32(vendor_id) << 16u) | u32(device_id);
+}
+
+constexpr key_val_t<u32, cstr> pci_vendor_device_table[]{
+    { pci_vendor_device_key(0x8086, 0x10D3),                              "82574L Gigabit Network Connection" },
+    { pci_vendor_device_key(0x8086, 0x2448),                                        "82801 Mobile PCI Bridge" },
+    { pci_vendor_device_key(0x8086, 0x2815),                       "82801HM (ICH8M) LPC Interface Controller" },
+    { pci_vendor_device_key(0x8086, 0x2828),         "82801HM/HEM (ICH8M/ICH8M-E) SATA Controller [IDE mode]" },
+    { pci_vendor_device_key(0x8086, 0x2830),                    "82801H (ICH8 Family) USB UHCI Controller #1" },
+    { pci_vendor_device_key(0x8086, 0x2831),                    "82801H (ICH8 Family) USB UHCI Controller #2" },
+    { pci_vendor_device_key(0x8086, 0x2832),                    "82801H (ICH8 Family) USB UHCI Controller #3" },
+    { pci_vendor_device_key(0x8086, 0x2833),                    "82801H (ICH8 Family) USB UHCI Controller #4" },
+    { pci_vendor_device_key(0x8086, 0x2834),                    "82801H (ICH8 Family) USB UHCI Controller #4" },
+    { pci_vendor_device_key(0x8086, 0x2835),                    "82801H (ICH8 Family) USB UHCI Controller #5" },
+    { pci_vendor_device_key(0x8086, 0x2836),                   "82801H (ICH8 Family) USB2 EHCI Controller #1" },
+    { pci_vendor_device_key(0x8086, 0x283A),                   "82801H (ICH8 Family) USB2 EHCI Controller #2" },
+    { pci_vendor_device_key(0x8086, 0x283E),                          "82801H (ICH8 Family) SMBus Controller" },
+    { pci_vendor_device_key(0x8086, 0x283F),                        "82801H (ICH8 Family) PCI Express Port 1" },
+    { pci_vendor_device_key(0x8086, 0x2841),                        "82801H (ICH8 Family) PCI Express Port 2" },
+    { pci_vendor_device_key(0x8086, 0x2843),                        "82801H (ICH8 Family) PCI Express Port 3" },
+    { pci_vendor_device_key(0x8086, 0x2845),                        "82801H (ICH8 Family) PCI Express Port 4" },
+    { pci_vendor_device_key(0x8086, 0x2847),                        "82801H (ICH8 Family) PCI Express Port 5" },
+    { pci_vendor_device_key(0x8086, 0x2849),                        "82801H (ICH8 Family) PCI Express Port 6" },
+    { pci_vendor_device_key(0x8086, 0x284B),                       "82801H (ICH8 Family) HD Audio Controller" },
+    { pci_vendor_device_key(0x8086, 0x284F),                  "82801H (ICH8 Family) Thermal Reporting Device" },
+    { pci_vendor_device_key(0x8086, 0x2918),                        "82801IB (ICH9) LPC Interface Controller" },
+    { pci_vendor_device_key(0x8086, 0x2922), "82801IR/IO/IH (ICH9R/DO/DH) 6 port SATA Controller [AHCI mode]" },
+    { pci_vendor_device_key(0x8086, 0x2930),                          "82801I (ICH9 Family) SMBus Controller" },
+    { pci_vendor_device_key(0x8086, 0x29C0),                      "82G33/G31/P35/P31 Express DRAM Controller" },
+    { pci_vendor_device_key(0x8086, 0x2A00),                 "Mobile PM965/GM965/GL960 Memory Controller Hub" },
+    { pci_vendor_device_key(0x8086, 0x2A01),                 "Mobile PM965/GM965/GL960 PCI Express Root Port" },
+    { pci_vendor_device_key(0x8086, 0x4229),        "PRO/Wireless 4965 AG or AGN [Kedron] Network Connection" },
+
+    { pci_vendor_device_key(0x10DE, 0x060C),                                       "G92M [GeForce 8800M GTX]" },
+
+    { pci_vendor_device_key(0x10EC, 0x8161),      "RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller" },
+    { pci_vendor_device_key(0x10EC, 0x8167),                             "RTL-8110SC/8169SC Gigabit Ethernet" },
+    { pci_vendor_device_key(0x10EC, 0x8168),      "RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller" },
+    { pci_vendor_device_key(0x10EC, 0x8169),                        "RTL8169 PCI Gigabit Ethernet Controller" },
+    { pci_vendor_device_key(0x10EC, 0x816A),                                              "RTL8111xP UART #1" },
+    { pci_vendor_device_key(0x10EC, 0x816B),                                              "RTL8111xP UART #2" },
+    { pci_vendor_device_key(0x10EC, 0x816C),                                       "RTL8111xP IPMI interface" },
+    { pci_vendor_device_key(0x10EC, 0x816D),                                   "RTL811x EHCI host controller" },
+    { pci_vendor_device_key(0x10EC, 0x816E),                                         "Realtek RealManage BMC" },
+
+    { pci_vendor_device_key(0x1234, 0x1111),                                         "Generic VGA Controller" },
+};
 
 cstr kernel::GetPciDeviceName(
     u16 vendor_id,
     u16 device_id)
 {
-    switch (vendor_id)
-    {
-    case 0x8086:
-        switch (device_id)
-        {
-        case 0x10D3:
-            return "82574L Gigabit Network Connection";
-        case 0x2448:
-            return "82801 Mobile PCI Bridge";
-        case 0x2815:
-            return "82801HM (ICH8M) LPC Interface Controller";
-        case 0x2828:
-            return "82801HM/HEM (ICH8M/ICH8M-E) SATA Controller [IDE mode]";
-        case 0x2830:
-            return "82801H (ICH8 Family) USB UHCI Controller #1";
-        case 0x2831:
-            return "82801H (ICH8 Family) USB UHCI Controller #2";
-        case 0x2832:
-            return "82801H (ICH8 Family) USB UHCI Controller #3";
-        case 0x2833:
-            return "82801H (ICH8 Family) USB UHCI Controller #4";
-        case 0x2834:
-            return "82801H (ICH8 Family) USB UHCI Controller #4";
-        case 0x2835:
-            return "82801H (ICH8 Family) USB UHCI Controller #5";
-        case 0x2836:
-            return "82801H (ICH8 Family) USB2 EHCI Controller #1";
-        case 0x283A:
-            return "82801H (ICH8 Family) USB2 EHCI Controller #2";
-        case 0x283E:
-            return "82801H (ICH8 Family) SMBus Controller";
-        case 0x283F:
-            return "82801H (ICH8 Family) PCI Express Port 1";
-        case 0x2841:
-            return "82801H (ICH8 Family) PCI Express Port 2";
-        case 0x2843:
-            return "82801H (ICH8 Family) PCI Express Port 3";
-        case 0x2845:
-            return "82801H (ICH8 Family) PCI Express Port 4";
-        case 0x2847:
-            return "82801H (ICH8 Family) PCI Express Port 5";
-        case 0x2849:
-            return "82801H (ICH8 Family) PCI Express Port 6";
-        case 0x284B:
-            return "82801H (ICH8 Family) HD Audio Controller";
-        case 0x284F:
-            return "82801H (ICH8 Family) Thermal Reporting Device";
-        case 0x2918:
-            return "82801IB (ICH9) LPC Interface Controller";
-        case 0x2922:
-            return "82801IR/IO/IH (ICH9R/DO/DH) 6 port SATA Controller [AHCI "
-                   "mode]";
-        case 0x2930:
-            return "82801I (ICH9 Family) SMBus Controller";
-        case 0x29C0:
-            return "82G33/G31/P35/P31 Express DRAM Controller";
-        case 0x2A00:
-            return "Mobile PM965/GM965/GL960 Memory Controller Hub";
-        case 0x2A01:
-            return "Mobile PM965/GM965/GL960 PCI Express Root Port";
-        case 0x4229:
-            return "PRO/Wireless 4965 AG or AGN [Kedron] Network Connection";
-        default:
-            return nullptr;
-        }
-    case 0x10DE:
-        switch (device_id)
-        {
-        case 0x060C:
-            return "G92M [GeForce 8800M GTX]";
-        default:
-            return nullptr;
-        }
-    case 0x10EC:
-        switch (device_id)
-        {
-        case 0x8161:
-            return "RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller";
-        case 0x8167:
-            return "RTL-8110SC/8169SC Gigabit Ethernet";
-        case 0x8168:
-            return "RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller";
-        case 0x8169:
-            return "RTL8169 PCI Gigabit Ethernet Controller";
-        case 0x816A:
-            return "RTL8111xP UART #1";
-        case 0x816B:
-            return "RTL8111xP UART #2";
-        case 0x816C:
-            return "RTL8111xP IPMI interface";
-        case 0x816D:
-            return "RTL811x EHCI host controller";
-        case 0x816E:
-            return "Realtek RealManage BMC";
-        default:
-            return nullptr;
-        }
-    case 0x1234:
-        switch (device_id)
-        {
-        case 0x1111:
-            return "Generic VGA Controller";
-        default:
-            return nullptr;
-        }
-    default:
-        return nullptr;
-    }
+    auto key = pci_vendor_device_key(vendor_id, device_id);
+    for (auto& entry : pci_vendor_device_table)
+        if (entry.key == key)
+            return entry.val;
+    return nullptr;
 }

@@ -226,7 +226,7 @@ static void print_system_information()
 
     kputs("\r\n");
 
-    kprintf("total size: %016llx (%u KiB)\r\n", end_address, end_address / 1024);
+    kprintf("total size: %016llx (%u KiB)\r\n", end_address, end_address / 0x400);
 
     kputs("\r\n");
 
