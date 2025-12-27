@@ -21,6 +21,7 @@ namespace kernel
         cstr Name;
         interrupt::StackFrame Frame;
         void* Stack;
+        void* VirtualStack;
         TaskState State;
         u64 Priority;
         u64 Timeslice;

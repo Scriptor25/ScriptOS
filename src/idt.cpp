@@ -65,6 +65,7 @@ void kernel::InitializeIDT()
     entries[0x2F] = { reinterpret_cast<uptr>(__irq15_proxy), 0x0008, 0b000, 0xF, 0b00 };
 
     entries[0x69] = { reinterpret_cast<uptr>(__ke_proxy), 0x0008, 0b000, 0xE, 0b00 };
+    entries[0x90] = { reinterpret_cast<uptr>(__sys_proxy), 0x0008, 0b000, 0xF, 0b00 };
 
     const InterruptDescriptor descriptor = {
         static_cast<u16>(sizeof(entries) - 1),

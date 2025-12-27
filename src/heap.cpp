@@ -8,7 +8,7 @@ struct HeapHeader
     usize size;
     HeapHeader* left;
     HeapHeader* right;
-} __attribute__((packed));
+};
 
 static HeapHeader* __heap_begin = nullptr;
 static usize __heap_size        = 0;
@@ -108,8 +108,9 @@ void* kernel::Allocate(usize count)
         if (!header)
         {
             __extend_heap();
+            continue;
         }
-    } while (!header);
+    } while (false);
 
     if (header->size - sizeof(HeapHeader) <= count)
     {
@@ -190,6 +191,6 @@ void kernel::FreeAligned(void* block)
         return;
     }
 
-    auto raw = reinterpret_cast<void**>(block)[-1];
+    auto raw = reinterpret_cast<void**>(block) - 1;
     Free(raw);
 }

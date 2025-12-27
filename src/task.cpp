@@ -20,9 +20,7 @@ static void __task_exit()
     sti();
 
     for (;;)
-    {
         hlt();
-    }
 }
 
 kernel::Task* kernel::CreateTask(
@@ -31,28 +29,30 @@ kernel::Task* kernel::CreateTask(
     void (*entry)(void*),
     void* arg)
 {
-    auto task = kernel::Allocate<Task>();
+    auto task = Allocate<Task>();
 
     auto pid = task_next_pid++;
 
-    auto stack = kernel::Instance.Allocator->AllocatePhysicalPage();
-    kernel::MapPage(stack, stack, true);
+    auto stack         = Instance.Allocator->AllocatePhysicalPage();
+    auto virtual_stack = PhysicalToVirtual(stack);
+    MapPage(virtual_stack, stack, true);
 
-    kernel::Fill(stack, 0, PAGE_SIZE);
+    Fill(virtual_stack, 0, PAGE_SIZE);
 
     *task = {
-        .PID       = pid,
-        .Name      = name,
-        .Frame     = {},
-        .Stack     = stack,
-        .State     = TaskState_Runnable,
-        .Priority  = priority,
-        .Timeslice = priority ? priority * TASK_TIMESLICE : 1,
-        .PrevTask  = nullptr,
-        .NextTask  = nullptr,
+        .PID          = pid,
+        .Name         = name,
+        .Frame        = {},
+        .Stack        = stack,
+        .VirtualStack = virtual_stack,
+        .State        = TaskState_Runnable,
+        .Priority     = priority,
+        .Timeslice    = priority ? priority * TASK_TIMESLICE : 1,
+        .PrevTask     = nullptr,
+        .NextTask     = nullptr,
     };
 
-    auto stack_top = reinterpret_cast<u8*>(stack) + PAGE_SIZE;
+    auto stack_top = reinterpret_cast<u8*>(virtual_stack) + PAGE_SIZE;
     stack_top = reinterpret_cast<u8*>(reinterpret_cast<uptr>(stack_top) & ~0xF);
 
     *reinterpret_cast<u64*>(stack_top -= 8) = reinterpret_cast<u64>(__task_exit);
@@ -97,14 +97,10 @@ kernel::Task* kernel::NextTask(Task* active)
     TaskReaper();
 
     if (!task_queue_root)
-    {
         return nullptr;
-    }
 
     if (!active)
-    {
         return task_queue_root;
-    }
 
     if (active->Timeslice)
     {
@@ -115,13 +111,11 @@ kernel::Task* kernel::NextTask(Task* active)
     if (!active->NextTask)
     {
         for (auto task = task_queue_root; task; task = task->NextTask)
-        {
             if (task->State == TaskState_Running)
             {
                 task->State = TaskState_Runnable;
                 task->Timeslice = task->Priority ? task->Priority * TASK_TIMESLICE : 1;
             }
-        }
         return task_queue_root;
     }
 
@@ -139,26 +133,17 @@ void kernel::TaskReaper()
         if (task->State == TaskState_Zombie)
         {
             if (task->PrevTask)
-            {
                 task->PrevTask->NextTask = task->NextTask;
-            }
             else
-            {
                 task_queue_root = task->NextTask;
-            }
 
             if (task->NextTask)
-            {
                 task->NextTask->PrevTask = task->PrevTask;
-            }
 
             auto next = task->NextTask;
 
-            kernel::Instance.Allocator->FreePage(task->Stack);
-
-            *reinterpret_cast<u64*>(task->Stack) = 0x6969'6969'6969'6969llu;
-
-            kernel::Free(task);
+            Instance.Allocator->FreePage(task->Stack);
+            Free(task);
 
             task = next;
             continue;

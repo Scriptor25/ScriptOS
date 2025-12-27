@@ -45,9 +45,7 @@ NORETURN static void error(
     INT(0x69);
 
     for (;;)
-    {
         hlt();
-    }
 }
 
 static void initialize_allocator()
@@ -270,9 +268,7 @@ static void print_mcfg(const acpi::Mcfg* mcfg)
                 for (const auto [function_index, function] : device)
                 {
                     if (function->DeviceID == 0xFFFF || function->VendorID == 0xFFFF)
-                    {
                         continue;
-                    }
 
                     auto device_descriptor = kernel::GetPciDeviceDescriptor(
                         function->BaseClass,
@@ -285,33 +281,21 @@ static void print_mcfg(const acpi::Mcfg* mcfg)
 
                     kprintf("[ %02x:%02x:%02x ] ", bus_index, device_index, function_index);
                     if (device_descriptor)
-                    {
                         kprintf("%s, ", device_descriptor);
-                    }
                     else
-                    {
                         kprintf(
                             "%02x-%02x-%02x, ",
                             function->BaseClass,
                             function->SubClass,
                             function->ProgIF);
-                    }
                     if (vendor_name)
-                    {
                         kprintf("%s, ", vendor_name);
-                    }
                     else
-                    {
                         kprintf("%04x, ", function->VendorID);
-                    }
                     if (device_name)
-                    {
                         kprintf("%s", device_name);
-                    }
                     else
-                    {
                         kprintf("%04x", function->DeviceID);
-                    }
                     kputs("\r\n");
                 }
             }
@@ -321,42 +305,29 @@ static void print_mcfg(const acpi::Mcfg* mcfg)
 
 static void ping_pong_task(void* arg)
 {
-    kernel::Task* task;
-
     if (arg)
     {
         cli();
         kputs("pong\r\n");
+        kflush();
         sti();
-
-        task = kernel::CreateTask("ping", 0, ping_pong_task, nullptr);
     }
     else
     {
         cli();
         kputs("ping\r\n");
-        sti();
-
-        task = kernel::CreateTask("pong", 0, ping_pong_task, reinterpret_cast<void*>(0xDEADBEEF));
-    }
-
-    kernel::EnqueueTask(task);
-}
-
-NORETURN static void kernel_task(void* arg)
-{
-    (void) arg;
-
-    auto task = kernel::CreateTask("ping", 0, ping_pong_task, nullptr);
-    kernel::EnqueueTask(task);
-
-    for (;;)
-    {
-        cli();
         kflush();
         sti();
-        hlt();
+
+        auto task = kernel::CreateTask("pong", 0, ping_pong_task, reinterpret_cast<void*>(0xDEADBEEF));
+        kernel::EnqueueTask(task);
     }
+}
+
+static void kernel_task(void* /* arg */)
+{
+    auto task = kernel::CreateTask("ping", 0, ping_pong_task, nullptr);
+    kernel::EnqueueTask(task);
 }
 
 extern "C" NORETURN void kmain()
@@ -378,44 +349,21 @@ extern "C" NORETURN void kmain()
     sti();
 
     if (!LIMINE_BASE_REVISION_SUPPORTED)
-    {
         error("limine base revision not supported");
-    }
-
     if (!bootloader_info_request.response)
-    {
         error("no bootloader info response");
-    }
-
     if (!firmware_type_request.response)
-    {
         error("no firmware type response");
-    }
-
     if (!hhdm_request.response)
-    {
         error("no hhdm response");
-    }
-
     if (!framebuffer_request.response)
-    {
         error("no framebuffer response");
-    }
-
     if (!memmap_request.response)
-    {
         error("no memmap response");
-    }
-
     if (!mp_request.response)
-    {
         error("no mp response");
-    }
-
     if (!rsdp_request.response)
-    {
         error("no rsdp response");
-    }
 
     kernel::InitializePaging(hhdm_request.response->offset);
 
@@ -427,7 +375,9 @@ extern "C" NORETURN void kmain()
 
     kernel::InitializeHeap(0x400000);
 
-    kernel::InitializeProcessorState(0);
+    Range cpus(mp_request.response->cpus, mp_request.response->cpu_count);
+    for (auto cpu : cpus)
+        kernel::InitializeProcessorState(cpu->processor_id);
 
     initialize_renderer();
 
@@ -448,9 +398,7 @@ extern "C" NORETURN void kmain()
 
         mcfg = rsdt->Find<acpi::Mcfg>("MCFG");
         if (!mcfg)
-        {
             error("no mcfg table");
-        }
 
         break;
     }
@@ -462,9 +410,7 @@ extern "C" NORETURN void kmain()
 
         mcfg = xsdt->Find<acpi::Mcfg>("MCFG");
         if (!mcfg)
-        {
             error("no mcfg table");
-        }
 
         break;
     }
@@ -481,7 +427,5 @@ extern "C" NORETURN void kmain()
     kernel::EnqueueTask(task);
 
     for (;;)
-    {
         hlt();
-    }
 }

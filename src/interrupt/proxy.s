@@ -90,3 +90,4 @@ proxy irq13
 proxy irq14
 proxy irq15
 proxy ke
+proxy sys

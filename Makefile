@@ -87,7 +87,7 @@ QEMUFLAGS = -machine q35	\
 			-cdrom $(ISO)
 
 QEMUFLAGS_EFI = -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE.fd \
-				-drive if=pflash,format=raw,file=/usr/share/OVMF/OVMF_VARS.fd
+				-drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_VARS.fd
 
 .PHONY: all clean build launch-bios debug-bios launch-efi debug-efi
 
@@ -105,10 +105,10 @@ debug-bios: $(ISO)
 	$(QEMU) $(QEMUFLAGS) -s -S
 
 launch-efi: $(ISO)
-	sudo $(QEMU) $(QEMUFLAGS) $(QEMUFLAGS_EFI)
+	$(QEMU) $(QEMUFLAGS) $(QEMUFLAGS_EFI)
 
 debug-efi: $(ISO)
-	sudo $(QEMU) $(QEMUFLAGS) $(QEMUFLAGS_EFI) -s -S
+	$(QEMU) $(QEMUFLAGS) $(QEMUFLAGS_EFI) -s -S
 
 include $(KERNEL_DEPENDECIES)
 
